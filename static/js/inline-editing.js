@@ -1,170 +1,169 @@
 /**
- * plain-text-inline-editing.js
- * Specialized for editing character sheets displayed as plain text
+ * inline-editing.js
+ * This script enables inline editing for D&D character sheets
+ * Works with both structured and plain text views
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Initializing plain text editing...');
+    console.log('Initializing D&D sheet inline editing...');
     
-    // Extract character ID from the URL
+    // Get the character ID from the URL
     const pathParts = window.location.pathname.split('/');
     const characterId = pathParts[pathParts.length - 1];
     console.log('Character ID:', characterId);
     
-    // Add indicator banner
-    addEditingBanner();
+    // Determine if we're viewing a structured sheet or plain text
+    const isStructuredSheet = document.querySelector('.d5e-character-sheet') !== null;
     
-    // Make fields editable
-    setupPlainTextEditing(characterId);
+    if (isStructuredSheet) {
+        console.log('Detected structured character sheet');
+        initializeStructuredSheetEditing(characterId);
+    } else {
+        console.log('Detected plain text character sheet');
+        initializePlainTextEditing(characterId);
+    }
+    
+    // Add a notification about editing
+    addEditingNotification();
 });
 
 /**
- * Add a banner explaining the editing functionality
+ * Add a notification banner about editing functionality
  */
-function addEditingBanner() {
-    const banner = document.createElement('div');
-    banner.style.padding = '10px';
-    banner.style.marginBottom = '15px';
-    banner.style.backgroundColor = '#e9f5ff';
-    banner.style.borderLeft = '4px solid #007bff';
-    banner.style.borderRadius = '4px';
+function addEditingNotification() {
+    const notification = document.createElement('div');
+    notification.style.position = 'fixed';
+    notification.style.top = '10px';
+    notification.style.left = '50%';
+    notification.style.transform = 'translateX(-50%)';
+    notification.style.zIndex = '9999';
+    notification.style.padding = '10px 15px';
+    notification.style.backgroundColor = '#e9f5ff';
+    notification.style.borderLeft = '4px solid #007bff';
+    notification.style.borderRadius = '4px';
+    notification.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
     
-    banner.innerHTML = `
+    notification.innerHTML = `
         <div style="display: flex; align-items: center; gap: 10px;">
             <span style="font-weight: bold;">✏️ Character Sheet Editing</span>
             <span>Click on highlighted fields to edit them directly</span>
-            <button id="close-banner" style="margin-left: auto; background: none; border: none; font-size: 18px; cursor: pointer; opacity: 0.5;">×</button>
+            <button id="close-notification" style="margin-left: auto; background: none; border: none; font-size: 18px; cursor: pointer; opacity: 0.5;">×</button>
         </div>
     `;
     
-    // Get the container
-    const container = document.querySelector('.container') || document.body;
-    container.insertBefore(banner, container.firstChild);
+    // Add to page
+    document.body.appendChild(notification);
     
-    // Add close button handler
-    document.getElementById('close-banner').addEventListener('click', function() {
-        banner.style.display = 'none';
+    // Add close button functionality
+    document.getElementById('close-notification').addEventListener('click', function() {
+        notification.style.display = 'none';
+        
+        // Store preference
+        localStorage.setItem('hideEditingNotification', 'true');
     });
+    
+    // Check if notification should be hidden
+    if (localStorage.getItem('hideEditingNotification') === 'true') {
+        notification.style.display = 'none';
+    }
 }
 
 /**
- * Setup plain text editing by identifying edit targets
+ * Initialize editing for the structured character sheet
  * @param {string} characterId - The ID of the character
  */
-function setupPlainTextEditing(characterId) {
-    // Get all text in the document
-    const textElements = getAllTextElements();
+function initializeStructuredSheetEditing(characterId) {
+    // Make basic information fields editable
+    const backgroundElement = document.getElementById('background');
+    if (backgroundElement) makeEditable(backgroundElement, 'background', characterId);
     
-    // Pattern-based field recognition
-    const editableFields = [
-        {
-            pattern: /^Species$/,
-            fieldType: 'species',
-            valueIndex: 1, // Get value from next text element
-            displayFormat: (value) => `Species ${value}`
-        },
-        {
-            pattern: /^Background \[.*\]$/,
-            fieldType: 'background',
-            valuePattern: /\[(.*)\]/,
-            displayFormat: (value) => `Background [${value}]`
-        },
-        {
-            pattern: /^Alignment \[.*\]$/,
-            fieldType: 'alignment',
-            valuePattern: /\[(.*)\]/,
-            displayFormat: (value) => `Alignment [${value}]`
-        },
-        {
-            pattern: /^STR$/,
-            fieldType: 'str_score',
-            valuePattern: /^(\d+)$/,
-            valueIndex: 1, // Next element should be the value
-            displayFormat: (value) => value
-        },
-        {
-            pattern: /^DEX$/,
-            fieldType: 'dex_score',
-            valuePattern: /^(\d+)$/,
-            valueIndex: 1,
-            displayFormat: (value) => value
-        },
-        {
-            pattern: /^CON$/,
-            fieldType: 'con_score',
-            valuePattern: /^(\d+)$/,
-            valueIndex: 1,
-            displayFormat: (value) => value
-        },
-        {
-            pattern: /^INT$/,
-            fieldType: 'int_score',
-            valuePattern: /^(\d+)$/,
-            valueIndex: 1,
-            displayFormat: (value) => value
-        },
-        {
-            pattern: /^WIS$/,
-            fieldType: 'wis_score',
-            valuePattern: /^(\d+)$/,
-            valueIndex: 1,
-            displayFormat: (value) => value
-        },
-        {
-            pattern: /^CHA$/,
-            fieldType: 'cha_score',
-            valuePattern: /^(\d+)$/,
-            valueIndex: 1,
-            displayFormat: (value) => value
+    const alignmentElement = document.getElementById('alignment');
+    if (alignmentElement) makeEditable(alignmentElement, 'alignment', characterId);
+    
+    // Find species field - the species field doesn't have an ID, so we need to find it by traversing the DOM
+    const detailItems = document.querySelectorAll('.d5e-detail-item');
+    detailItems.forEach(item => {
+        // Look for a label with "Species" text
+        const label = item.querySelector('label');
+        if (label && label.textContent === 'Species') {
+            const speciesSpan = item.querySelector('span');
+            if (speciesSpan) makeEditable(speciesSpan, 'species', characterId);
         }
+    });
+    
+    // Make ability scores editable
+    ['str', 'dex', 'con', 'int', 'wis', 'cha'].forEach(ability => {
+        const scoreElement = document.getElementById(`${ability}-score`);
+        if (scoreElement) {
+            makeEditable(scoreElement, `${ability}_score`, characterId, function(element, newValue) {
+                updateAbilityModifier(ability, newValue);
+            });
+        }
+    });
+    
+    // Make combat stats editable
+    const combatFields = [
+        { id: 'armor-class', field: 'armor_class' },
+        { id: 'initiative', field: 'initiative' },
+        { id: 'speed', field: 'speed' },
+        { id: 'max-hp', field: 'max_hp' },
+        { id: 'current-hp', field: 'current_hp' },
+        { id: 'temp-hp', field: 'temp_hp' },
+        { id: 'hit-dice', field: 'hit_dice' }
     ];
     
-    // Process each text element
-    textElements.forEach((element, index) => {
-        const text = element.textContent.trim();
-        
-        // Check each pattern for a match
-        editableFields.forEach(field => {
-            if (field.pattern.test(text)) {
-                // This is a label element
-                
-                if (field.valuePattern && field.valuePattern.test(text)) {
-                    // The value is part of this element (e.g., "Background [Acolyte]")
-                    const match = text.match(field.valuePattern);
-                    if (match && match[1]) {
-                        makeElementEditable(element, field.fieldType, match[1], characterId, field.displayFormat);
-                    }
-                } else if (field.valueIndex !== undefined && index + field.valueIndex < textElements.length) {
-                    // The value is in a separate element
-                    const valueElement = textElements[index + field.valueIndex];
-                    const valueText = valueElement.textContent.trim();
-                    
-                    // Skip "+" modifier lines for ability scores
-                    if (valueText.startsWith('+') || valueText.startsWith('-')) {
-                        return;
-                    }
-                    
-                    if (field.valuePattern) {
-                        const match = valueText.match(field.valuePattern);
-                        if (match && match[1]) {
-                            makeElementEditable(valueElement, field.fieldType, match[1], characterId, field.displayFormat);
-                        }
-                    } else {
-                        makeElementEditable(valueElement, field.fieldType, valueText, characterId, field.displayFormat);
-                    }
-                }
-            }
-        });
+    combatFields.forEach(field => {
+        const element = document.getElementById(field.id);
+        if (element) makeEditable(element, field.field, characterId);
+    });
+    
+    // Make spell info editable
+    const spellFields = [
+        { id: 'spell-ability', field: 'spell_ability' },
+        { id: 'spell-save-dc', field: 'spell_save_dc' },
+        { id: 'spell-attack', field: 'spell_attack' }
+    ];
+    
+    spellFields.forEach(field => {
+        const element = document.getElementById(field.id);
+        if (element) makeEditable(element, field.field, characterId);
+    });
+    
+    // Make currency editable
+    const currencyFields = [
+        { id: 'pp', field: 'platinum' },
+        { id: 'gp', field: 'gold' },
+        { id: 'ep', field: 'electrum' },
+        { id: 'sp', field: 'silver' },
+        { id: 'cp', field: 'copper' }
+    ];
+    
+    currencyFields.forEach(field => {
+        const element = document.getElementById(field.id);
+        if (element) makeEditable(element, field.field, characterId);
+    });
+    
+    // Make personality traits editable
+    const personalityFields = [
+        { id: 'personality-traits', field: 'personality_traits' },
+        { id: 'ideals', field: 'ideals' },
+        { id: 'bonds', field: 'bonds' },
+        { id: 'flaws', field: 'flaws' }
+    ];
+    
+    personalityFields.forEach(field => {
+        const element = document.getElementById(field.id);
+        if (element) makeEditable(element, field.field, characterId);
     });
 }
 
 /**
- * Get all text elements in the document
- * @returns {Element[]} Array of text-containing elements
+ * Initialize editing for the plain text character sheet
+ * @param {string} characterId - The ID of the character
  */
-function getAllTextElements() {
-    // Find all elements that directly contain text
-    const elements = [];
+function initializePlainTextEditing(characterId) {
+    // Find text elements
+    const allTextNodes = [];
     const walker = document.createTreeWalker(
         document.body,
         NodeFilter.SHOW_TEXT,
@@ -173,80 +172,176 @@ function getAllTextElements() {
     
     let node;
     while (node = walker.nextNode()) {
-        // Skip script and style content
-        if (node.parentElement.tagName === 'SCRIPT' || 
-            node.parentElement.tagName === 'STYLE' ||
-            node.parentElement.classList.contains('editable-field')) {
-            continue;
+        if (node.parentNode.tagName !== 'SCRIPT' && 
+            node.parentNode.tagName !== 'STYLE') {
+            allTextNodes.push(node);
         }
-        
-        // If the text is directly in the body or a container div
-        elements.push(node.parentElement);
     }
     
-    return elements;
+    // Process text nodes for editable fields
+    allTextNodes.forEach((textNode, index) => {
+        const text = textNode.textContent.trim();
+        
+        // Species field
+        if (text === 'Species') {
+            // If the next node exists and has content
+            if (index < allTextNodes.length - 1) {
+                const valueNode = allTextNodes[index + 1];
+                if (valueNode && valueNode.textContent.trim()) {
+                    makeNodeEditable(valueNode, 'species', characterId);
+                }
+            }
+        }
+        
+        // Background field
+        if (text.match(/^Background\s*\[.*\]$/)) {
+            const match = text.match(/\[(.*)\]/);
+            if (match) {
+                // Create spans to make just the value part editable
+                const span = document.createElement('span');
+                span.innerHTML = `Background [<span class="editable-value" data-field="background">${match[1]}</span>]`;
+                
+                // Replace the text node with our span structure
+                textNode.parentNode.replaceChild(span, textNode);
+                
+                // Make the inner span editable
+                makeEditable(span.querySelector('.editable-value'), 'background', characterId);
+            }
+        }
+        
+        // Alignment field
+        if (text.match(/^Alignment\s*\[.*\]$/)) {
+            const match = text.match(/\[(.*)\]/);
+            if (match) {
+                // Create spans to make just the value part editable
+                const span = document.createElement('span');
+                span.innerHTML = `Alignment [<span class="editable-value" data-field="alignment">${match[1]}</span>]`;
+                
+                // Replace the text node with our span structure
+                textNode.parentNode.replaceChild(span, textNode);
+                
+                // Make the inner span editable
+                makeEditable(span.querySelector('.editable-value'), 'alignment', characterId);
+            }
+        }
+        
+        // Ability scores
+        const abilityMatch = text.match(/^(STR|DEX|CON|INT|WIS|CHA)$/);
+        if (abilityMatch) {
+            const ability = abilityMatch[1].toLowerCase();
+            
+            // Look for the score value (should be the next text node)
+            if (index < allTextNodes.length - 1) {
+                const scoreNode = allTextNodes[index + 1];
+                const scoreText = scoreNode.textContent.trim();
+                
+                // If it's a number and not a modifier (which would start with + or -)
+                if (scoreText.match(/^\d+$/) && !scoreText.startsWith('+') && !scoreText.startsWith('-')) {
+                    makeNodeEditable(scoreNode, `${ability}_score`, characterId, function(element, newValue) {
+                        // Find the modifier node (usually right after the score)
+                        if (index < allTextNodes.length - 2) {
+                            const modNode = allTextNodes[index + 2];
+                            const modText = modNode.textContent.trim();
+                            
+                            // If it looks like a modifier (starts with + or -)
+                            if (modText.startsWith('+') || modText.startsWith('-') || modText === '0') {
+                                // Calculate new modifier
+                                const score = parseInt(newValue);
+                                if (!isNaN(score)) {
+                                    const mod = Math.floor((score - 10) / 2);
+                                    const modStr = mod >= 0 ? `+${mod}` : mod.toString();
+                                    modNode.textContent = modStr;
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Make a node editable by wrapping it in a span
+ * @param {Node} textNode - The text node to make editable
+ * @param {string} fieldName - The field name
+ * @param {string} characterId - The character ID
+ * @param {Function} [callback] - Optional callback after save
+ */
+function makeNodeEditable(textNode, fieldName, characterId, callback) {
+    // Create a span element
+    const span = document.createElement('span');
+    span.className = 'editable-field';
+    span.setAttribute('data-field', fieldName);
+    span.textContent = textNode.textContent;
+    
+    // Replace the text node with our span
+    textNode.parentNode.replaceChild(span, textNode);
+    
+    // Make the span editable
+    makeEditable(span, fieldName, characterId, callback);
 }
 
 /**
  * Make an element editable
- * @param {Element} element - The element to make editable
- * @param {string} fieldType - The type of field (for the API)
- * @param {string} currentValue - The current value
+ * @param {HTMLElement} element - The element to make editable
+ * @param {string} fieldName - The field name
  * @param {string} characterId - The character ID
- * @param {Function} displayFormat - Function to format display text
+ * @param {Function} [callback] - Optional callback after save
  */
-function makeElementEditable(element, fieldType, currentValue, characterId, displayFormat) {
-    // Already editable?
+function makeEditable(element, fieldName, characterId, callback) {
+    // Skip if already processed
     if (element.classList.contains('editable-field')) {
         return;
     }
     
-    // Store original element properties
-    const originalText = element.textContent;
-    const originalHTML = element.innerHTML;
-    
-    // Make the element look editable
+    // Add editable styling
     element.classList.add('editable-field');
+    element.style.position = 'relative';
+    element.style.cursor = 'pointer';
+    element.style.borderBottom = '1px dashed rgba(0, 123, 255, 0.5)';
+    element.style.transition = 'all 0.2s';
+    
+    // Store original value
+    const originalValue = element.textContent;
     
     // Add click handler
     element.addEventListener('click', function() {
         // Skip if already editing
-        if (element.querySelector('input')) {
-            return;
-        }
+        if (element.querySelector('input')) return;
         
-        // Create an input element
+        // Create input
         const input = document.createElement('input');
         input.type = 'text';
-        input.value = currentValue;
-        input.className = 'edit-input';
+        input.value = element.textContent;
         input.style.width = '100%';
         input.style.padding = '2px 4px';
         input.style.border = '1px solid #007bff';
         input.style.borderRadius = '3px';
         input.style.fontSize = 'inherit';
+        input.style.outline = 'none';
         
-        // Clear and replace content
-        element.innerHTML = '';
+        // Clear content and add input
+        element.textContent = '';
         element.appendChild(input);
         
-        // Focus the input
+        // Focus and select
         input.focus();
         input.select();
         
-        // Handle input blur (save)
+        // Save on blur
         input.addEventListener('blur', function() {
-            saveFieldValue(element, input.value, fieldType, characterId, originalText, displayFormat);
+            saveField(element, input.value, fieldName, characterId, originalValue, callback);
         });
         
-        // Handle enter and escape keys
+        // Handle enter/escape
         input.addEventListener('keydown', function(event) {
             if (event.key === 'Enter') {
-                saveFieldValue(element, input.value, fieldType, characterId, originalText, displayFormat);
+                saveField(element, input.value, fieldName, characterId, originalValue, callback);
                 event.preventDefault();
             } else if (event.key === 'Escape') {
-                // Cancel and restore
-                element.innerHTML = originalHTML;
+                // Cancel edit
+                element.textContent = originalValue;
                 event.preventDefault();
             }
         });
@@ -254,20 +349,33 @@ function makeElementEditable(element, fieldType, currentValue, characterId, disp
 }
 
 /**
- * Save a field value to the server
- * @param {Element} element - The element being edited
+ * Save edited field to the server
+ * @param {HTMLElement} element - The element being edited
  * @param {string} newValue - The new value
- * @param {string} fieldType - The field type 
+ * @param {string} fieldName - The field name
  * @param {string} characterId - The character ID
- * @param {string} originalText - The original element text
- * @param {Function} displayFormat - Function to format display text
+ * @param {string} originalValue - Original value for fallback
+ * @param {Function} [callback] - Optional callback after save
  */
-function saveFieldValue(element, newValue, fieldType, characterId, originalText, displayFormat) {
-    // Show saving state
-    element.classList.add('saving');
-    element.textContent = newValue;
+function saveField(element, newValue, fieldName, characterId, originalValue, callback) {
+    // Skip if no change
+    if (newValue.trim() === originalValue.trim()) {
+        element.textContent = originalValue;
+        return;
+    }
     
-    // Send to the server
+    // Show saving state
+    element.textContent = newValue;
+    element.style.opacity = '0.7';
+    
+    // Add loading indicator
+    const loadingIndicator = document.createElement('span');
+    loadingIndicator.style.marginLeft = '5px';
+    loadingIndicator.innerHTML = '⏳';
+    loadingIndicator.style.animation = 'pulse 1s infinite';
+    element.appendChild(loadingIndicator);
+    
+    // Send to server
     fetch(`/characters/${characterId}/field`, {
         method: 'POST',
         headers: {
@@ -275,50 +383,55 @@ function saveFieldValue(element, newValue, fieldType, characterId, originalText,
             'X-CSRFToken': getCSRFToken()
         },
         body: JSON.stringify({
-            field: fieldType,
+            field: fieldName,
             value: newValue
         })
     })
     .then(response => {
-        if (!response.ok) {
-            throw new Error('Failed to save');
-        }
+        if (!response.ok) throw new Error('Save failed');
         return response.json();
     })
     .then(data => {
         // Success state
-        element.classList.remove('saving');
-        element.classList.add('save-success');
+        element.style.opacity = '1';
+        loadingIndicator.remove();
         
-        // Format the display
-        if (displayFormat) {
-            element.textContent = displayFormat(newValue);
-        } else {
-            element.textContent = newValue;
-        }
+        // Add success indicator
+        const successIndicator = document.createElement('span');
+        successIndicator.style.marginLeft = '5px';
+        successIndicator.style.color = '#28a745';
+        successIndicator.innerHTML = '✓';
+        element.appendChild(successIndicator);
         
-        // Remove success class after animation
+        // Remove success indicator after delay
         setTimeout(() => {
-            element.classList.remove('save-success');
+            successIndicator.remove();
         }, 2000);
         
-        // Update ability score modifier if needed
-        if (fieldType.endsWith('_score')) {
-            updateAbilityModifier(element, newValue);
+        // Run callback if provided
+        if (callback && typeof callback === 'function') {
+            callback(element, newValue);
         }
     })
     .catch(error => {
-        console.error('Error saving field:', error);
+        console.error('Error saving:', error);
         
         // Error state
-        element.classList.remove('saving');
-        element.classList.add('save-error');
-        element.textContent = originalText;
+        element.style.opacity = '1';
+        loadingIndicator.remove();
+        
+        // Restore original value
+        element.textContent = originalValue;
+        
+        // Add error indicator
+        const errorIndicator = document.createElement('span');
+        errorIndicator.style.marginLeft = '5px';
+        errorIndicator.style.color = '#dc3545';
+        errorIndicator.innerHTML = '✗';
+        element.appendChild(errorIndicator);
         
         // Show error message
         const notification = document.createElement('div');
-        notification.className = 'error-notification';
-        notification.textContent = 'Failed to save. Please try again.';
         notification.style.position = 'fixed';
         notification.style.bottom = '20px';
         notification.style.right = '20px';
@@ -327,43 +440,51 @@ function saveFieldValue(element, newValue, fieldType, characterId, originalText,
         notification.style.color = 'white';
         notification.style.borderRadius = '4px';
         notification.style.zIndex = '9999';
+        notification.textContent = 'Failed to save changes. Please try again.';
         document.body.appendChild(notification);
         
         // Remove notification after delay
         setTimeout(() => {
-            notification.remove();
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.5s';
+            setTimeout(() => {
+                notification.remove();
+            }, 500);
+        }, 3000);
+        
+        // Remove error indicator after delay
+        setTimeout(() => {
+            errorIndicator.remove();
         }, 3000);
     });
 }
 
 /**
- * Update the modifier when an ability score changes
- * @param {Element} scoreElement - The score element
- * @param {string} newScore - The new score value
+ * Update ability modifier when score changes
+ * @param {string} ability - The ability code (str, dex, etc.)
+ * @param {string} newValue - The new ability score
  */
-function updateAbilityModifier(scoreElement, newScore) {
-    const score = parseInt(newScore);
+function updateAbilityModifier(ability, newValue) {
+    const score = parseInt(newValue);
     if (isNaN(score)) return;
     
+    // Calculate new modifier
     const mod = Math.floor((score - 10) / 2);
     const modText = mod >= 0 ? `+${mod}` : mod.toString();
     
-    // Find the next element that could be a modifier
-    let currentElement = scoreElement;
-    while (currentElement = currentElement.nextElementSibling) {
-        const text = currentElement.textContent.trim();
-        if (text.startsWith('+') || text.startsWith('-') || text === '0') {
-            currentElement.textContent = modText;
-            break;
-        }
+    // Update the modifier element
+    const modElement = document.getElementById(`${ability}-mod`);
+    if (modElement) {
+        modElement.textContent = modText;
     }
 }
 
 /**
- * Get CSRF token from cookies
+ * Get CSRF token from cookies or meta tags
  * @returns {string} CSRF token
  */
 function getCSRFToken() {
+    // Try cookies
     const cookieValue = document.cookie
         .split('; ')
         .find(cookie => cookie.startsWith('csrf_token='));
@@ -372,7 +493,7 @@ function getCSRFToken() {
         return cookieValue.split('=')[1];
     }
     
-    // Fallback to meta tag
+    // Try meta tag
     const csrfMeta = document.querySelector('meta[name="csrf-token"]');
     if (csrfMeta) {
         return csrfMeta.getAttribute('content');
@@ -381,16 +502,13 @@ function getCSRFToken() {
     return '';
 }
 
-// Add CSS
-const style = document.createElement('style');
-style.textContent = `
-.editable-field {
-    position: relative;
-    cursor: pointer;
-    padding: 2px 4px;
-    border-radius: 3px;
-    border-bottom: 1px dashed #6c757d;
-    transition: all 0.2s;
+// Add keyframes for animations
+const styleSheet = document.createElement('style');
+styleSheet.textContent = `
+@keyframes pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
 }
 
 .editable-field:hover {
@@ -404,26 +522,5 @@ style.textContent = `
     margin-left: 5px;
     opacity: 0.7;
 }
-
-.editable-field.saving {
-    opacity: 0.7;
-    animation: pulse 1s infinite;
-}
-
-.editable-field.save-success {
-    background-color: rgba(40, 167, 69, 0.1);
-    border-bottom-color: #28a745;
-}
-
-.editable-field.save-error {
-    background-color: rgba(220, 53, 69, 0.1);
-    border-bottom-color: #dc3545;
-}
-
-@keyframes pulse {
-    0% { opacity: 0.5; }
-    50% { opacity: 1; }
-    100% { opacity: 0.5; }
-}
 `;
-document.head.appendChild(style);
+document.head.appendChild(styleSheet);
