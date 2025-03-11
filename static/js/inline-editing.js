@@ -6,7 +6,7 @@
 document.addEventListener('DOMContentLoaded', function() {
   // Extract character ID from the URL path
   const pathParts = window.location.pathname.split('/');
-  const characterId = pathParts[pathParts.length - 1]; // Assumes path like /character/123
+  const characterId = pathParts[pathParts.length - 1]; // Assumes path like /characters/123
   
   // Initialize editing functionality
   initInlineEditing(characterId);
@@ -274,7 +274,7 @@ function saveEdit(element, input, fieldName, characterId, originalText, prefixTe
   }
   
   // Send to server
-  fetch(`/character/${characterId}/field`, {
+  fetch(`/characters/${characterId}/field`, {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json',
