@@ -132,22 +132,57 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
+/* Proficiency indicator styles - ENHANCED */
 .d5e-prof-indicator {
-  width: 10px;
-  height: 10px;
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #6c757d;
   border-radius: 50%;
-  border: 1px solid #ced4da;
+  margin-right: 8px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: transparent; /* Explicitly set initial background */
 }
 
+/* Add effects for proficient state */
 .d5e-prof-indicator.proficient {
-  background-color: #7b2cbf;
-  border-color: #7b2cbf;
+  background-color: #4a6ee0;
+  border-color: #4a6ee0;
 }
 
+.d5e-prof-indicator.proficient::after {
+  content: "✓";
+  position: absolute;
+  color: white;
+  font-size: 12px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Add effects for expertise state */
 .d5e-prof-indicator.expertise {
-  background-color: #7b2cbf;
-  border: 2px solid #7b2cbf;
-  box-shadow: 0 0 0 2px rgba(123, 44, 191, 0.3);
+  background-color: #9c27b0;
+  border-color: #9c27b0;
+}
+
+.d5e-prof-indicator.expertise::after {
+  content: "★";
+  position: absolute;
+  color: white;
+  font-size: 12px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Hover effects - ENHANCED */
+.d5e-prof-indicator:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+  opacity: 0.8;
 }
 
 .d5e-save-name {
@@ -535,139 +570,7 @@
   background-color: rgba(0, 123, 255, 0.2);
 }
 
-/* CSS for inline editing functionality */
-
-/* Style for editable fields */
-.editable-field {
-  position: relative;
-  cursor: pointer;
-  padding: 2px 4px;
-  border-radius: 3px;
-  transition: background-color 0.2s;
-}
-
-/* Hover effect for editable fields */
-.editable-field:hover {
-  background-color: rgba(0, 123, 255, 0.1);
-}
-
-/* Add edit icon on hover */
-.editable-field:hover::after {
-  content: "✏️";
-  font-size: 12px;
-  margin-left: 5px;
-  opacity: 0.7;
-}
-
-/* Style for the input when editing */
-.inline-edit-input {
-  width: 100%;
-  padding: 2px 4px;
-  border: 1px solid #007bff;
-  border-radius: 3px;
-  font-size: inherit;
-  font-family: inherit;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-  outline: none;
-}
-
-/* Save indicator styles */
-.save-indicator {
-  margin-left: 5px;
-  animation: pulse 1s infinite;
-}
-
-.save-indicator.success {
-  color: #28a745;
-  animation: none;
-}
-
-.save-indicator.error {
-  color: #dc3545;
-  animation: none;
-}
-
-/* Pulse animation for loading indicator */
-@keyframes pulse {
-  0% {
-      opacity: 0.5;
-  }
-  50% {
-      opacity: 1;
-  }
-  100% {
-      opacity: 0.5;
-  }
-}
-
-/* Fix for Bootstrap icon alignment */
-.save-indicator i.bi {
-  vertical-align: middle;
-}
-
-/* Specific styles for ability scores in character sheet */
-.d5e-ability-score.editable-field {
-  font-weight: bold;
-  padding: 4px 6px;
-  border-radius: 5px;
-}
-
-.d5e-ability-score.editable-field:hover {
-  background-color: rgba(0, 123, 255, 0.2);
-}
-
-/* Proficiency indicator styles */
-.d5e-prof-indicator {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 2px solid #6c757d;
-  border-radius: 50%;
-  margin-right: 8px;
-  position: relative;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-/* Add effects for proficient state */
-.d5e-prof-indicator.proficient {
-  background-color: #4a6ee0;
-  border-color: #4a6ee0;
-}
-
-.d5e-prof-indicator.proficient::after {
-  content: "✓";
-  position: absolute;
-  color: white;
-  font-size: 12px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-/* Add effects for expertise state */
-.d5e-prof-indicator.expertise {
-  background-color: #9c27b0;
-  border-color: #9c27b0;
-}
-
-.d5e-prof-indicator.expertise::after {
-  content: "★";
-  position: absolute;
-  color: white;
-  font-size: 12px;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
-
-/* Hover effects */
-.d5e-prof-indicator:hover {
-  transform: scale(1.1);
-  box-shadow: 0 0 3px rgba(0, 123, 255, 0.5);
-}
-
-/* Help tooltip for proficiency indicators */
+/* Tooltip for proficiency indicators */
 .prof-tooltip {
   position: absolute;
   background-color: #333;
@@ -680,4 +583,55 @@
   transition: opacity 0.3s;
   pointer-events: none;
   white-space: nowrap;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 5px;
+}
+
+.d5e-prof-indicator:hover .prof-tooltip {
+  opacity: 1;
+}
+
+/* Mobile responsiveness improvements */
+@media (max-width: 768px) {
+  .d5e-abilities {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .d5e-combat-group,
+  .d5e-hp-section,
+  .d5e-spell-info {
+    grid-template-columns: 1fr;
+  }
+  
+  .d5e-currency {
+    flex-wrap: wrap;
+  }
+  
+  .d5e-coin {
+    flex: 1 0 20%;
+    margin-bottom: 8px;
+  }
+}
+
+/* Additional accessibility improvements */
+.d5e-prof-indicator:focus {
+  outline: 2px solid #4a6ee0;
+  box-shadow: 0 0 0 2px rgba(74, 110, 224, 0.5);
+}
+
+/* High contrast mode improvements */
+@media (prefers-contrast: more) {
+  .d5e-prof-indicator {
+    border-width: 3px;
+  }
+  
+  .d5e-prof-indicator.proficient {
+    background-color: #0000FF;
+  }
+  
+  .d5e-prof-indicator.expertise {
+    background-color: #8000FF;
+  }
 }

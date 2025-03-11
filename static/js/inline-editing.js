@@ -1,28 +1,17 @@
 /**
- * Improved inline editing for D&D character sheets - vanilla JS
+ * Simple emoji-based proficiency indicators for D&D character sheets
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Initializing enhanced inline editing...');
+    console.log('Initializing emoji-based proficiency indicators...');
     
     // Get character ID from URL
     const pathParts = window.location.pathname.split('/');
     const characterId = pathParts[pathParts.length - 1];
     console.log('Character ID:', characterId);
     
-    // Add edit mode notification banner
-    const banner = document.createElement('div');
-    banner.style.backgroundColor = '#e9f5ff';
-    banner.style.padding = '10px';
-    banner.style.marginBottom = '15px';
-    banner.style.borderRadius = '4px';
-    banner.innerHTML = '<strong>✏️ Editing Mode:</strong> Click on highlighted fields to edit';
-    document.body.insertBefore(banner, document.body.firstChild);
-    
-    // Make text fields editable (Species, Background, Alignment)
-    findAndMakeEditable('Species', characterId);
-    findAndMakeEditable('Background', characterId, true); // has [brackets]
-    findAndMakeEditable('Alignment', characterId, true);  // has [brackets]
+    // Replace the proficiency indicators with emojis
+    replaceIndicatorsWithEmojis(characterId);
     
     // Make ability scores editable with modifier updates
     makeAbilityScoreEditable('str', characterId);
@@ -31,94 +20,301 @@ document.addEventListener('DOMContentLoaded', function() {
     makeAbilityScoreEditable('int', characterId);
     makeAbilityScoreEditable('wis', characterId);
     makeAbilityScoreEditable('cha', characterId);
-    
-    // Make saving throw proficiency indicators clickable
-    makeAllSavingThrowsToggleable(characterId);
-    
-    // Make skill proficiency indicators clickable (with three states)
-    makeAllSkillsToggleable(characterId);
 });
 
-function findAndMakeEditable(label, characterId, hasBrackets = false) {
-    // Simple approach: find all text nodes
-    const allTextNodes = [];
-    const walker = document.createTreeWalker(
-        document.body, 
-        NodeFilter.SHOW_TEXT,
-        null
-    );
+function replaceIndicatorsWithEmojis(characterId) {
+    console.log('Replacing proficiency indicators with emojis...');
     
-    let node;
-    while (node = walker.nextNode()) {
-        if (node.textContent.trim() && 
-            node.parentNode.tagName !== 'SCRIPT' && 
-            node.parentNode.tagName !== 'STYLE') {
-            allTextNodes.push(node);
-        }
-    }
+    // Replace saving throw indicators
+    replaceSavingThrowIndicators(characterId);
     
-    // Find the label node
-    for (let i = 0; i < allTextNodes.length; i++) {
-        const node = allTextNodes[i];
-        const text = node.textContent.trim();
-        
-        if (text.startsWith(label)) {
-            console.log(`Found ${label}: ${text}`);
-            
-            if (hasBrackets) {
-                // For bracketed content like "Background [Acolyte]"
-                const match = text.match(/\[(.*?)\]/);
-                if (match) {
-                    // Create wrapper with separate spans
-                    const wrapper = document.createElement('span');
-                    const labelPart = document.createTextNode(text.split('[')[0] + '[');
-                    const valuePart = document.createElement('span');
-                    valuePart.textContent = match[1];
-                    valuePart.className = 'editable-field';
-                    
-                    const endBracket = document.createTextNode(']');
-                    
-                    wrapper.appendChild(labelPart);
-                    wrapper.appendChild(valuePart);
-                    wrapper.appendChild(endBracket);
-                    
-                    // Replace original node
-                    node.parentNode.replaceChild(wrapper, node);
-                    
-                    // Add click handler
-                    valuePart.addEventListener('click', function() {
-                        startEditing(valuePart, fieldNameFromLabel(label), characterId);
-                    });
-                }
-            } else {
-                // For simple content like "Species Human"
-                // If we find a value after the label
-                if (i + 1 < allTextNodes.length) {
-                    const valueNode = allTextNodes[i + 1];
-                    const valueText = valueNode.textContent.trim();
-                    
-                    if (valueText && !valueText.startsWith(label)) {
-                        console.log(`  Value: ${valueText}`);
-                        
-                        // Wrap value in editable span
-                        const valueSpan = document.createElement('span');
-                        valueSpan.textContent = valueText;
-                        valueSpan.className = 'editable-field';
-                        
-                        // Replace original value node
-                        valueNode.parentNode.replaceChild(valueSpan, valueNode);
-                        
-                        // Add click handler
-                        valueSpan.addEventListener('click', function() {
-                            startEditing(valueSpan, fieldNameFromLabel(label), characterId);
-                        });
-                    }
-                }
-            }
-        }
-    }
+    // Replace skill indicators
+    replaceSkillIndicators(characterId);
 }
 
+function replaceSavingThrowIndicators(characterId) {
+    // Find all saving throw items
+    const saveItems = document.querySelectorAll('.d5e-save-item');
+    console.log(`Found ${saveItems.length} saving throw items`);
+    
+    saveItems.forEach(saveItem => {
+        // Get ability name (STR, DEX, etc.)
+        const saveNameEl = saveItem.querySelector('.d5e-save-name');
+        if (!saveNameEl) return;
+        
+        const ability = saveNameEl.textContent.toLowerCase();
+        
+        // Find and remove the original indicator
+        const originalIndicator = saveItem.querySelector('.d5e-prof-indicator');
+        if (originalIndicator) {
+            // Check if it was proficient
+            const wasProficient = originalIndicator.classList.contains('proficient');
+            
+            // Create emoji indicator
+            const emojiIndicator = document.createElement('span');
+            emojiIndicator.className = 'emoji-indicator';
+            emojiIndicator.textContent = wasProficient ? '✅' : '⚪';
+            emojiIndicator.style.cursor = 'pointer';
+            emojiIndicator.style.marginRight = '8px';
+            emojiIndicator.style.fontSize = '16px';
+            
+            // Store proficiency state
+            emojiIndicator.dataset.proficient = wasProficient ? 'true' : 'false';
+            emojiIndicator.dataset.ability = ability;
+            
+            // Add click handler
+            emojiIndicator.addEventListener('click', function(event) {
+                toggleSavingThrowProficiency(characterId, emojiIndicator);
+                event.stopPropagation();
+            });
+            
+            // Replace the original
+            originalIndicator.parentNode.replaceChild(emojiIndicator, originalIndicator);
+            console.log(`Replaced ${ability} save indicator with emoji`);
+        }
+    });
+}
+
+function replaceSkillIndicators(characterId) {
+    // Find all skill items
+    const skillItems = document.querySelectorAll('.d5e-skill-item');
+    console.log(`Found ${skillItems.length} skill items`);
+    
+    skillItems.forEach(skillItem => {
+        // Get skill information
+        const skillNameEl = skillItem.querySelector('.d5e-skill-name');
+        const skillAbilityEl = skillItem.querySelector('.d5e-skill-ability');
+        if (!skillNameEl || !skillAbilityEl) return;
+        
+        const skillName = skillNameEl.textContent.trim();
+        const ability = skillAbilityEl.textContent.toLowerCase();
+        
+        // Find and remove the original indicator
+        const originalIndicator = skillItem.querySelector('.d5e-prof-indicator');
+        if (originalIndicator) {
+            // Check current state
+            const isProficient = originalIndicator.classList.contains('proficient');
+            const hasExpertise = originalIndicator.classList.contains('expertise');
+            
+            // Determine emoji to use
+            let emoji = '⚪'; // Default: not proficient
+            let state = 'none';
+            
+            if (hasExpertise) {
+                emoji = '⭐'; // Star for expertise
+                state = 'expertise';
+            } else if (isProficient) {
+                emoji = '✅'; // Check for proficient
+                state = 'proficient';
+            }
+            
+            // Create emoji indicator
+            const emojiIndicator = document.createElement('span');
+            emojiIndicator.className = 'emoji-indicator';
+            emojiIndicator.textContent = emoji;
+            emojiIndicator.style.cursor = 'pointer';
+            emojiIndicator.style.marginRight = '8px';
+            emojiIndicator.style.fontSize = '16px';
+            
+            // Store state
+            emojiIndicator.dataset.state = state;
+            emojiIndicator.dataset.ability = ability;
+            emojiIndicator.dataset.skillName = skillName;
+            
+            // Add click handler
+            emojiIndicator.addEventListener('click', function(event) {
+                toggleSkillProficiency(characterId, emojiIndicator, skillItem);
+                event.stopPropagation();
+            });
+            
+            // Replace the original
+            originalIndicator.parentNode.replaceChild(emojiIndicator, originalIndicator);
+            console.log(`Replaced ${skillName} skill indicator with emoji: ${emoji}`);
+        }
+    });
+}
+
+function toggleSavingThrowProficiency(characterId, indicator) {
+    // Get current state
+    const isProficient = indicator.dataset.proficient === 'true';
+    const ability = indicator.dataset.ability;
+    
+    console.log(`Toggling ${ability} save proficiency: ${isProficient ? 'ON → OFF' : 'OFF → ON'}`);
+    
+    // Toggle state
+    indicator.dataset.proficient = isProficient ? 'false' : 'true';
+    
+    // Update emoji
+    indicator.textContent = isProficient ? '⚪' : '✅';
+    
+    // Get the ability modifier
+    let modValue = 0;
+    const modElement = document.getElementById(`${ability}-mod`);
+    if (modElement) {
+        const modText = modElement.textContent;
+        const modMatch = modText.match(/([+-]?\d+)/);
+        if (modMatch) {
+            modValue = parseInt(modMatch[1]);
+        }
+    }
+    
+    // Get proficiency bonus
+    let profBonus = 2; // Default
+    const profBonusElement = document.getElementById('proficiency-bonus');
+    if (profBonusElement) {
+        const bonusText = profBonusElement.textContent;
+        const bonusMatch = bonusText.match(/([+-]?\d+)/);
+        if (bonusMatch) {
+            profBonus = parseInt(bonusMatch[1]);
+        }
+    }
+    
+    // Update the save value
+    const saveValueElement = indicator.closest('.d5e-save-item').querySelector('.d5e-save-value');
+    if (saveValueElement) {
+        // Calculate new save value
+        let saveValue = modValue;
+        if (!isProficient) { // Now proficient (we toggled already)
+            saveValue += profBonus;
+        }
+        
+        // Format with + sign
+        const saveText = saveValue >= 0 ? `+${saveValue}` : saveValue.toString();
+        saveValueElement.textContent = saveText;
+        
+        console.log(`Updated ${ability} save value to ${saveText}`);
+    }
+    
+    // Save to server
+    saveProficiencyState(characterId, `${ability}_save_proficiency`, !isProficient);
+}
+
+function toggleSkillProficiency(characterId, indicator, skillItem) {
+    // Get current state
+    const currentState = indicator.dataset.state;
+    const ability = indicator.dataset.ability;
+    const skillName = indicator.dataset.skillName;
+    
+    // Determine next state (cycle through: none → proficient → expertise → none)
+    let nextState;
+    let nextEmoji;
+    
+    if (currentState === 'none') {
+        nextState = 'proficient';
+        nextEmoji = '✅';
+        console.log(`${skillName}: NONE → PROFICIENT`);
+    } else if (currentState === 'proficient') {
+        nextState = 'expertise';
+        nextEmoji = '⭐';
+        console.log(`${skillName}: PROFICIENT → EXPERTISE`);
+    } else { // expertise
+        nextState = 'none';
+        nextEmoji = '⚪';
+        console.log(`${skillName}: EXPERTISE → NONE`);
+    }
+    
+    // Update indicator
+    indicator.dataset.state = nextState;
+    indicator.textContent = nextEmoji;
+    
+    // Get ability modifier
+    let modValue = 0;
+    const modElement = document.getElementById(`${ability}-mod`);
+    if (modElement) {
+        const modText = modElement.textContent;
+        const modMatch = modText.match(/([+-]?\d+)/);
+        if (modMatch) {
+            modValue = parseInt(modMatch[1]);
+        }
+    }
+    
+    // Get proficiency bonus
+    let profBonus = 2; // Default
+    const profBonusElement = document.getElementById('proficiency-bonus');
+    if (profBonusElement) {
+        const bonusText = profBonusElement.textContent;
+        const bonusMatch = bonusText.match(/([+-]?\d+)/);
+        if (bonusMatch) {
+            profBonus = parseInt(bonusMatch[1]);
+        }
+    }
+    
+    // Update skill value
+    const skillValueElement = skillItem.querySelector('.d5e-skill-value');
+    if (skillValueElement) {
+        // Calculate new skill bonus
+        let skillBonus = modValue;
+        if (nextState === 'proficient') {
+            skillBonus += profBonus;
+        } else if (nextState === 'expertise') {
+            skillBonus += (profBonus * 2);
+        }
+        
+        // Format with + sign
+        const skillText = skillBonus >= 0 ? `+${skillBonus}` : skillBonus.toString();
+        skillValueElement.textContent = skillText;
+        
+        console.log(`Updated ${skillName} skill value to ${skillText}`);
+    }
+    
+    // Save to server
+    saveSkillProficiency(characterId, skillName, nextState);
+}
+
+function saveProficiencyState(characterId, field, isEnabled) {
+    console.log(`Saving ${field} to server: ${isEnabled ? 'Proficient' : 'Not Proficient'}`);
+    
+    fetch(`/characters/${characterId}/field`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({
+            field: field,
+            value: isEnabled ? 'Proficient' : 'Not Proficient'
+        })
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Failed to save proficiency state');
+        return response.json();
+    })
+    .then(data => {
+        console.log(`Successfully saved ${field} proficiency state`);
+    })
+    .catch(error => {
+        console.error('Save error:', error);
+    });
+}
+
+function saveSkillProficiency(characterId, skillName, state) {
+    console.log(`Saving ${skillName} skill state to server: ${state}`);
+    
+    fetch(`/characters/${characterId}/field`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({
+            field: `skill_${skillName.toLowerCase().replace(/\s+/g, '_')}`,
+            value: state === 'none' ? 'Not Proficient' : 
+                  state === 'proficient' ? 'Proficient' : 'Expertise'
+        })
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Failed to save skill proficiency');
+        return response.json();
+    })
+    .then(data => {
+        console.log(`Successfully saved ${skillName} skill state`);
+    })
+    .catch(error => {
+        console.error('Save error:', error);
+    });
+}
+
+// Continue with the ability score editing functions
 function makeAbilityScoreEditable(ability, characterId) {
     // Find the ability score element directly using its ID
     const scoreElement = document.getElementById(`${ability}-score`);
@@ -182,7 +378,7 @@ function saveEdit(element, newValue, fieldName, characterId, originalValue, call
     // Create save indicator
     const saveIndicator = document.createElement('span');
     saveIndicator.className = 'save-indicator';
-    saveIndicator.innerHTML = '<i class="bi bi-hourglass"></i>';
+    saveIndicator.innerHTML = '⏳'; // Hourglass emoji
     
     // Update display
     element.textContent = newValue;
@@ -207,7 +403,7 @@ function saveEdit(element, newValue, fieldName, characterId, originalValue, call
     .then(data => {
         // Update save indicator to show success
         saveIndicator.className = 'save-indicator success';
-        saveIndicator.innerHTML = '<i class="bi bi-check-circle"></i>';
+        saveIndicator.textContent = '✅'; // Checkmark emoji
         
         setTimeout(() => {
             element.removeChild(saveIndicator);
@@ -221,7 +417,7 @@ function saveEdit(element, newValue, fieldName, characterId, originalValue, call
         
         // Show error indicator
         saveIndicator.className = 'save-indicator error';
-        saveIndicator.innerHTML = '<i class="bi bi-exclamation-circle"></i>';
+        saveIndicator.textContent = '❌'; // X emoji
         
         setTimeout(() => {
             element.textContent = originalValue;
@@ -237,7 +433,6 @@ function updateAbilityModifier(ability, scoreValue) {
     const mod = Math.floor((score - 10) / 2);
     // Format with + sign for positive modifiers
     const modText = mod >= 0 ? `+${mod}` : mod.toString();
-    const modValue = mod; // Numeric value for calculations
     
     // Find the modifier element and update it
     const modElement = document.getElementById(`${ability}-mod`);
@@ -247,275 +442,75 @@ function updateAbilityModifier(ability, scoreValue) {
         console.warn(`Could not find modifier element for ${ability}`);
     }
     
-    // Get proficiency bonus from the page
-    let profBonus = 2; // Default to +2 if not found
-    const profBonusElement = document.getElementById('proficiency-bonus');
-    if (profBonusElement) {
-        const profBonusText = profBonusElement.textContent;
-        const profBonusMatch = profBonusText.match(/\+(\d+)/);
-        if (profBonusMatch) {
-            profBonus = parseInt(profBonusMatch[1]);
-        }
-    }
-    
-    // Update the corresponding saving throw
-    updateSavingThrow(ability, modValue, profBonus);
-    
-    // Update all skills that use this ability
-    updateSkillsForAbility(ability, modValue, profBonus);
+    // Update saving throws and skills
+    updateSavesAndSkillsForAbility(ability, mod);
 }
 
-function updateSavingThrow(ability, modValue, profBonus) {
-    // Find the saving throw container
-    const savingThrowsContainer = document.getElementById('saving-throws');
-    if (!savingThrowsContainer) return;
-    
-    // Find the specific saving throw for this ability
-    const saveItems = savingThrowsContainer.querySelectorAll('.d5e-save-item');
+function updateSavesAndSkillsForAbility(ability, modValue) {
+    // Update saving throws
+    const saveItems = document.querySelectorAll('.d5e-save-item');
     saveItems.forEach(saveItem => {
-        const saveNameElement = saveItem.querySelector('.d5e-save-name');
-        if (saveNameElement && saveNameElement.textContent === ability.toUpperCase()) {
-            const isProficient = saveItem.querySelector('.d5e-prof-indicator.proficient') !== null;
-            const saveValueElement = saveItem.querySelector('.d5e-save-value');
-            
-            if (saveValueElement) {
-                // Calculate the save bonus: modifier + proficiency bonus if proficient
-                let saveBonus = modValue;
-                if (isProficient) {
-                    saveBonus += profBonus;
+        const saveNameEl = saveItem.querySelector('.d5e-save-name');
+        if (saveNameEl && saveNameEl.textContent === ability.toUpperCase()) {
+            // Find the emoji indicator
+            const emojiIndicator = saveItem.querySelector('.emoji-indicator');
+            if (emojiIndicator) {
+                const isProficient = emojiIndicator.dataset.proficient === 'true';
+                
+                // Get proficiency bonus
+                let profBonus = 2; // Default
+                const profBonusElement = document.getElementById('proficiency-bonus');
+                if (profBonusElement) {
+                    const match = profBonusElement.textContent.match(/([+-]?\d+)/);
+                    if (match) profBonus = parseInt(match[1]);
                 }
                 
-                // Format with + sign for positive values
-                const saveText = saveBonus >= 0 ? `+${saveBonus}` : saveBonus.toString();
-                saveValueElement.textContent = saveText;
+                // Calculate new save value
+                let saveValue = modValue;
+                if (isProficient) saveValue += profBonus;
+                
+                // Update the save value display
+                const saveValueEl = saveItem.querySelector('.d5e-save-value');
+                if (saveValueEl) {
+                    const saveText = saveValue >= 0 ? `+${saveValue}` : saveValue.toString();
+                    saveValueEl.textContent = saveText;
+                }
             }
         }
     });
-}
-
-function makeAllSavingThrowsToggleable(characterId) {
-    // Find the saving throws container
-    const savingThrowsContainer = document.getElementById('saving-throws');
-    if (!savingThrowsContainer) return;
     
-    // Find all saving throw items
-    const saveItems = savingThrowsContainer.querySelectorAll('.d5e-save-item');
-    saveItems.forEach(saveItem => {
-        const profIndicator = saveItem.querySelector('.d5e-prof-indicator');
-        const saveNameElement = saveItem.querySelector('.d5e-save-name');
-        
-        if (profIndicator && saveNameElement) {
-            const ability = saveNameElement.textContent.toLowerCase();
-            
-            // Add cursor style to show it's clickable
-            profIndicator.style.cursor = 'pointer';
-            
-            // Add click event to toggle proficiency
-            profIndicator.addEventListener('click', function() {
-                // Toggle between not proficient and proficient
-                const isProficient = profIndicator.classList.contains('proficient');
-                
-                if (isProficient) {
-                    // Switch to not proficient
-                    profIndicator.classList.remove('proficient');
-                } else {
-                    // Switch to proficient
-                    profIndicator.classList.add('proficient');
-                }
-                
-                // Update the saving throw value
-                const modElement = document.getElementById(`${ability}-mod`);
-                if (modElement) {
-                    const modText = modElement.textContent;
-                    const modMatch = modText.match(/([+-]\d+)/);
-                    if (modMatch) {
-                        const modValue = parseInt(modMatch[1]);
-                        
-                        // Get proficiency bonus
-                        const profBonusElement = document.getElementById('proficiency-bonus');
-                        const profBonus = profBonusElement ? parseInt(profBonusElement.textContent.replace('+', '')) : 2;
-                        
-                        // Update the saving throw display
-                        updateSavingThrow(ability, modValue, profBonus);
-                        
-                        // Save to server
-                        saveProficiencyState(characterId, `${ability}_save_proficiency`, !isProficient);
-                    }
-                }
-            });
-        }
-    });
-}
-
-function makeAllSkillsToggleable(characterId) {
-    // Find the skills container
-    const skillsContainer = document.getElementById('skills');
-    if (!skillsContainer) return;
-    
-    // Find all skill items
-    const skillItems = skillsContainer.querySelectorAll('.d5e-skill-item');
+    // Update skills
+    const skillItems = document.querySelectorAll('.d5e-skill-item');
     skillItems.forEach(skillItem => {
-        const profIndicator = skillItem.querySelector('.d5e-prof-indicator');
-        const skillNameElement = skillItem.querySelector('.d5e-skill-name');
-        const skillAbilityElement = skillItem.querySelector('.d5e-skill-ability');
-        
-        if (profIndicator && skillNameElement && skillAbilityElement) {
-            const skillName = skillNameElement.textContent.trim();
-            const ability = skillAbilityElement.textContent.toLowerCase();
-            
-            // Add cursor style to show it's clickable
-            profIndicator.style.cursor = 'pointer';
-            
-            // Add click event to cycle through proficiency states
-            profIndicator.addEventListener('click', function() {
-                // Determine current state
-                const isProficient = profIndicator.classList.contains('proficient');
-                const hasExpertise = profIndicator.classList.contains('expertise');
+        const skillAbilityEl = skillItem.querySelector('.d5e-skill-ability');
+        if (skillAbilityEl && skillAbilityEl.textContent === ability.toUpperCase()) {
+            // Find the emoji indicator
+            const emojiIndicator = skillItem.querySelector('.emoji-indicator');
+            if (emojiIndicator) {
+                const state = emojiIndicator.dataset.state;
                 
-                // Get the current state
-                let newState;
-                if (hasExpertise) {
-                    // From expertise to not proficient
-                    profIndicator.classList.remove('proficient', 'expertise');
-                    newState = 'none';
-                } else if (isProficient) {
-                    // From proficient to expertise
-                    profIndicator.classList.add('expertise');
-                    newState = 'expertise';
-                } else {
-                    // From not proficient to proficient
-                    profIndicator.classList.add('proficient');
-                    newState = 'proficient';
+                // Get proficiency bonus
+                let profBonus = 2; // Default
+                const profBonusElement = document.getElementById('proficiency-bonus');
+                if (profBonusElement) {
+                    const match = profBonusElement.textContent.match(/([+-]?\d+)/);
+                    if (match) profBonus = parseInt(match[1]);
                 }
                 
-                // Update the skill value
-                const modElement = document.getElementById(`${ability}-mod`);
-                if (modElement) {
-                    const modText = modElement.textContent;
-                    const modMatch = modText.match(/([+-]\d+)/);
-                    if (modMatch) {
-                        const modValue = parseInt(modMatch[1]);
-                        
-                        // Get proficiency bonus
-                        const profBonusElement = document.getElementById('proficiency-bonus');
-                        const profBonus = profBonusElement ? parseInt(profBonusElement.textContent.replace('+', '')) : 2;
-                        
-                        // Update the skill display
-                        updateSkillsForAbility(ability, modValue, profBonus);
-                        
-                        // Save to server
-                        saveSkillProficiency(characterId, skillName, newState);
-                    }
-                }
-            });
-        }
-    });
-}
-
-function saveProficiencyState(characterId, field, isEnabled) {
-    fetch(`/characters/${characterId}/field`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken()
-        },
-        body: JSON.stringify({
-            field: field,
-            value: isEnabled ? 'Proficient' : 'Not Proficient'
-        })
-    })
-    .then(response => {
-        if (!response.ok) throw new Error('Failed to save proficiency state');
-        return response.json();
-    })
-    .then(data => {
-        console.log(`Saved ${field} proficiency state: ${isEnabled}`);
-    })
-    .catch(error => {
-        console.error('Save error:', error);
-    });
-}
-
-function saveSkillProficiency(characterId, skillName, state) {
-    fetch(`/characters/${characterId}/field`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken()
-        },
-        body: JSON.stringify({
-            field: `skill_${skillName.toLowerCase().replace(/\s+/g, '_')}`,
-            value: state === 'none' ? 'Not Proficient' : 
-                  state === 'proficient' ? 'Proficient' : 'Expertise'
-        })
-    })
-    .then(response => {
-        if (!response.ok) throw new Error('Failed to save skill proficiency');
-        return response.json();
-    })
-    .then(data => {
-        console.log(`Saved skill ${skillName} proficiency state: ${state}`);
-    })
-    .catch(error => {
-        console.error('Save error:', error);
-    });
-}
-
-function updateSkillsForAbility(ability, modValue, profBonus) {
-    // Define which skills use each ability
-    const abilitySkillMap = {
-        'str': ['Athletics'],
-        'dex': ['Acrobatics', 'Sleight of Hand', 'Stealth'],
-        'con': [],
-        'int': ['Arcana', 'History', 'Investigation', 'Nature', 'Religion'],
-        'wis': ['Animal Handling', 'Insight', 'Medicine', 'Perception', 'Survival'],
-        'cha': ['Deception', 'Intimidation', 'Performance', 'Persuasion']
-    };
-    
-    // Get the skills for this ability
-    const skills = abilitySkillMap[ability] || [];
-    if (skills.length === 0) return;
-    
-    // Find the skills container
-    const skillsContainer = document.getElementById('skills');
-    if (!skillsContainer) return;
-    
-    // Find and update each skill that uses this ability
-    const skillItems = skillsContainer.querySelectorAll('.d5e-skill-item');
-    skillItems.forEach(skillItem => {
-        const skillNameElement = skillItem.querySelector('.d5e-skill-name');
-        const skillAbilityElement = skillItem.querySelector('.d5e-skill-ability');
-        
-        // Check if this skill uses the ability we're updating
-        if (skillNameElement && 
-            skillAbilityElement && 
-            skillAbilityElement.textContent === ability.toUpperCase()) {
-            
-            // Determine proficiency status
-            const isProficient = skillItem.querySelector('.d5e-prof-indicator.proficient') !== null;
-            const hasExpertise = skillItem.querySelector('.d5e-prof-indicator.expertise') !== null;
-            const skillValueElement = skillItem.querySelector('.d5e-skill-value');
-            
-            if (skillValueElement) {
-                // Calculate the skill bonus
-                let skillBonus = modValue;
-                if (isProficient) {
-                    skillBonus += profBonus;
-                }
-                if (hasExpertise) {
-                    skillBonus += profBonus; // Add proficiency bonus again for expertise
-                }
+                // Calculate new skill value
+                let skillValue = modValue;
+                if (state === 'proficient') skillValue += profBonus;
+                else if (state === 'expertise') skillValue += (profBonus * 2);
                 
-                // Format with + sign for positive values
-                const skillText = skillBonus >= 0 ? `+${skillBonus}` : skillBonus.toString();
-                skillValueElement.textContent = skillText;
+                // Update the skill value display
+                const skillValueEl = skillItem.querySelector('.d5e-skill-value');
+                if (skillValueEl) {
+                    const skillText = skillValue >= 0 ? `+${skillValue}` : skillValue.toString();
+                    skillValueEl.textContent = skillText;
+                }
             }
         }
     });
-}
-
-function fieldNameFromLabel(label) {
-    return label.toLowerCase();
 }
 
 function getCSRFToken() {
@@ -533,4 +528,134 @@ function getCSRFToken() {
     }
     
     return '';
+}
+
+
+
+
+
+
+/**
+ * Direct replacement of circular indicators with clickable emojis
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Direct replacement of indicators starting...');
+    
+    // Get character ID from URL
+    const pathParts = window.location.pathname.split('/');
+    const characterId = pathParts[pathParts.length - 1];
+    
+    // First, find all the indicator circles and replace them DIRECTLY in the DOM
+    const allCircleInputs = document.querySelectorAll('input[type="radio"]');
+    console.log(`Found ${allCircleInputs.length} circle inputs to replace`);
+    
+    allCircleInputs.forEach(function(circleInput) {
+        // Create a simple clickable span with emoji
+        const span = document.createElement('span');
+        span.innerHTML = '⚪'; // White circle emoji
+        span.style.cursor = 'pointer';
+        span.style.fontSize = '18px';
+        span.style.marginRight = '8px';
+        
+        // Find the parent element and replace the input
+        const parent = circleInput.parentNode;
+        if (parent) {
+            parent.replaceChild(span, circleInput);
+            
+            // Add click handler
+            span.addEventListener('click', function() {
+                // Toggle between empty and filled
+                if (span.innerHTML === '⚪') {
+                    span.innerHTML = '✅';
+                } else if (span.innerHTML === '✅') {
+                    span.innerHTML = '⭐';
+                } else {
+                    span.innerHTML = '⚪';
+                }
+                
+                // Update the value display if possible
+                updateNearbyValue(span);
+            });
+        }
+    });
+    
+    // Also try to find any existing indicators
+    document.querySelectorAll('.d5e-prof-indicator').forEach(function(indicator) {
+        // Create a simple clickable span with emoji
+        const span = document.createElement('span');
+        span.innerHTML = '⚪'; // Start with empty circle
+        span.style.cursor = 'pointer';
+        span.style.fontSize = '18px';
+        span.style.marginRight = '8px';
+        
+        // Replace the indicator
+        indicator.parentNode.replaceChild(span, indicator);
+        
+        // Add click handler
+        span.addEventListener('click', function() {
+            // Toggle between empty and filled
+            if (span.innerHTML === '⚪') {
+                span.innerHTML = '✅';
+            } else if (span.innerHTML === '✅') {
+                span.innerHTML = '⭐';
+            } else {
+                span.innerHTML = '⚪';
+            }
+            
+            // Update the value display if possible
+            updateNearbyValue(span);
+        });
+    });
+    
+    console.log('Replacement completed.');
+});
+
+// Function to update the value based on emoji state
+function updateNearbyValue(span) {
+    // Find the closest item container
+    const container = span.closest('.d5e-save-item') || span.closest('.d5e-skill-item');
+    if (!container) return;
+    
+    // Find the value element
+    const valueElement = container.querySelector('.d5e-save-value') || container.querySelector('.d5e-skill-value');
+    if (!valueElement) return;
+    
+    // Find the ability element to get the ability modifier
+    const abilityElement = container.querySelector('.d5e-save-name') || container.querySelector('.d5e-skill-ability');
+    if (!abilityElement) return;
+    
+    // Get ability name (STR, DEX, etc.) and convert to lowercase
+    const ability = abilityElement.textContent.toLowerCase();
+    
+    // Find the corresponding ability modifier
+    const modElement = document.getElementById(`${ability}-mod`);
+    if (!modElement) return;
+    
+    // Extract the modifier value
+    const modText = modElement.textContent;
+    const modMatch = modText.match(/([+-]?\d+)/);
+    if (!modMatch) return;
+    const modValue = parseInt(modMatch[1]);
+    
+    // Get proficiency bonus
+    let profBonus = 2; // Default
+    const profBonusElement = document.getElementById('proficiency-bonus');
+    if (profBonusElement) {
+        const bonusMatch = profBonusElement.textContent.match(/([+-]?\d+)/);
+        if (bonusMatch) profBonus = parseInt(bonusMatch[1]);
+    }
+    
+    // Calculate new value based on emoji
+    let newValue = modValue;
+    if (span.innerHTML === '✅') {
+        // Proficient
+        newValue += profBonus;
+    } else if (span.innerHTML === '⭐') {
+        // Expertise (double proficiency)
+        newValue += (profBonus * 2);
+    }
+    
+    // Format with + sign if positive
+    const newText = newValue >= 0 ? `+${newValue}` : newValue.toString();
+    valueElement.textContent = newText;
 }
