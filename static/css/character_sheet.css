@@ -1,3 +1,459 @@
+/* D&D 5E Character Sheet Styling */
+
+.d5e-character-sheet {
+  font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #fff;
+  padding: 20px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+/* Character Header */
+.d5e-header {
+  margin-bottom: 20px;
+  border-bottom: 2px solid #7b2cbf;
+  padding-bottom: 15px;
+}
+
+.d5e-character-name {
+  font-size: 24px;
+  font-weight: bold;
+  color: #7b2cbf;
+  margin-bottom: 10px;
+}
+
+.d5e-character-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.d5e-detail-item {
+  flex: 1 1 200px;
+  background-color: #f8f9fa;
+  padding: 8px 12px;
+  border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.d5e-detail-item label {
+  display: block;
+  font-size: 12px;
+  color: #6c757d;
+  font-weight: 500;
+  margin-bottom: 3px;
+}
+
+.d5e-detail-item span {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Main content layout */
+.d5e-main-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 992px) {
+  .d5e-main-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+.d5e-column-left, .d5e-column-middle, .d5e-column-right {
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  padding: 15px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Section titles */
+.d5e-character-sheet h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #7b2cbf;
+  border-bottom: 1px solid #dee2e6;
+  padding-bottom: 5px;
+  margin-bottom: 15px;
+}
+
+/* Ability scores */
+.d5e-abilities {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.d5e-ability {
+  text-align: center;
+  background-color: #fff;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.d5e-ability-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.d5e-ability-score {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 5px 0;
+  color: #7b2cbf;
+}
+
+.d5e-ability-mod {
+  font-size: 16px;
+  color: #495057;
+  font-weight: 500;
+}
+
+/* Saving throws */
+.d5e-save-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 5px;
+}
+
+.d5e-save-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px;
+  background-color: #fff;
+  border-radius: 3px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.d5e-prof-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid #ced4da;
+}
+
+.d5e-prof-indicator.proficient {
+  background-color: #7b2cbf;
+  border-color: #7b2cbf;
+}
+
+.d5e-prof-indicator.expertise {
+  background-color: #7b2cbf;
+  border: 2px solid #7b2cbf;
+  box-shadow: 0 0 0 2px rgba(123, 44, 191, 0.3);
+}
+
+.d5e-save-name {
+  font-size: 14px;
+  color: #495057;
+  flex: 1;
+}
+
+.d5e-save-value {
+  font-weight: 600;
+  color: #212529;
+}
+
+/* Skills */
+.d5e-skill-list {
+  display: grid;
+  gap: 5px;
+}
+
+.d5e-skill-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px;
+  background-color: #fff;
+  border-radius: 3px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.d5e-skill-ability {
+  font-size: 12px;
+  color: #6c757d;
+  width: 30px;
+  text-align: center;
+}
+
+.d5e-skill-name {
+  font-size: 14px;
+  color: #495057;
+  flex: 1;
+}
+
+.d5e-skill-value {
+  font-weight: 600;
+  color: #212529;
+}
+
+/* Proficiency bonus */
+.d5e-proficiency {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.d5e-prof-bonus {
+  font-size: 20px;
+  font-weight: 600;
+  color: #7b2cbf;
+  margin-top: 5px;
+}
+
+/* Combat stats */
+.d5e-combat-group {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.d5e-combat-item {
+  text-align: center;
+  background-color: #fff;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.d5e-combat-item label {
+  display: block;
+  font-size: 12px;
+  color: #6c757d;
+  margin-bottom: 3px;
+}
+
+.d5e-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: #212529;
+}
+
+/* HP section */
+.d5e-hp-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.d5e-hp-item {
+  text-align: center;
+  background-color: #fff;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.d5e-hp-item:first-child .d5e-value {
+  color: #7b2cbf;
+}
+
+.d5e-hp-item:nth-child(2) .d5e-value {
+  color: #28a745;
+}
+
+.d5e-hp-item:last-child .d5e-value {
+  color: #17a2b8;
+}
+
+.d5e-hit-dice, .d5e-death-saves {
+  margin-top: 15px;
+  background-color: #fff;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.d5e-hit-dice label, .d5e-death-saves label {
+  display: block;
+  font-size: 12px;
+  color: #6c757d;
+  margin-bottom: 5px;
+}
+
+.d5e-death-save-group {
+  display: grid;
+  gap: 8px;
+}
+
+.d5e-death-save-row {
+  display: flex;
+  align-items: center;
+}
+
+.d5e-death-save-row label {
+  width: 80px;
+  margin-bottom: 0;
+}
+
+.d5e-death-save-boxes {
+  display: flex;
+  gap: 5px;
+}
+
+.d5e-death-save-box {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 1px solid #ced4da;
+  display: inline-block;
+}
+
+/* Weapons table */
+.d5e-weapon-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 15px;
+}
+
+.d5e-weapon-table th {
+  font-size: 12px;
+  color: #6c757d;
+  padding: 8px;
+  text-align: left;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.d5e-weapon-table td {
+  padding: 8px;
+  font-size: 14px;
+  border-bottom: 1px solid #f1f3f5;
+}
+
+/* Spell info */
+.d5e-spell-info {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.d5e-spell-item {
+  text-align: center;
+  background-color: #fff;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.d5e-spell-item label {
+  display: block;
+  font-size: 12px;
+  color: #6c757d;
+  margin-bottom: 3px;
+}
+
+/* Currency */
+.d5e-currency {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 15px;
+  background-color: #fff;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.d5e-coin {
+  text-align: center;
+}
+
+.d5e-coin label {
+  display: block;
+  font-size: 12px;
+  color: #6c757d;
+  margin-bottom: 3px;
+}
+
+.d5e-coin span {
+  font-weight: 600;
+  color: #212529;
+}
+
+/* Equipment */
+.d5e-equipment-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.d5e-equipment-list li {
+  padding: 8px;
+  border-bottom: 1px solid #f1f3f5;
+  font-size: 14px;
+}
+
+.d5e-equipment-list li:last-child {
+  border-bottom: none;
+}
+
+/* Features */
+.d5e-feature-item {
+  margin-bottom: 15px;
+  background-color: #fff;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.d5e-feature-item h4 {
+  font-size: 14px;
+  color: #7b2cbf;
+  margin-top: 0;
+  margin-bottom: 5px;
+}
+
+.d5e-feature-item p {
+  font-size: 14px;
+  margin: 0;
+  color: #495057;
+}
+
+/* Personality */
+.d5e-personality-trait {
+  margin-bottom: 15px;
+  background-color: #fff;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.d5e-personality-trait label {
+  display: block;
+  font-size: 12px;
+  color: #6c757d;
+  margin-bottom: 5px;
+}
+
+.d5e-personality-trait div {
+  font-size: 14px;
+  color: #495057;
+}
+
+/* Markdown toggle */
+.d5e-markdown-toggle {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.original-markdown {
+  white-space: pre-wrap;
+  font-family: monospace;
+  font-size: 14px;
+  color: #495057;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+}
+
 /* CSS for inline editing functionality */
 
 /* Style for editable fields */
@@ -66,4 +522,162 @@
 /* Fix for Bootstrap icon alignment */
 .save-indicator i.bi {
   vertical-align: middle;
+}
+
+/* Specific styles for ability scores in character sheet */
+.d5e-ability-score.editable-field {
+  font-weight: bold;
+  padding: 4px 6px;
+  border-radius: 5px;
+}
+
+.d5e-ability-score.editable-field:hover {
+  background-color: rgba(0, 123, 255, 0.2);
+}
+
+/* CSS for inline editing functionality */
+
+/* Style for editable fields */
+.editable-field {
+  position: relative;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+/* Hover effect for editable fields */
+.editable-field:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+/* Add edit icon on hover */
+.editable-field:hover::after {
+  content: "✏️";
+  font-size: 12px;
+  margin-left: 5px;
+  opacity: 0.7;
+}
+
+/* Style for the input when editing */
+.inline-edit-input {
+  width: 100%;
+  padding: 2px 4px;
+  border: 1px solid #007bff;
+  border-radius: 3px;
+  font-size: inherit;
+  font-family: inherit;
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  outline: none;
+}
+
+/* Save indicator styles */
+.save-indicator {
+  margin-left: 5px;
+  animation: pulse 1s infinite;
+}
+
+.save-indicator.success {
+  color: #28a745;
+  animation: none;
+}
+
+.save-indicator.error {
+  color: #dc3545;
+  animation: none;
+}
+
+/* Pulse animation for loading indicator */
+@keyframes pulse {
+  0% {
+      opacity: 0.5;
+  }
+  50% {
+      opacity: 1;
+  }
+  100% {
+      opacity: 0.5;
+  }
+}
+
+/* Fix for Bootstrap icon alignment */
+.save-indicator i.bi {
+  vertical-align: middle;
+}
+
+/* Specific styles for ability scores in character sheet */
+.d5e-ability-score.editable-field {
+  font-weight: bold;
+  padding: 4px 6px;
+  border-radius: 5px;
+}
+
+.d5e-ability-score.editable-field:hover {
+  background-color: rgba(0, 123, 255, 0.2);
+}
+
+/* Proficiency indicator styles */
+.d5e-prof-indicator {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #6c757d;
+  border-radius: 50%;
+  margin-right: 8px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* Add effects for proficient state */
+.d5e-prof-indicator.proficient {
+  background-color: #4a6ee0;
+  border-color: #4a6ee0;
+}
+
+.d5e-prof-indicator.proficient::after {
+  content: "✓";
+  position: absolute;
+  color: white;
+  font-size: 12px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Add effects for expertise state */
+.d5e-prof-indicator.expertise {
+  background-color: #9c27b0;
+  border-color: #9c27b0;
+}
+
+.d5e-prof-indicator.expertise::after {
+  content: "★";
+  position: absolute;
+  color: white;
+  font-size: 12px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Hover effects */
+.d5e-prof-indicator:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 3px rgba(0, 123, 255, 0.5);
+}
+
+/* Help tooltip for proficiency indicators */
+.prof-tooltip {
+  position: absolute;
+  background-color: #333;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 100;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+  white-space: nowrap;
 }

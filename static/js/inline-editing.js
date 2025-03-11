@@ -1,16 +1,16 @@
 /**
- * Very simple inline editing - pure vanilla JS
+ * Improved inline editing for D&D character sheets - vanilla JS
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Initializing basic inline editing...');
+    console.log('Initializing enhanced inline editing...');
     
     // Get character ID from URL
     const pathParts = window.location.pathname.split('/');
     const characterId = pathParts[pathParts.length - 1];
     console.log('Character ID:', characterId);
     
-    // Add basic notification banner
+    // Add edit mode notification banner
     const banner = document.createElement('div');
     banner.style.backgroundColor = '#e9f5ff';
     banner.style.padding = '10px';
@@ -19,18 +19,24 @@ document.addEventListener('DOMContentLoaded', function() {
     banner.innerHTML = '<strong>✏️ Editing Mode:</strong> Click on highlighted fields to edit';
     document.body.insertBefore(banner, document.body.firstChild);
     
-    // Find simple text nodes for Species, Background, Alignment
+    // Make text fields editable (Species, Background, Alignment)
     findAndMakeEditable('Species', characterId);
     findAndMakeEditable('Background', characterId, true); // has [brackets]
     findAndMakeEditable('Alignment', characterId, true);  // has [brackets]
     
-    // Make ability scores editable
-    findAndMakeEditableScore('STR', characterId);
-    findAndMakeEditableScore('DEX', characterId);
-    findAndMakeEditableScore('CON', characterId);
-    findAndMakeEditableScore('INT', characterId);
-    findAndMakeEditableScore('WIS', characterId);
-    findAndMakeEditableScore('CHA', characterId);
+    // Make ability scores editable with modifier updates
+    makeAbilityScoreEditable('str', characterId);
+    makeAbilityScoreEditable('dex', characterId);
+    makeAbilityScoreEditable('con', characterId);
+    makeAbilityScoreEditable('int', characterId);
+    makeAbilityScoreEditable('wis', characterId);
+    makeAbilityScoreEditable('cha', characterId);
+    
+    // Make saving throw proficiency indicators clickable
+    makeAllSavingThrowsToggleable(characterId);
+    
+    // Make skill proficiency indicators clickable (with three states)
+    makeAllSkillsToggleable(characterId);
 });
 
 function findAndMakeEditable(label, characterId, hasBrackets = false) {
@@ -68,10 +74,8 @@ function findAndMakeEditable(label, characterId, hasBrackets = false) {
                     const labelPart = document.createTextNode(text.split('[')[0] + '[');
                     const valuePart = document.createElement('span');
                     valuePart.textContent = match[1];
-                    valuePart.style.borderBottom = '1px dashed blue';
-                    valuePart.style.cursor = 'pointer';
-                    valuePart.style.backgroundColor = 'rgba(0,123,255,0.1)';
-                    valuePart.style.padding = '0 2px';
+                    valuePart.className = 'editable-field';
+                    
                     const endBracket = document.createTextNode(']');
                     
                     wrapper.appendChild(labelPart);
@@ -99,10 +103,7 @@ function findAndMakeEditable(label, characterId, hasBrackets = false) {
                         // Wrap value in editable span
                         const valueSpan = document.createElement('span');
                         valueSpan.textContent = valueText;
-                        valueSpan.style.borderBottom = '1px dashed blue';
-                        valueSpan.style.cursor = 'pointer';
-                        valueSpan.style.backgroundColor = 'rgba(0,123,255,0.1)';
-                        valueSpan.style.padding = '0 2px';
+                        valueSpan.className = 'editable-field';
                         
                         // Replace original value node
                         valueNode.parentNode.replaceChild(valueSpan, valueNode);
@@ -118,57 +119,25 @@ function findAndMakeEditable(label, characterId, hasBrackets = false) {
     }
 }
 
-function findAndMakeEditableScore(ability, characterId) {
-    // Find all text nodes containing exactly this ability name
-    const allTextNodes = [];
-    const walker = document.createTreeWalker(
-        document.body, 
-        NodeFilter.SHOW_TEXT, 
-        null
-    );
-    
-    let node;
-    while (node = walker.nextNode()) {
-        const text = node.textContent.trim();
-        if (text === ability && 
-            node.parentNode.tagName !== 'SCRIPT' && 
-            node.parentNode.tagName !== 'STYLE') {
-            allTextNodes.push(node);
-        }
+function makeAbilityScoreEditable(ability, characterId) {
+    // Find the ability score element directly using its ID
+    const scoreElement = document.getElementById(`${ability}-score`);
+    if (scoreElement) {
+        console.log(`Found ${ability} score element:`, scoreElement.textContent);
+        
+        // Add editable styling
+        scoreElement.className = 'editable-field';
+        
+        // Add click handler
+        scoreElement.addEventListener('click', function() {
+            startEditing(scoreElement, `${ability}_score`, characterId, function(element, newValue) {
+                // Update the modifier after saving
+                updateAbilityModifier(ability, newValue);
+            });
+        });
+    } else {
+        console.warn(`Could not find element with ID ${ability}-score`);
     }
-    
-    // For each instance found
-    allTextNodes.forEach(abilityNode => {
-        // Look at next sibling text nodes
-        let nextNode = abilityNode.nextSibling;
-        while (nextNode) {
-            if (nextNode.nodeType === Node.TEXT_NODE) {
-                const text = nextNode.textContent.trim();
-                // If it's a number, make it editable
-                if (/^\d+$/.test(text)) {
-                    console.log(`Found ${ability} score: ${text}`);
-                    
-                    // Create editable span
-                    const valueSpan = document.createElement('span');
-                    valueSpan.textContent = text;
-                    valueSpan.style.borderBottom = '1px dashed blue';
-                    valueSpan.style.cursor = 'pointer';
-                    valueSpan.style.backgroundColor = 'rgba(0,123,255,0.1)';
-                    valueSpan.style.padding = '0 2px';
-                    
-                    // Replace original node
-                    nextNode.parentNode.replaceChild(valueSpan, nextNode);
-                    
-                    // Add click handler
-                    valueSpan.addEventListener('click', function() {
-                        startEditing(valueSpan, ability.toLowerCase() + '_score', characterId, updateModifier);
-                    });
-                    break;
-                }
-            }
-            nextNode = nextNode.nextSibling;
-        }
-    });
 }
 
 function startEditing(element, fieldName, characterId, callback) {
@@ -178,9 +147,7 @@ function startEditing(element, fieldName, characterId, callback) {
     const input = document.createElement('input');
     input.type = 'text';
     input.value = originalValue;
-    input.style.width = (element.offsetWidth + 20) + 'px';
-    input.style.padding = '2px';
-    input.style.border = '1px solid blue';
+    input.className = 'inline-edit-input';
     
     // Replace content with input
     element.textContent = '';
@@ -212,9 +179,14 @@ function saveEdit(element, newValue, fieldName, characterId, originalValue, call
         return;
     }
     
+    // Create save indicator
+    const saveIndicator = document.createElement('span');
+    saveIndicator.className = 'save-indicator';
+    saveIndicator.innerHTML = '<i class="bi bi-hourglass"></i>';
+    
     // Update display
     element.textContent = newValue;
-    element.style.opacity = '0.5';
+    element.appendChild(saveIndicator);
     
     // Send to server
     fetch(`/characters/${characterId}/field`, {
@@ -233,44 +205,313 @@ function saveEdit(element, newValue, fieldName, characterId, originalValue, call
         return response.json();
     })
     .then(data => {
-        element.style.opacity = '1';
-        element.style.borderBottom = '1px solid green';
+        // Update save indicator to show success
+        saveIndicator.className = 'save-indicator success';
+        saveIndicator.innerHTML = '<i class="bi bi-check-circle"></i>';
+        
         setTimeout(() => {
-            element.style.borderBottom = '1px dashed blue';
+            element.removeChild(saveIndicator);
         }, 2000);
         
+        // Run callback if provided (e.g., to update modifier)
         if (callback) callback(element, newValue);
     })
     .catch(error => {
         console.error('Save error:', error);
-        element.textContent = originalValue;
-        element.style.opacity = '1';
-        element.style.borderBottom = '1px solid red';
+        
+        // Show error indicator
+        saveIndicator.className = 'save-indicator error';
+        saveIndicator.innerHTML = '<i class="bi bi-exclamation-circle"></i>';
+        
         setTimeout(() => {
-            element.style.borderBottom = '1px dashed blue';
+            element.textContent = originalValue;
         }, 2000);
     });
 }
 
-function updateModifier(element, newValue) {
-    const score = parseInt(newValue);
+function updateAbilityModifier(ability, scoreValue) {
+    const score = parseInt(scoreValue);
     if (isNaN(score)) return;
     
+    // Calculate modifier using D&D rules: floor((score - 10) / 2)
     const mod = Math.floor((score - 10) / 2);
+    // Format with + sign for positive modifiers
     const modText = mod >= 0 ? `+${mod}` : mod.toString();
+    const modValue = mod; // Numeric value for calculations
     
-    // Find next sibling text node that contains the modifier
-    let nextNode = element.nextSibling;
-    while (nextNode) {
-        if (nextNode.nodeType === Node.TEXT_NODE) {
-            const text = nextNode.textContent.trim();
-            if (text.startsWith('+') || text.startsWith('-') || text === '0') {
-                nextNode.textContent = modText;
-                break;
+    // Find the modifier element and update it
+    const modElement = document.getElementById(`${ability}-mod`);
+    if (modElement) {
+        modElement.textContent = modText;
+    } else {
+        console.warn(`Could not find modifier element for ${ability}`);
+    }
+    
+    // Get proficiency bonus from the page
+    let profBonus = 2; // Default to +2 if not found
+    const profBonusElement = document.getElementById('proficiency-bonus');
+    if (profBonusElement) {
+        const profBonusText = profBonusElement.textContent;
+        const profBonusMatch = profBonusText.match(/\+(\d+)/);
+        if (profBonusMatch) {
+            profBonus = parseInt(profBonusMatch[1]);
+        }
+    }
+    
+    // Update the corresponding saving throw
+    updateSavingThrow(ability, modValue, profBonus);
+    
+    // Update all skills that use this ability
+    updateSkillsForAbility(ability, modValue, profBonus);
+}
+
+function updateSavingThrow(ability, modValue, profBonus) {
+    // Find the saving throw container
+    const savingThrowsContainer = document.getElementById('saving-throws');
+    if (!savingThrowsContainer) return;
+    
+    // Find the specific saving throw for this ability
+    const saveItems = savingThrowsContainer.querySelectorAll('.d5e-save-item');
+    saveItems.forEach(saveItem => {
+        const saveNameElement = saveItem.querySelector('.d5e-save-name');
+        if (saveNameElement && saveNameElement.textContent === ability.toUpperCase()) {
+            const isProficient = saveItem.querySelector('.d5e-prof-indicator.proficient') !== null;
+            const saveValueElement = saveItem.querySelector('.d5e-save-value');
+            
+            if (saveValueElement) {
+                // Calculate the save bonus: modifier + proficiency bonus if proficient
+                let saveBonus = modValue;
+                if (isProficient) {
+                    saveBonus += profBonus;
+                }
+                
+                // Format with + sign for positive values
+                const saveText = saveBonus >= 0 ? `+${saveBonus}` : saveBonus.toString();
+                saveValueElement.textContent = saveText;
             }
         }
-        nextNode = nextNode.nextSibling;
-    }
+    });
+}
+
+function makeAllSavingThrowsToggleable(characterId) {
+    // Find the saving throws container
+    const savingThrowsContainer = document.getElementById('saving-throws');
+    if (!savingThrowsContainer) return;
+    
+    // Find all saving throw items
+    const saveItems = savingThrowsContainer.querySelectorAll('.d5e-save-item');
+    saveItems.forEach(saveItem => {
+        const profIndicator = saveItem.querySelector('.d5e-prof-indicator');
+        const saveNameElement = saveItem.querySelector('.d5e-save-name');
+        
+        if (profIndicator && saveNameElement) {
+            const ability = saveNameElement.textContent.toLowerCase();
+            
+            // Add cursor style to show it's clickable
+            profIndicator.style.cursor = 'pointer';
+            
+            // Add click event to toggle proficiency
+            profIndicator.addEventListener('click', function() {
+                // Toggle between not proficient and proficient
+                const isProficient = profIndicator.classList.contains('proficient');
+                
+                if (isProficient) {
+                    // Switch to not proficient
+                    profIndicator.classList.remove('proficient');
+                } else {
+                    // Switch to proficient
+                    profIndicator.classList.add('proficient');
+                }
+                
+                // Update the saving throw value
+                const modElement = document.getElementById(`${ability}-mod`);
+                if (modElement) {
+                    const modText = modElement.textContent;
+                    const modMatch = modText.match(/([+-]\d+)/);
+                    if (modMatch) {
+                        const modValue = parseInt(modMatch[1]);
+                        
+                        // Get proficiency bonus
+                        const profBonusElement = document.getElementById('proficiency-bonus');
+                        const profBonus = profBonusElement ? parseInt(profBonusElement.textContent.replace('+', '')) : 2;
+                        
+                        // Update the saving throw display
+                        updateSavingThrow(ability, modValue, profBonus);
+                        
+                        // Save to server
+                        saveProficiencyState(characterId, `${ability}_save_proficiency`, !isProficient);
+                    }
+                }
+            });
+        }
+    });
+}
+
+function makeAllSkillsToggleable(characterId) {
+    // Find the skills container
+    const skillsContainer = document.getElementById('skills');
+    if (!skillsContainer) return;
+    
+    // Find all skill items
+    const skillItems = skillsContainer.querySelectorAll('.d5e-skill-item');
+    skillItems.forEach(skillItem => {
+        const profIndicator = skillItem.querySelector('.d5e-prof-indicator');
+        const skillNameElement = skillItem.querySelector('.d5e-skill-name');
+        const skillAbilityElement = skillItem.querySelector('.d5e-skill-ability');
+        
+        if (profIndicator && skillNameElement && skillAbilityElement) {
+            const skillName = skillNameElement.textContent.trim();
+            const ability = skillAbilityElement.textContent.toLowerCase();
+            
+            // Add cursor style to show it's clickable
+            profIndicator.style.cursor = 'pointer';
+            
+            // Add click event to cycle through proficiency states
+            profIndicator.addEventListener('click', function() {
+                // Determine current state
+                const isProficient = profIndicator.classList.contains('proficient');
+                const hasExpertise = profIndicator.classList.contains('expertise');
+                
+                // Get the current state
+                let newState;
+                if (hasExpertise) {
+                    // From expertise to not proficient
+                    profIndicator.classList.remove('proficient', 'expertise');
+                    newState = 'none';
+                } else if (isProficient) {
+                    // From proficient to expertise
+                    profIndicator.classList.add('expertise');
+                    newState = 'expertise';
+                } else {
+                    // From not proficient to proficient
+                    profIndicator.classList.add('proficient');
+                    newState = 'proficient';
+                }
+                
+                // Update the skill value
+                const modElement = document.getElementById(`${ability}-mod`);
+                if (modElement) {
+                    const modText = modElement.textContent;
+                    const modMatch = modText.match(/([+-]\d+)/);
+                    if (modMatch) {
+                        const modValue = parseInt(modMatch[1]);
+                        
+                        // Get proficiency bonus
+                        const profBonusElement = document.getElementById('proficiency-bonus');
+                        const profBonus = profBonusElement ? parseInt(profBonusElement.textContent.replace('+', '')) : 2;
+                        
+                        // Update the skill display
+                        updateSkillsForAbility(ability, modValue, profBonus);
+                        
+                        // Save to server
+                        saveSkillProficiency(characterId, skillName, newState);
+                    }
+                }
+            });
+        }
+    });
+}
+
+function saveProficiencyState(characterId, field, isEnabled) {
+    fetch(`/characters/${characterId}/field`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({
+            field: field,
+            value: isEnabled ? 'Proficient' : 'Not Proficient'
+        })
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Failed to save proficiency state');
+        return response.json();
+    })
+    .then(data => {
+        console.log(`Saved ${field} proficiency state: ${isEnabled}`);
+    })
+    .catch(error => {
+        console.error('Save error:', error);
+    });
+}
+
+function saveSkillProficiency(characterId, skillName, state) {
+    fetch(`/characters/${characterId}/field`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({
+            field: `skill_${skillName.toLowerCase().replace(/\s+/g, '_')}`,
+            value: state === 'none' ? 'Not Proficient' : 
+                  state === 'proficient' ? 'Proficient' : 'Expertise'
+        })
+    })
+    .then(response => {
+        if (!response.ok) throw new Error('Failed to save skill proficiency');
+        return response.json();
+    })
+    .then(data => {
+        console.log(`Saved skill ${skillName} proficiency state: ${state}`);
+    })
+    .catch(error => {
+        console.error('Save error:', error);
+    });
+}
+
+function updateSkillsForAbility(ability, modValue, profBonus) {
+    // Define which skills use each ability
+    const abilitySkillMap = {
+        'str': ['Athletics'],
+        'dex': ['Acrobatics', 'Sleight of Hand', 'Stealth'],
+        'con': [],
+        'int': ['Arcana', 'History', 'Investigation', 'Nature', 'Religion'],
+        'wis': ['Animal Handling', 'Insight', 'Medicine', 'Perception', 'Survival'],
+        'cha': ['Deception', 'Intimidation', 'Performance', 'Persuasion']
+    };
+    
+    // Get the skills for this ability
+    const skills = abilitySkillMap[ability] || [];
+    if (skills.length === 0) return;
+    
+    // Find the skills container
+    const skillsContainer = document.getElementById('skills');
+    if (!skillsContainer) return;
+    
+    // Find and update each skill that uses this ability
+    const skillItems = skillsContainer.querySelectorAll('.d5e-skill-item');
+    skillItems.forEach(skillItem => {
+        const skillNameElement = skillItem.querySelector('.d5e-skill-name');
+        const skillAbilityElement = skillItem.querySelector('.d5e-skill-ability');
+        
+        // Check if this skill uses the ability we're updating
+        if (skillNameElement && 
+            skillAbilityElement && 
+            skillAbilityElement.textContent === ability.toUpperCase()) {
+            
+            // Determine proficiency status
+            const isProficient = skillItem.querySelector('.d5e-prof-indicator.proficient') !== null;
+            const hasExpertise = skillItem.querySelector('.d5e-prof-indicator.expertise') !== null;
+            const skillValueElement = skillItem.querySelector('.d5e-skill-value');
+            
+            if (skillValueElement) {
+                // Calculate the skill bonus
+                let skillBonus = modValue;
+                if (isProficient) {
+                    skillBonus += profBonus;
+                }
+                if (hasExpertise) {
+                    skillBonus += profBonus; // Add proficiency bonus again for expertise
+                }
+                
+                // Format with + sign for positive values
+                const skillText = skillBonus >= 0 ? `+${skillBonus}` : skillBonus.toString();
+                skillValueElement.textContent = skillText;
+            }
+        }
+    });
 }
 
 function fieldNameFromLabel(label) {
