@@ -1,0 +1,134 @@
+/* Emoji indicator styles for D&D character sheet */
+
+/* Base emoji indicator styles */
+.emoji-indicator {
+    cursor: pointer;
+    margin-right: 8px;
+    font-size: 18px;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    display: inline-block;
+    user-select: none; /* Prevent text selection on double-click */
+}
+
+/* Hover and active states for emoji indicators */
+.emoji-indicator:hover {
+    transform: scale(1.2);
+    opacity: 0.8;
+}
+
+.emoji-indicator:active {
+    transform: scale(0.95);
+}
+
+/* Animation for when indicators change state */
+@keyframes pulseSuccess {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.5);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.emoji-indicator.changed {
+    animation: pulseSuccess 0.5s ease;
+}
+
+/* Saving throw styling */
+.d5e-save-item {
+    padding: 8px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.d5e-save-item:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Save value color coding */
+.d5e-save-value.positive {
+    color: #28a745; /* Green for positive values */
+}
+
+.d5e-save-value.negative {
+    color: #dc3545; /* Red for negative values */
+}
+
+.d5e-save-value.neutral {
+    color: #6c757d; /* Gray for zero */
+}
+
+/* Skill item styling */
+.d5e-skill-item {
+    padding: 8px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.d5e-skill-item:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Override existing styles to ensure emojis display correctly */
+.d5e-prof-indicator {
+    display: none !important; /* Hide any remaining circular indicators */
+}
+
+/* Tooltip for indicators */
+.emoji-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 100;
+    margin-bottom: 5px;
+}
+
+.emoji-indicator:hover .emoji-tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Dark theme compatibility */
+[data-theme="dark"] .emoji-indicator {
+    opacity: 0.9;
+}
+
+[data-theme="dark"] .d5e-save-item:hover,
+[data-theme="dark"] .d5e-skill-item:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .d5e-save-value.positive {
+    color: #48d869;
+}
+
+[data-theme="dark"] .d5e-save-value.negative {
+    color: #ff5c69;
+}
+
+[data-theme="dark"] .d5e-save-value.neutral {
+    color: #adb5bd;
+}
