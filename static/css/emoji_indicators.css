@@ -86,29 +86,67 @@
     display: none !important; /* Hide any remaining circular indicators */
 }
 
-/* Tooltip for indicators */
-.emoji-tooltip {
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #333;
-    color: white;
-    padding: 5px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s, visibility 0.3s;
-    pointer-events: none;
-    white-space: nowrap;
-    z-index: 100;
-    margin-bottom: 5px;
+/* Save indicator styles */
+.save-indicator {
+    margin-left: 5px;
+    animation: pulse 1s infinite;
 }
 
-.emoji-indicator:hover .emoji-tooltip {
-    opacity: 1;
-    visibility: visible;
+.save-indicator.success {
+    color: #28a745;
+    animation: none;
+}
+
+.save-indicator.error {
+    color: #dc3545;
+    animation: none;
+}
+
+/* Pulse animation for loading indicator */
+@keyframes pulse {
+    0% {
+        opacity: 0.5;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0.5;
+    }
+}
+
+/* Style for editable fields */
+.editable-field {
+    position: relative;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+/* Hover effect for editable fields */
+.editable-field:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+/* Add edit icon on hover */
+.editable-field:hover::after {
+    content: "✏️";
+    font-size: 12px;
+    margin-left: 5px;
+    opacity: 0.7;
+}
+
+/* Style for the input when editing */
+.inline-edit-input {
+    width: 100%;
+    padding: 2px 4px;
+    border: 1px solid #007bff;
+    border-radius: 3px;
+    font-size: inherit;
+    font-family: inherit;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    outline: none;
 }
 
 /* Dark theme compatibility */

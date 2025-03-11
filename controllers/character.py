@@ -165,7 +165,15 @@ def update_character_field(character_id):
             'personality_traits': (r'^(personality traits|Personality Traits):\s*(.*)$', f"\\1: {value}"),
             'ideals': (r'^(ideals|Ideals):\s*(.*)$', f"\\1: {value}"),
             'bonds': (r'^(bonds|Bonds):\s*(.*)$', f"\\1: {value}"),
-            'flaws': (r'^(flaws|Flaws):\s*(.*)$', f"\\1: {value}")
+            'flaws': (r'^(flaws|Flaws):\s*(.*)$', f"\\1: {value}"),
+            
+            # Add patterns for saving throw proficiencies
+            'str_save_proficiency': (r'^(str|strength|STR|Strength)\s+Save:\s*(Proficient|Not Proficient)$', f"\\1 Save: {value}"),
+            'dex_save_proficiency': (r'^(dex|dexterity|DEX|Dexterity)\s+Save:\s*(Proficient|Not Proficient)$', f"\\1 Save: {value}"),
+            'con_save_proficiency': (r'^(con|constitution|CON|Constitution)\s+Save:\s*(Proficient|Not Proficient)$', f"\\1 Save: {value}"),
+            'int_save_proficiency': (r'^(int|intelligence|INT|Intelligence)\s+Save:\s*(Proficient|Not Proficient)$', f"\\1 Save: {value}"),
+            'wis_save_proficiency': (r'^(wis|wisdom|WIS|Wisdom)\s+Save:\s*(Proficient|Not Proficient)$', f"\\1 Save: {value}"),
+            'cha_save_proficiency': (r'^(cha|charisma|CHA|Charisma)\s+Save:\s*(Proficient|Not Proficient)$', f"\\1 Save: {value}")
         }
         
         # Check if we have a pattern for this field
@@ -192,6 +200,48 @@ def update_character_field(character_id):
                         else:
                             # Add at the end of the file
                             updated_content = content + f"\n\n{field_name}: {value}\n"
+                elif field.endswith('_save_proficiency'):
+                    # Handle saving throw proficiencies
+                    ability = field.split('_')[0]
+                    save_section = re.search(r'##?\s*Saving Throws', content, re.IGNORECASE)
+                    if save_section:
+                        section_end = content.find('\n\n', save_section.end())
+                        ability_name = {
+                            'str': 'Strength',
+                            'dex': 'Dexterity',
+                            'con': 'Constitution',
+                            'int': 'Intelligence',
+                            'wis': 'Wisdom',
+                            'cha': 'Charisma'
+                        }.get(ability, ability.title())
+                        
+                        if section_end != -1:
+                            updated_content = content[:section_end] + f"\n{ability_name} Save: {value}" + content[section_end:]
+                        else:
+                            # Add at the end of the section
+                            updated_content = content + f"\n{ability_name} Save: {value}\n"
+                    else:
+                        # Create a saving throws section after Core Statistics
+                        ability_name = {
+                            'str': 'Strength',
+                            'dex': 'Dexterity',
+                            'con': 'Constitution',
+                            'int': 'Intelligence',
+                            'wis': 'Wisdom',
+                            'cha': 'Charisma'
+                        }.get(ability, ability.title())
+                        
+                        core_stats = re.search(r'##?\s*Core Statistics', content, re.IGNORECASE)
+                        if core_stats:
+                            section_end = content.find('\n\n', core_stats.end())
+                            if section_end != -1:
+                                updated_content = content[:section_end] + f"\n\n## Saving Throws\n{ability_name} Save: {value}" + content[section_end:]
+                            else:
+                                # Add at the end
+                                updated_content = content + f"\n\n## Saving Throws\n{ability_name} Save: {value}\n"
+                        else:
+                            # Just add at the end
+                            updated_content = content + f"\n\n## Saving Throws\n{ability_name} Save: {value}\n"
                 else:
                     # Generic case - add near the beginning after any front matter
                     header_end = content.find('---\n', content.find('---\n') + 1) if '---' in content else -1
@@ -201,6 +251,33 @@ def update_character_field(character_id):
                     else:
                         # Just add near the beginning
                         updated_content = content.split('\n', 1)[0] + f"\n{field_name}: {value}\n" + content.split('\n', 1)[1]
+        elif field.startswith('skill_'):
+            # Handle skill proficiencies
+            skill_name = field.replace('skill_', '').replace('_', ' ').title()
+            pattern = re.compile(f"{skill_name}:\\s*(Proficient|Expertise|Not Proficient)", re.IGNORECASE)
+            match = pattern.search(content)
+            
+            if match:
+                # Replace existing skill proficiency
+                updated_content = pattern.sub(f"{skill_name}: {value}", content)
+            else:
+                # Add new skill entry after Skills section heading
+                skills_section = re.search(r'##?\s*Skills', content, re.IGNORECASE)
+                if skills_section:
+                    insertion_point = skills_section.end()
+                    updated_content = content[:insertion_point] + f"\n{skill_name}: {value}" + content[insertion_point:]
+                else:
+                    # No Skills section, create one
+                    core_stats_section = re.search(r'##?\s*Core Statistics', content, re.IGNORECASE)
+                    if core_stats_section:
+                        insertion_point = content.find('\n\n', core_stats_section.end())
+                        if insertion_point != -1:
+                            updated_content = content[:insertion_point] + f"\n\n## Skills\n{skill_name}: {value}" + content[insertion_point:]
+                        else:
+                            updated_content = content + f"\n\n## Skills\n{skill_name}: {value}\n"
+                    else:
+                        # Just add at the end
+                        updated_content = content + f"\n\n## Skills\n{skill_name}: {value}\n"
         else:
             return jsonify({"error": f"Field '{field}' is not supported for editing"}), 400
         
@@ -223,7 +300,6 @@ def update_character_field(character_id):
         print(f"Error updating character field: {str(e)}")
         print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
-
 
 @character.route('/<int:character_id>', methods=['GET'])
 @login_required
