@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - D&D Character Manager{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Your Characters</h1>
+    <a href="{{ url_for('character.new') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Create New Character
+    </a>
+</div>
+
+{% if characters %}
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for character in characters %}
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="card-title mb-0">{{ character.name }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            <strong>species:</strong> {{ character.species or 'Not specified' }}<br>
+                            <strong>Class:</strong> {{ character.character_class or 'Not specified' }}<br>
+                            <strong>Level:</strong> {{ character.level }}
+                        </p>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                Created: {{ character.created_at.strftime('%Y-%m-%d') }}<br>
+                                Last modified: {{ character.last_modified.strftime('%Y-%m-%d') }}
+                            </small>
+                        </p>
+                    </div>
+                    <div class="card-footer">
+                        <div class="btn-group w-100">
+                            <a href="{{ url_for('character.view', character_id=character.id) }}" 
+                               class="btn btn-outline-primary">
+                                View
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>No characters found. <a href="{{ url_for('character.new') }}">Create a new character</a>.</p>
+{% endif %}
+{% endblock %}
+
+{% block login %}
+<div class="login-container">
+    <form action="{{ url_for('login') }}" method="post">
+        <h2>Login</h2>
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" class="form-control" id="username" name="username" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+</div>
+{% endblock %}

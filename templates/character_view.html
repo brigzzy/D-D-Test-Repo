@@ -1,0 +1,553 @@
+{% extends "base.html" %}
+
+{% block title %}{{ character.name }} - D&D Character Manager{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/character_sheet.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/inline-editing.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<body data-character-id="{{ character.id }}"></body>
+
+<div class="character-actions mb-4">
+    <div class="d-flex justify-content-between">
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+        <div class="btn-group">
+            <button type="button" class="btn btn-danger" 
+                   data-bs-toggle="modal" 
+                   data-bs-target="#deleteModal">
+                <i class="bi bi-trash"></i> Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="d5e-character-sheet">
+    <!-- Character Header -->
+    <div class="d5e-header">
+        <div class="d5e-character-name">{{ character.name }}</div>
+        <div class="d5e-character-details">
+            <div class="d5e-detail-item">
+                <label>Class & Level</label>
+                <span>{{ character.character_class }} {{ character.level }}</span>
+            </div>
+            <div class="d5e-detail-item">
+                <label>Species</label>
+                <span>{{ character.species }}</span>
+            </div>
+            <div class="d5e-detail-item">
+                <label>Background</label>
+                <span id="background">-</span>
+            </div>
+            <div class="d5e-detail-item">
+                <label>Alignment</label>
+                <span id="alignment">-</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Character Sheet Content -->
+    <div class="d5e-main-content">
+        <!-- Left Column: Abilities, Skills, etc. -->
+        <div class="d5e-column-left">
+            <!-- Ability Scores -->
+            <div class="d5e-ability-scores">
+                <h3>Ability Scores</h3>
+                <div class="d5e-abilities">
+                    <div class="d5e-ability">
+                        <div class="d5e-ability-name">STR</div>
+                        <div class="d5e-ability-score" id="str-score">-</div>
+                        <div class="d5e-ability-mod" id="str-mod">-</div>
+                    </div>
+                    <div class="d5e-ability">
+                        <div class="d5e-ability-name">DEX</div>
+                        <div class="d5e-ability-score" id="dex-score">-</div>
+                        <div class="d5e-ability-mod" id="dex-mod">-</div>
+                    </div>
+                    <div class="d5e-ability">
+                        <div class="d5e-ability-name">CON</div>
+                        <div class="d5e-ability-score" id="con-score">-</div>
+                        <div class="d5e-ability-mod" id="con-mod">-</div>
+                    </div>
+                    <div class="d5e-ability">
+                        <div class="d5e-ability-name">INT</div>
+                        <div class="d5e-ability-score" id="int-score">-</div>
+                        <div class="d5e-ability-mod" id="int-mod">-</div>
+                    </div>
+                    <div class="d5e-ability">
+                        <div class="d5e-ability-name">WIS</div>
+                        <div class="d5e-ability-score" id="wis-score">-</div>
+                        <div class="d5e-ability-mod" id="wis-mod">-</div>
+                    </div>
+                    <div class="d5e-ability">
+                        <div class="d5e-ability-name">CHA</div>
+                        <div class="d5e-ability-score" id="cha-score">-</div>
+                        <div class="d5e-ability-mod" id="cha-mod">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Saving Throws -->
+            <div class="d5e-saving-throws">
+                <h3>Saving Throws</h3>
+                <div class="d5e-save-list" id="saving-throws">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Skills -->
+            <div class="d5e-skills">
+                <h3>Skills</h3>
+                <div class="d5e-skill-list" id="skills">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Proficiency Bonus -->
+            <div class="d5e-proficiency">
+                <h3>Proficiency Bonus</h3>
+                <div class="d5e-prof-bonus" id="proficiency-bonus">-</div>
+            </div>
+        </div>
+
+        <!-- Middle Column: Combat, Equipment, etc. -->
+        <div class="d5e-column-middle">
+            <!-- Combat Stats -->
+            <div class="d5e-combat-stats">
+                <h3>Combat</h3>
+                <div class="d5e-combat-group">
+                    <div class="d5e-combat-item">
+                        <label>Armor Class</label>
+                        <div class="d5e-value" id="armor-class">-</div>
+                    </div>
+                    <div class="d5e-combat-item">
+                        <label>Initiative</label>
+                        <div class="d5e-value" id="initiative">-</div>
+                    </div>
+                    <div class="d5e-combat-item">
+                        <label>Speed</label>
+                        <div class="d5e-value" id="speed">-</div>
+                    </div>
+                </div>
+                
+                <div class="d5e-hp-section">
+                    <div class="d5e-hp-item">
+                        <label>Max HP</label>
+                        <div class="d5e-value" id="max-hp">-</div>
+                    </div>
+                    <div class="d5e-hp-item">
+                        <label>Current HP</label>
+                        <div class="d5e-value" id="current-hp">-</div>
+                    </div>
+                    <div class="d5e-hp-item">
+                        <label>Temporary HP</label>
+                        <div class="d5e-value" id="temp-hp">-</div>
+                    </div>
+                </div>
+                
+                <div class="d5e-hit-dice">
+                    <label>Hit Dice</label>
+                    <div class="d5e-value" id="hit-dice">-</div>
+                </div>
+                
+                <div class="d5e-death-saves">
+                    <label>Death Saves</label>
+                    <div class="d5e-death-save-group" id="death-saves">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weapons & Attacks -->
+            <div class="d5e-attacks">
+                <h3>Attacks & Spellcasting</h3>
+                <div class="d5e-weapons" id="weapons">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+                
+                <div class="d5e-spell-info">
+                    <div class="d5e-spell-item">
+                        <label>Spellcasting Ability</label>
+                        <div class="d5e-value" id="spell-ability">-</div>
+                    </div>
+                    <div class="d5e-spell-item">
+                        <label>Spell Save DC</label>
+                        <div class="d5e-value" id="spell-save-dc">-</div>
+                    </div>
+                    <div class="d5e-spell-item">
+                        <label>Spell Attack Bonus</label>
+                        <div class="d5e-value" id="spell-attack">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Features, Bio, etc. -->
+        <div class="d5e-column-right">
+            <!-- Equipment & Money -->
+            <div class="d5e-equipment">
+                <h3>Equipment</h3>
+                <div class="d5e-currency">
+                    <div class="d5e-coin">
+                        <label>PP</label>
+                        <span id="pp">-</span>
+                    </div>
+                    <div class="d5e-coin">
+                        <label>GP</label>
+                        <span id="gp">-</span>
+                    </div>
+                    <div class="d5e-coin">
+                        <label>EP</label>
+                        <span id="ep">-</span>
+                    </div>
+                    <div class="d5e-coin">
+                        <label>SP</label>
+                        <span id="sp">-</span>
+                    </div>
+                    <div class="d5e-coin">
+                        <label>CP</label>
+                        <span id="cp">-</span>
+                    </div>
+                </div>
+                <div class="d5e-inventory" id="equipment">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Features & Traits -->
+            <div class="d5e-features">
+                <h3>Features & Traits</h3>
+                <div class="d5e-feature-list" id="features">
+                    <!-- Will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Background & Personality -->
+            <div class="d5e-personality">
+                <h3>Personality</h3>
+                <div class="d5e-personality-trait">
+                    <label>Personality Traits</label>
+                    <div id="personality-traits">-</div>
+                </div>
+                <div class="d5e-personality-trait">
+                    <label>Ideals</label>
+                    <div id="ideals">-</div>
+                </div>
+                <div class="d5e-personality-trait">
+                    <label>Bonds</label>
+                    <div id="bonds">-</div>
+                </div>
+                <div class="d5e-personality-trait">
+                    <label>Flaws</label>
+                    <div id="flaws">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Original Markdown Content (hidden by default) -->
+    <div class="d5e-markdown-toggle">
+        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#originalMarkdown">
+            Show/Hide Original Markdown
+        </button>
+    </div>
+    <div class="collapse" id="originalMarkdown">
+        <div class="card card-body mt-3">
+            <h4>Original Markdown Content</h4>
+            <div class="original-markdown">
+                {{ content|safe }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Deletion</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to delete <strong>{{ character.name }}</strong>? 
+                This action cannot be undone.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form action="{{ url_for('character.delete', character_id=character.id) }}" method="post">
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/inline-editing.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Store the raw markdown content for parsing
+        const markdownContent = `{{ content|replace("\n", "\\n")|safe }}`;
+        
+        // Parse the markdown content to extract character data
+        parseCharacterSheet(markdownContent);
+    });
+    
+    function parseCharacterSheet(markdown) {
+        // Helper function to extract values from the markdown using regex
+        function extractValue(pattern, defaultValue = '-') {
+            const match = markdown.match(pattern);
+            return match ? match[1].trim() : defaultValue;
+        }
+        
+        // Helper function to calculate ability modifier
+        function calculateModifier(score) {
+            if (score === '-' || isNaN(score)) return '-';
+            const mod = Math.floor((parseInt(score) - 10) / 2);
+            return mod >= 0 ? `+${mod}` : mod.toString();
+        }
+        
+        // Extract basic character information
+        document.getElementById('background').textContent = extractValue(/background:?\s*([^\n]+)/i);
+        document.getElementById('alignment').textContent = extractValue(/alignment:?\s*([^\n]+)/i);
+        
+        // Extract ability scores
+        const abilities = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+        const abilityNames = {
+            'str': 'strength',
+            'dex': 'dexterity',
+            'con': 'constitution',
+            'int': 'intelligence',
+            'wis': 'wisdom',
+            'cha': 'charisma'
+        };
+        
+        abilities.forEach(ability => {
+            const fullName = abilityNames[ability];
+            let score = extractValue(new RegExp(`${ability}(?:ength)?:?\\s*(\\d+)`, 'i'));
+            if (score === '-') {
+                score = extractValue(new RegExp(`${fullName}:?\\s*(\\d+)`, 'i'));
+            }
+            
+            document.getElementById(`${ability}-score`).textContent = score;
+            document.getElementById(`${ability}-mod`).textContent = calculateModifier(score);
+        });
+        
+        // Extract combat stats
+        document.getElementById('armor-class').textContent = extractValue(/(?:armor\s+class|ac):?\s*(\d+)/i);
+        document.getElementById('initiative').textContent = extractValue(/initiative:?\s*([-+]?\d+)/i);
+        document.getElementById('speed').textContent = extractValue(/speed:?\s*(\d+)/i);
+        document.getElementById('max-hp').textContent = extractValue(/(?:maximum|max)\s+hp:?\s*(\d+)/i);
+        document.getElementById('current-hp').textContent = extractValue(/(?:current|curr)\s+hp:?\s*(\d+)/i);
+        document.getElementById('temp-hp').textContent = extractValue(/(?:temporary|temp)\s+hp:?\s*(\d+)/i);
+        document.getElementById('hit-dice').textContent = extractValue(/hit\s+dice:?\s*([^\n]+)/i);
+        
+        // Calculate proficiency bonus based on level
+        const level = parseInt("{{ character.level }}");
+        const profBonus = Math.floor((level - 1) / 4) + 2;
+        document.getElementById('proficiency-bonus').textContent = `+${profBonus}`;
+        
+        // Generate saving throws section
+        const savingThrowsContainer = document.getElementById('saving-throws');
+        savingThrowsContainer.innerHTML = '';
+        
+        abilities.forEach(ability => {
+            const fullName = abilityNames[ability];
+            const isProficient = markdown.match(new RegExp(`${fullName}\\s+save:?\\s*proficient`, 'i')) !== null;
+            const modValue = document.getElementById(`${ability}-mod`).textContent;
+            
+            let saveValue = modValue;
+            if (isProficient && modValue !== '-') {
+                const mod = parseInt(modValue);
+                saveValue = mod + profBonus >= 0 ? `+${mod + profBonus}` : `${mod + profBonus}`;
+            }
+            
+            const saveElement = document.createElement('div');
+            saveElement.className = 'd5e-save-item';
+            saveElement.innerHTML = `
+                <div class="d5e-prof-indicator ${isProficient ? 'proficient' : ''}"></div>
+                <div class="d5e-save-name">${ability.toUpperCase()}</div>
+                <div class="d5e-save-value">${saveValue}</div>
+            `;
+            savingThrowsContainer.appendChild(saveElement);
+        });
+        
+        // Generate skills section
+        const skills = [
+            { name: 'Acrobatics', ability: 'dex' },
+            { name: 'Animal Handling', ability: 'wis' },
+            { name: 'Arcana', ability: 'int' },
+            { name: 'Athletics', ability: 'str' },
+            { name: 'Deception', ability: 'cha' },
+            { name: 'History', ability: 'int' },
+            { name: 'Insight', ability: 'wis' },
+            { name: 'Intimidation', ability: 'cha' },
+            { name: 'Investigation', ability: 'int' },
+            { name: 'Medicine', ability: 'wis' },
+            { name: 'Nature', ability: 'int' },
+            { name: 'Perception', ability: 'wis' },
+            { name: 'Performance', ability: 'cha' },
+            { name: 'Persuasion', ability: 'cha' },
+            { name: 'Religion', ability: 'int' },
+            { name: 'Sleight of Hand', ability: 'dex' },
+            { name: 'Stealth', ability: 'dex' },
+            { name: 'Survival', ability: 'wis' }
+        ];
+        
+        const skillsContainer = document.getElementById('skills');
+        skillsContainer.innerHTML = '';
+        
+        skills.forEach(skill => {
+            const skillNameLower = skill.name.toLowerCase();
+            const isProficient = markdown.match(new RegExp(`${skillNameLower}:?\\s*proficient`, 'i')) !== null;
+            const expertiseMatcher = markdown.match(new RegExp(`${skillNameLower}:?\\s*expertise`, 'i')) !== null;
+            
+            let profMultiplier = 0;
+            if (isProficient) profMultiplier = 1;
+            if (expertiseMatcher) profMultiplier = 2;
+            
+            const abilityMod = document.getElementById(`${skill.ability}-mod`).textContent;
+            let skillValue = abilityMod;
+            
+            if (profMultiplier > 0 && abilityMod !== '-') {
+                const mod = parseInt(abilityMod);
+                skillValue = mod + (profBonus * profMultiplier) >= 0 ? 
+                    `+${mod + (profBonus * profMultiplier)}` : 
+                    `${mod + (profBonus * profMultiplier)}`;
+            }
+            
+            const skillElement = document.createElement('div');
+            skillElement.className = 'd5e-skill-item';
+            
+            skillElement.innerHTML = `
+                <div class="d5e-prof-indicator ${profMultiplier === 1 ? 'proficient' : ''} ${profMultiplier === 2 ? 'expertise' : ''}"></div>
+                <div class="d5e-skill-ability">${skill.ability.toUpperCase()}</div>
+                <div class="d5e-skill-name">${skill.name}</div>
+                <div class="d5e-skill-value">${skillValue}</div>
+            `;
+            
+            skillsContainer.appendChild(skillElement);
+        });
+        
+        // Parse death saves
+        const deathSavesContainer = document.getElementById('death-saves');
+        deathSavesContainer.innerHTML = `
+            <div class="d5e-death-save-row">
+                <label>Successes</label>
+                <div class="d5e-death-save-boxes">
+                    <span class="d5e-death-save-box"></span>
+                    <span class="d5e-death-save-box"></span>
+                    <span class="d5e-death-save-box"></span>
+                </div>
+            </div>
+            <div class="d5e-death-save-row">
+                <label>Failures</label>
+                <div class="d5e-death-save-boxes">
+                    <span class="d5e-death-save-box"></span>
+                    <span class="d5e-death-save-box"></span>
+                    <span class="d5e-death-save-box"></span>
+                </div>
+            </div>
+        `;
+        
+        // Parse weapons/attacks
+        const weaponsContainer = document.getElementById('weapons');
+        const weaponSection = markdown.match(/weapons:?\s*\n([\s\S]*?)(?:\n\n|\n#|\n\*\*|$)/i);
+        
+        if (weaponSection && weaponSection[1]) {
+            const weaponLines = weaponSection[1].trim().split('\n');
+            weaponsContainer.innerHTML = '<table class="d5e-weapon-table"><thead><tr><th>Name</th><th>ATK</th><th>Damage</th><th>Type</th></tr></thead><tbody></tbody></table>';
+            const weaponBody = weaponsContainer.querySelector('tbody');
+            
+            weaponLines.forEach(line => {
+                const weaponMatch = line.match(/^\s*(?:-|\*)\s*([^|]+)\|([^|]+)\|([^|]+)(?:\|([^|]+))?/);
+                if (weaponMatch) {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${weaponMatch[1].trim()}</td>
+                        <td>${weaponMatch[2].trim()}</td>
+                        <td>${weaponMatch[3].trim()}</td>
+                        <td>${weaponMatch[4] ? weaponMatch[4].trim() : ''}</td>
+                    `;
+                    weaponBody.appendChild(row);
+                }
+            });
+        } else {
+            weaponsContainer.innerHTML = '<p>No weapons listed</p>';
+        }
+        
+        // Parse equipment
+        const equipmentContainer = document.getElementById('equipment');
+        const equipmentSection = markdown.match(/equipment:?\s*\n([\s\S]*?)(?:\n\n|\n#|\n\*\*|$)/i);
+        
+        if (equipmentSection && equipmentSection[1]) {
+            const equipmentItems = equipmentSection[1].trim().split('\n');
+            const equipmentList = document.createElement('ul');
+            equipmentList.className = 'd5e-equipment-list';
+            
+            equipmentItems.forEach(item => {
+                const itemMatch = item.match(/^\s*(?:-|\*)\s*(.+)$/);
+                if (itemMatch) {
+                    const li = document.createElement('li');
+                    li.textContent = itemMatch[1].trim();
+                    equipmentList.appendChild(li);
+                }
+            });
+            
+            equipmentContainer.appendChild(equipmentList);
+        } else {
+            equipmentContainer.innerHTML = '<p>No equipment listed</p>';
+        }
+        
+        // Parse currency
+        document.getElementById('pp').textContent = extractValue(/platinum:?\s*(\d+)/i, '0');
+        document.getElementById('gp').textContent = extractValue(/gold:?\s*(\d+)/i, '0');
+        document.getElementById('ep').textContent = extractValue(/electrum:?\s*(\d+)/i, '0');
+        document.getElementById('sp').textContent = extractValue(/silver:?\s*(\d+)/i, '0');
+        document.getElementById('cp').textContent = extractValue(/copper:?\s*(\d+)/i, '0');
+        
+        // Parse features
+        const featuresContainer = document.getElementById('features');
+        const featuresSection = markdown.match(/(?:features|traits):?\s*\n([\s\S]*?)(?:\n\n|\n#|\n\*\*|$)/i);
+        
+        if (featuresSection && featuresSection[1]) {
+            featuresContainer.innerHTML = '';
+            
+            // Try to find feature titles and descriptions
+            const featureMatches = featuresSection[1].matchAll(/^\s*(?:-|\*)\s*(?:\*\*([^*]+)\*\*:?(.*)|\*([^*]+)\*:?(.*)|([^:]+):(.*))/gm);
+            
+            for (const match of featureMatches) {
+                const title = match[1] || match[3] || match[5] || '';
+                const description = (match[2] || match[4] || match[6] || '').trim();
+                
+                const featureDiv = document.createElement('div');
+                featureDiv.className = 'd5e-feature-item';
+                featureDiv.innerHTML = `
+                    <h4>${title.trim()}</h4>
+                    <p>${description}</p>
+                `;
+                featuresContainer.appendChild(featureDiv);
+            }
+        } else {
+            featuresContainer.innerHTML = '<p>No features listed</p>';
+        }
+        
+        // Parse personality traits
+        document.getElementById('personality-traits').textContent = extractValue(/personality traits:?\s*([^\n]+)/i);
+        document.getElementById('ideals').textContent = extractValue(/ideals:?\s*([^\n]+)/i);
+        document.getElementById('bonds').textContent = extractValue(/bonds:?\s*([^\n]+)/i);
+        document.getElementById('flaws').textContent = extractValue(/flaws:?\s*([^\n]+)/i);
+        
+        // Parse spell information
+        document.getElementById('spell-ability').textContent = extractValue(/spellcasting ability:?\s*([^\n]+)/i);
+        document.getElementById('spell-save-dc').textContent = extractValue(/spell save dc:?\s*(\d+)/i);
+        document.getElementById('spell-attack').textContent = extractValue(/spell attack bonus:?\s*([-+]?\d+)/i);
+    }
+</script>
+{% endblock %}
