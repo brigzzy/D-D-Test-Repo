@@ -116,6 +116,9 @@ Copper: 0
     
     return render_template('character_edit.html', character=None, is_new=True)
 
+# Add this function to your controllers/character.py file
+# Replace the existing update_character_field function with this version
+
 @character.route('/<character_id>/field', methods=['POST'])
 @login_required
 def update_character_field(character_id):
@@ -145,6 +148,13 @@ def update_character_field(character_id):
         # Get the content of the markdown file
         content = character.get_content()
         
+        # Special case for death saves (whole markdown content is passed)
+        if field == 'death_saves':
+            # Save the provided content directly
+            updated_content = value
+            character.save_content(updated_content)
+            return jsonify({"success": True, "message": "Death saves updated successfully"}), 200
+            
         # Update the field based on the field name
         updated_content = None
         
@@ -197,188 +207,10 @@ def update_character_field(character_id):
                         else:
                             # Add at the end of the file
                             updated_content = content + f"\n\n{field_name}: {value}\n"
-                elif field.startswith('death_save_'):
-                    # Handle death saves
-                    # Parsing death_save_success_1 or death_save_failure_2
-                    parts = field.split('_')
-                    if len(parts) >= 4:
-                        save_type = parts[2]  # success or failure
-                        save_index = parts[3]  # 1, 2, or 3
-                        
-                        # Look for the Death Saves section
-                        death_save_section = re.search(r'##?\s*Death Saves', content, re.IGNORECASE)
-                        
-                        if death_save_section:
-                            # Find the line with this specific death save
-                            pattern = fr"{save_type.capitalize()} {save_index}: (marked|unmarked)"
-                            save_line = re.search(pattern, content, re.IGNORECASE)
-                            
-                            if save_line:
-                                # Replace the existing line
-                                updated_content = re.sub(
-                                    pattern, 
-                                    f"{save_type.capitalize()} {save_index}: {value}", 
-                                    content, 
-                                    flags=re.IGNORECASE
-                                )
-                            else:
-                                # Add a new line to the section
-                                section_end = content.find('\n\n', death_save_section.end())
-                                if section_end != -1:
-                                    updated_content = content[:section_end] + f"\n{save_type.capitalize()} {save_index}: {value}" + content[section_end:]
-                                else:
-                                    # Add at the end of the section
-                                    updated_content = content + f"\n{save_type.capitalize()} {save_index}: {value}\n"
-                        else:
-                            # Create a new Death Saves section
-                            combat_section = re.search(r'##?\s*Combat', content, re.IGNORECASE)
-                            
-                            if combat_section:
-                                section_end = content.find('\n\n', combat_section.end())
-                                if section_end != -1:
-                                    updated_content = content[:section_end] + f"\n\n## Death Saves\n{save_type.capitalize()} {save_index}: {value}" + content[section_end:]
-                                else:
-                                    # Add at the end
-                                    updated_content = content + f"\n\n## Death Saves\n{save_type.capitalize()} {save_index}: {value}\n"
-                            else:
-                                # Just add at the end
-                                updated_content = content + f"\n\n## Death Saves\n{save_type.capitalize()} {save_index}: {value}\n"
-                elif field.endswith('_save_proficiency'):
-                    # Handle saving throw proficiencies
-                    ability = field.split('_')[0]
-                    save_section = re.search(r'##?\s*Saving Throws', content, re.IGNORECASE)
-                    if save_section:
-                        section_end = content.find('\n\n', save_section.end())
-                        ability_name = {
-                            'str': 'Strength',
-                            'dex': 'Dexterity',
-                            'con': 'Constitution',
-                            'int': 'Intelligence',
-                            'wis': 'Wisdom',
-                            'cha': 'Charisma'
-                        }.get(ability, ability.title())
-                        
-                        if section_end != -1:
-                            updated_content = content[:section_end] + f"\n{ability_name} Save: {value}" + content[section_end:]
-                        else:
-                            # Add at the end of the section
-                            updated_content = content + f"\n{ability_name} Save: {value}\n"
-                    else:
-                        # Create a saving throws section after Core Statistics
-                        ability_name = {
-                            'str': 'Strength',
-                            'dex': 'Dexterity',
-                            'con': 'Constitution',
-                            'int': 'Intelligence',
-                            'wis': 'Wisdom',
-                            'cha': 'Charisma'
-                        }.get(ability, ability.title())
-                        
-                        core_stats = re.search(r'##?\s*Core Statistics', content, re.IGNORECASE)
-                        if core_stats:
-                            section_end = content.find('\n\n', core_stats.end())
-                            if section_end != -1:
-                                updated_content = content[:section_end] + f"\n\n## Saving Throws\n{ability_name} Save: {value}" + content[section_end:]
-                            else:
-                                # Add at the end
-                                updated_content = content + f"\n\n## Saving Throws\n{ability_name} Save: {value}\n"
-                        else:
-                            # Just add at the end
-                            updated_content = content + f"\n\n## Saving Throws\n{ability_name} Save: {value}\n"
-        elif field.endswith('_save_proficiency'):
-            # Handle saving throw proficiencies
-            ability = field.split('_')[0]
-            save_section = re.search(r'##?\s*Saving Throws', content, re.IGNORECASE)
-            if save_section:
-                section_end = content.find('\n\n', save_section.end())
-                ability_name = {
-                    'str': 'Strength',
-                    'dex': 'Dexterity',
-                    'con': 'Constitution',
-                    'int': 'Intelligence',
-                    'wis': 'Wisdom',
-                    'cha': 'Charisma'
-                }.get(ability, ability.title())
-                
-                if section_end != -1:
-                    updated_content = content[:section_end] + f"\n{ability_name} Save: {value}" + content[section_end:]
-                else:
-                    # Add at the end of the section
-                    updated_content = content + f"\n{ability_name} Save: {value}\n"
-            else:
-                # Create a saving throws section after Core Statistics
-                ability_name = {
-                    'str': 'Strength',
-                    'dex': 'Dexterity',
-                    'con': 'Constitution',
-                    'int': 'Intelligence',
-                    'wis': 'Wisdom',
-                    'cha': 'Charisma'
-                }.get(ability, ability.title())
-                
-                core_stats = re.search(r'##?\s*Core Statistics', content, re.IGNORECASE)
-                if core_stats:
-                    section_end = content.find('\n\n', core_stats.end())
-                    if section_end != -1:
-                        updated_content = content[:section_end] + f"\n\n## Saving Throws\n{ability_name} Save: {value}" + content[section_end:]
-                    else:
-                        # Add at the end
-                        updated_content = content + f"\n\n## Saving Throws\n{ability_name} Save: {value}\n"
-                else:
-                    # Just add at the end
-                    updated_content = content + f"\n\n## Saving Throws\n{ability_name} Save: {value}\n"
-        elif field.startswith('skill_'):
-            # Handle skill proficiencies
-            skill_name = field.replace('skill_', '').replace('_', ' ').title()
-            pattern = re.compile(f"{skill_name}:\\s*(Proficient|Expertise|Not Proficient)", re.IGNORECASE)
-            match = pattern.search(content)
-            
-            if match:
-                # Replace existing skill proficiency
-                updated_content = pattern.sub(f"{skill_name}: {value}", content)
-            else:
-                # Add new skill entry after Skills section heading
-                skills_section = re.search(r'##?\s*Skills', content, re.IGNORECASE)
-                if skills_section:
-                    insertion_point = skills_section.end()
-                    updated_content = content[:insertion_point] + f"\n{skill_name}: {value}" + content[insertion_point:]
-                else:
-                    # No Skills section, create one
-                    core_stats_section = re.search(r'##?\s*Core Statistics', content, re.IGNORECASE)
-                    if core_stats_section:
-                        insertion_point = content.find('\n\n', core_stats_section.end())
-                        if insertion_point != -1:
-                            updated_content = content[:insertion_point] + f"\n\n## Skills\n{skill_name}: {value}" + content[insertion_point:]
-                        else:
-                            updated_content = content + f"\n\n## Skills\n{skill_name}: {value}\n"
-                    else:
-                        # Just add at the end
-                        updated_content = content + f"\n\n## Skills\n{skill_name}: {value}\n"
-
-        # After checking field_patterns, add this check:
-        elif field.endswith('_save_proficiency'):
-            # Handle saving throw proficiencies
-            ability = field.split('_')[0]
-            ability_name = {
-                'str': 'Strength',
-                'dex': 'Dexterity',
-                'con': 'Constitution',
-                'int': 'Intelligence',
-                'wis': 'Wisdom',
-                'cha': 'Charisma'
-            }.get(ability, ability.title())
-            
-            save_section = re.search(r'##?\s*Saving Throws', content, re.IGNORECASE)
-            if save_section:
-                # Add to existing section
-                insertion_point = save_section.end()
-                updated_content = content[:insertion_point] + f"\n{ability_name} Save: {value}" + content[insertion_point:]
-            else:
-                # Create new section
-                updated_content = content + f"\n\n## Saving Throws\n{ability_name} Save: {value}\n"
-                
-        else:
-            return jsonify({"error": f"Field '{field}' is not supported for editing"}), 400
+                # More conditions for other fields...
+    
+        # Handle special fields and more conditions
+        # [existing code for other field types]
         
         # Write the updated content back to the file
         if updated_content:
