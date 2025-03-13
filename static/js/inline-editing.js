@@ -610,36 +610,162 @@ function saveSkillToServer(characterId, skillName, state) {
     });
 }
 
-function startEditingField(element, fieldName, characterId, callback) {
-    console.log('Starting edit for field:', fieldName);
-    console.log('Original element:', element);
-    console.log('Original text:', element.textContent);
 
-    const originalValue = element.textContent.trim();
+
+function startEditingField(element, fieldName, characterId, callback) {
+    // Get the markdown content
+    const markdownContent = document.querySelector('.original-markdown').textContent;
     
+    console.log('Markdown Content:', markdownContent);
+    console.log('Field Name:', fieldName);
+
+    // Comprehensive patterns for field extraction
+    const patterns = {
+        // Character Information
+        'name': [
+            /^#\s*([^\n]+)/,
+            /Character Name:\s*([^\n]+)/i
+        ],
+        'species': [
+            /Species:\s*([^\n]+)/i,
+            /Race:\s*([^\n]+)/i
+        ],
+        'class': [
+            /Class:\s*([^\n]+)/i
+        ],
+        'background': [
+            /Background:\s*([^\n]+)/i
+        ],
+        'alignment': [
+            /Alignment:\s*([^\n]+)/i
+        ],
+        'class-level': [
+            /Class:\s*([^\n]+)\s*Level:\s*(\d+)/i,
+            /(?:Class|class):\s*([^\n]+).*Level:\s*(\d+)/i
+        ],
+
+        // Ability Scores
+        'str_score': [
+            /Strength:\s*(\d+)/i
+        ],
+        'dex_score': [
+            /Dexterity:\s*(\d+)/i
+        ],
+        'con_score': [
+            /Constitution:\s*(\d+)/i
+        ],
+        'int_score': [
+            /Intelligence:\s*(\d+)/i
+        ],
+        'wis_score': [
+            /Wisdom:\s*(\d+)/i
+        ],
+        'cha_score': [
+            /Charisma:\s*(\d+)/i
+        ],
+
+        // Combat Section
+        'armor_class': [
+            /Armor\s+Class:\s*(\d+)/i,
+            /AC:\s*(\d+)/i
+        ],
+        'initiative': [
+            /Initiative:\s*([-+]?\d+)/i
+        ],
+        'speed': [
+            /Speed:\s*(\d+)/i
+        ],
+        'max_hp': [
+            /(?:Maximum|Max)\s*HP:\s*(\d+)/i
+        ],
+        'current_hp': [
+            /(?:Current|Curr)\s*HP:\s*(\d+)/i
+        ],
+        'temp_hp': [
+            /(?:Temporary|Temp)\s*HP:\s*(\d+)/i
+        ],
+        'hit_dice': [
+            /Hit\s+Dice:\s*([^\n]+)/i
+        ],
+
+        // Currency
+        'platinum': [
+            /Platinum:\s*(\d+)/i,
+            /PP:\s*(\d+)/i
+        ],
+        'gold': [
+            /Gold:\s*(\d+)/i,
+            /GP:\s*(\d+)/i
+        ],
+        'electrum': [
+            /Electrum:\s*(\d+)/i,
+            /EP:\s*(\d+)/i
+        ],
+        'silver': [
+            /Silver:\s*(\d+)/i,
+            /SP:\s*(\d+)/i
+        ],
+        'copper': [
+            /Copper:\s*(\d+)/i,
+            /CP:\s*(\d+)/i
+        ],
+
+        // Personality Traits
+        'personality_traits': [
+            /Personality\s*Traits:\s*([^\n]+)/i
+        ],
+        'ideals': [
+            /Ideals:\s*([^\n]+)/i
+        ],
+        'bonds': [
+            /Bonds:\s*([^\n]+)/i
+        ],
+        'flaws': [
+            /Flaws:\s*([^\n]+)/i
+        ]
+    };
+
+    // Extraction function
+    const extractValueFromMarkdown = (content, field) => {
+        const fieldPatterns = patterns[field] || [];
+        
+        for (const pattern of fieldPatterns) {
+            const match = content.match(pattern);
+            if (match) {
+                // For fields with multiple capture groups (like class-level)
+                if (match.length > 1) {
+                    // If it's class-level, combine the results
+                    if (field === 'class-level') {
+                        return `${match[1]} ${match[2]}`.trim();
+                    }
+                    return match[1].trim();
+                }
+                return match[0].trim();
+            }
+        }
+
+        console.warn(`No match found for field: ${field}`);
+        return element.textContent.trim();
+    };
+
+    // Extract the original value
+    const originalValue = extractValueFromMarkdown(markdownContent, fieldName);
+    
+    console.log(`Original value for ${fieldName}:`, originalValue);
+
     // Create input element for editing
     const input = document.createElement('input');
     input.type = 'text';
-    
-    // Explicitly set value BEFORE manipulating the DOM
     input.value = originalValue;
-    
-    console.log('Input value set to:', input.value);
-    
     input.className = 'inline-edit-input';
     
-    // Clear the element AFTER setting input value
-    element.textContent = '';
+    // Clear the element and append input
+    element.innerHTML = '';
     element.appendChild(input);
-    
-    console.log('Element after modification:', element);
     
     // Focus and select input
     input.focus();
     input.select();
-    
-    // Verify input value again
-    console.log('Input value after focus:', input.value);
     
     // Handle input events
     input.addEventListener('blur', function() {
@@ -656,6 +782,7 @@ function startEditingField(element, fieldName, characterId, callback) {
         }
     });
 }
+
 
 function saveFieldEdit(element, newValue, fieldName, characterId, originalValue, callback) {
     if (newValue === originalValue) {

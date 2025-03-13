@@ -29,8 +29,12 @@
         <div class="d5e-character-name" id="character-name">{{ character.name }}</div>
         <div class="d5e-character-details">
             <div class="d5e-detail-item">
-                <label>Class & Level</label>
-                <span id="class-level">{{ character.character_class }} {{ character.level }}</span>
+                <label>Class</label>
+                <span id="character-class">{{ character.character_class }}</span>
+            </div>
+            <div class="d5e-detail-item">
+                <label>Level</label>
+                <span id="character-level">{{ character.level }}</span>
             </div>
             <div class="d5e-detail-item">
                 <label>Species</label>
@@ -46,6 +50,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- Main Character Sheet Content -->
     <div class="d5e-main-content">

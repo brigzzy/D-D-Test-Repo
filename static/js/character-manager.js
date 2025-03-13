@@ -264,6 +264,19 @@ class CharacterManager {
     }
     
     /**
+     * Calculate proficiency bonus based on character level according to D&D 5E rules
+     * @param {number} level - Character level (1-20)
+     * @returns {number} - Proficiency bonus
+     */
+    calculateProficiencyBonus(level) {
+        // Ensure level is a number between 1 and 20
+        level = Math.max(1, Math.min(20, parseInt(level) || 1));
+        
+        // D&D 5E proficiency bonus formula: +2 at level 1, +1 every 4 levels
+        return Math.floor((level - 1) / 4) + 2;
+    }
+    
+    /**
      * Initialize the entire character sheet with all editable fields and toggles
      */
     initializeSheet() {
@@ -280,16 +293,15 @@ class CharacterManager {
         // Make species editable
         this.makeFieldEditable('species', 'species');
         
-        // Make class & level editable
-        // For this one, we'll need special handling as it's combined
-        this.makeFieldEditable('class-level', 'class', (element, newValue) => {
-            // Extract level from the combined string
-            const parts = element.textContent.split(' ');
-            const level = parts[parts.length - 1];
-            
-            // Update to just show the class name and level
-            element.textContent = `${newValue} ${level}`;
-        });
+        // Make class editable
+        this.makeFieldEditable('character-class', 'class');
+        
+        // Make level editable with special handling for proficiency bonus
+        this.makeFieldEditable('character-level', 'level', (element, newValue) => {
+            // Update proficiency bonus when level changes
+            const level = parseInt(newValue) || 1;
+            this.updateProficiencyBonus(level);
+        });        
         
         // Basic information
         this.makeFieldEditable('background', 'background');
@@ -326,12 +338,32 @@ class CharacterManager {
         
         console.log('✨ Character sheet fully initialized');
     }
+
+    /**
+     * Update proficiency bonus value and all dependent skills/saves
+     * @param {number} level - Character level (1-20)
+     */
+    updateProficiencyBonus(level) {
+        // Calculate new proficiency bonus
+        const profBonus = this.calculateProficiencyBonus(level);
+        
+        // Update display
+        const profBonusElement = document.getElementById('proficiency-bonus');
+        if (profBonusElement) {
+            profBonusElement.textContent = `+${profBonus}`;
+        }
+        
+        // Update all skills and saves
+        this._updateAllProficiencyDependentValues(profBonus);
+        
+        return profBonus;
+    }
+
     
     /**
      * Start editing a field inline
      * @private
      */
-
     _startEditingField(element, fieldName, callback) {
         // Explicitly trim the text content BEFORE any manipulation
         const originalValue = element.textContent.trim();
@@ -371,6 +403,7 @@ class CharacterManager {
             }
         });
     }
+    
     /**
      * Save an edited field value
      * @private
@@ -445,20 +478,174 @@ class CharacterManager {
     }
     
     /**
-     * Update proficiency display value
+     * Update all values that depend on proficiency bonus
+     * @param {number} profBonus - New proficiency bonus value
      * @private
      */
-    _updateProficiencyDisplayValue(item, state) {
-        const valueElement = item.querySelector('.d5e-save-value, .d5e-skill-value');
-        if (!valueElement) return;
+    _updateAllProficiencyDependentValues(profBonus) {
+        console.log(`Updating all proficiency values with bonus: +${profBonus}`);
         
-        // Get ability modifier
-        let abilityMod = 0;
-        const abilityElement = item.querySelector('.d5e-skill-ability');
+        // Get all ability modifiers first
+        const abilityMods = {};
+        ['str', 'dex', 'con', 'int', 'wis', 'cha'].forEach(ability => {
+            const modElement = document.getElementById(`${ability}-mod`);
+            if (modElement) {
+                const modText = modElement.textContent;
+                const modMatch = modText.match(/([+-]?\d+)/);
+                if (modMatch) {
+                    abilityMods[ability] = parseInt(modMatch[1]);
+                } else {
+                    abilityMods[ability] = 0;
+                }
+            }
+        });
         
-        if (abilityElement) {
-            // For skills
-            const ability = abilityElement.textContent.toLowerCase();
+        console.log("Ability modifiers:", abilityMods);
+        
+        // Update all saving throws first
+        document.querySelectorAll('.d5e-save-item').forEach(saveItem => {
+            const nameElement = saveItem.querySelector('.d5e-save-name');
+            const valueElement = saveItem.querySelector('.d5e-save-value');
+            
+            if (!nameElement || !valueElement) return;
+            
+            // Get ability name from the save
+            const abilityName = nameElement.textContent.toLowerCase().trim();
+            
+            // Extract just the ability abbreviation (str, dex, etc.)
+            const ability = abilityName.slice(0, 3);
+            
+            // Check if proficient
+            const isProficient = saveItem.querySelector('.d5e-prof-indicator.proficient') ||
+                            (saveItem.querySelector('.emoji-indicator') && 
+                                saveItem.querySelector('.emoji-indicator').dataset.state === 'proficient');
+            
+            // Get ability modifier
+            const mod = abilityMods[ability] || 0;
+            
+            // Calculate save value
+            let saveValue = mod;
+            if (isProficient) {
+                saveValue += profBonus;
+            }
+            
+            // Format and display
+            const formattedValue = saveValue >= 0 ? `+${saveValue}` : saveValue.toString();
+            valueElement.textContent = formattedValue;
+            
+            // Add color classes
+            valueElement.classList.remove('positive', 'negative', 'neutral');
+            if (saveValue > 0) {
+                valueElement.classList.add('positive');
+            } else if (saveValue < 0) {
+                valueElement.classList.add('negative');
+            } else {
+                valueElement.classList.add('neutral');
+            }
+            
+            console.log(`Updated ${ability} save: ${formattedValue} (${isProficient ? 'proficient' : 'not proficient'})`);
+        });
+        
+        // Then update skills
+        document.querySelectorAll('.d5e-skill-item').forEach(skillItem => {
+            const abilityElement = skillItem.querySelector('.d5e-skill-ability');
+            const nameElement = skillItem.querySelector('.d5e-skill-name');
+            const valueElement = skillItem.querySelector('.d5e-skill-value');
+            
+            if (!abilityElement || !nameElement || !valueElement) return;
+            
+            // Get the ability and skill name
+            const ability = abilityElement.textContent.toLowerCase().trim();
+            const skillName = nameElement.textContent.trim();
+            
+            // Check proficiency state
+            let profState = 'none';
+            const emojiIndicator = skillItem.querySelector('.emoji-indicator');
+            const oldIndicator = skillItem.querySelector('.d5e-prof-indicator');
+            
+            if (emojiIndicator) {
+                profState = emojiIndicator.dataset.state || 'none';
+            } else if (oldIndicator) {
+                if (oldIndicator.classList.contains('expertise')) {
+                    profState = 'expertise';
+                } else if (oldIndicator.classList.contains('proficient')) {
+                    profState = 'proficient';
+                }
+            }
+            
+            // Get ability modifier
+            const mod = abilityMods[ability] || 0;
+            
+            // Calculate skill value
+            let skillValue = mod;
+            if (profState === 'proficient') {
+                skillValue += profBonus;
+            } else if (profState === 'expertise') {
+                skillValue += (profBonus * 2);
+            }
+            
+            // Format and display
+            const formattedValue = skillValue >= 0 ? `+${skillValue}` : skillValue.toString();
+            valueElement.textContent = formattedValue;
+            
+            // Add color classes
+            valueElement.classList.remove('positive', 'negative', 'neutral');
+            if (skillValue > 0) {
+                valueElement.classList.add('positive');
+            } else if (skillValue < 0) {
+                valueElement.classList.add('negative');
+            } else {
+                valueElement.classList.add('neutral');
+            }
+            
+            console.log(`Updated ${skillName} (${ability}): ${formattedValue} (${profState})`);
+        });
+    }
+    
+    /**
+ * Update proficiency display value
+ * @private
+ */
+_updateProficiencyDisplayValue(item, state, customProfBonus = null) {
+    const valueElement = item.querySelector('.d5e-save-value, .d5e-skill-value');
+    if (!valueElement) return;
+    
+    // Get ability modifier
+    let abilityMod = 0;
+    const abilityElement = item.querySelector('.d5e-skill-ability');
+    
+    if (abilityElement) {
+        // For skills
+        const ability = abilityElement.textContent.toLowerCase();
+        const modElement = document.getElementById(`${ability}-mod`);
+        if (modElement) {
+            const modText = modElement.textContent;
+            const modMatch = modText.match(/([+-]?\d+)/);
+            if (modMatch) {
+                abilityMod = parseInt(modMatch[1]);
+            }
+        }
+    } else {
+        // For saving throws
+        const nameElement = item.querySelector('.d5e-save-name');
+        if (nameElement) {
+            // Get the saving throw name and convert to ability abbreviation
+            let abilityText = nameElement.textContent.trim().toLowerCase();
+            
+            // Map full ability names or abbreviations to standard 3-letter codes
+            const abilityMap = {
+                'str': 'str', 'strength': 'str',
+                'dex': 'dex', 'dexterity': 'dex', 
+                'con': 'con', 'constitution': 'con',
+                'int': 'int', 'intelligence': 'int',
+                'wis': 'wis', 'wisdom': 'wis',
+                'cha': 'cha', 'charisma': 'cha'
+            };
+            
+            // Extract just the ability part (in case of "STR Save" or similar)
+            let ability = abilityText.split(/\s+/)[0];
+            ability = abilityMap[ability] || ability;
+            
             const modElement = document.getElementById(`${ability}-mod`);
             if (modElement) {
                 const modText = modElement.textContent;
@@ -467,56 +654,49 @@ class CharacterManager {
                     abilityMod = parseInt(modMatch[1]);
                 }
             }
-        } else {
-            // For saving throws
-            const nameElement = item.querySelector('.d5e-save-name');
-            if (nameElement) {
-                const ability = nameElement.textContent.toLowerCase();
-                const modElement = document.getElementById(`${ability}-mod`);
-                if (modElement) {
-                    const modText = modElement.textContent;
-                    const modMatch = modText.match(/([+-]?\d+)/);
-                    if (modMatch) {
-                        abilityMod = parseInt(modMatch[1]);
-                    }
-                }
-            }
         }
-        
-        // Get proficiency bonus
-        let profBonus = 2; // Default
+    }
+    
+    // Get proficiency bonus (use custom value if provided, otherwise get from UI)
+    let profBonus = customProfBonus;
+    if (profBonus === null) {
         const profBonusElement = document.getElementById('proficiency-bonus');
         if (profBonusElement) {
             const bonusText = profBonusElement.textContent;
             const bonusMatch = bonusText.match(/([+-]?\d+)/);
             if (bonusMatch) {
                 profBonus = parseInt(bonusMatch[1]);
+            } else {
+                profBonus = 2; // Default
             }
-        }
-        
-        // Calculate new value
-        let newValue = abilityMod;
-        if (state === 'proficient') {
-            newValue += profBonus;
-        } else if (state === 'expertise') {
-            newValue += (profBonus * 2);
-        }
-        
-        // Format with plus sign for positive values
-        const formattedValue = newValue >= 0 ? `+${newValue}` : newValue.toString();
-        valueElement.textContent = formattedValue;
-        
-        // Add color classes
-        valueElement.classList.remove('positive', 'negative', 'neutral');
-        if (newValue > 0) {
-            valueElement.classList.add('positive');
-        } else if (newValue < 0) {
-            valueElement.classList.add('negative');
         } else {
-            valueElement.classList.add('neutral');
+            profBonus = 2; // Default
         }
     }
     
+    // Calculate new value
+    let newValue = abilityMod;
+    if (state === 'proficient') {
+        newValue += profBonus;
+    } else if (state === 'expertise') {
+        newValue += (profBonus * 2);
+    }
+    
+    // Format with plus sign for positive values
+    const formattedValue = newValue >= 0 ? `+${newValue}` : newValue.toString();
+    valueElement.textContent = formattedValue;
+    
+    // Add color classes
+    valueElement.classList.remove('positive', 'negative', 'neutral');
+    if (newValue > 0) {
+        valueElement.classList.add('positive');
+    } else if (newValue < 0) {
+        valueElement.classList.add('negative');
+    } else {
+        valueElement.classList.add('neutral');
+    }
+}
+
     /**
      * Update all values that depend on a specific ability
      * @private
