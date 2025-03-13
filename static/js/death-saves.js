@@ -229,53 +229,73 @@ function saveDeathSaves(characterId, states, markdownContent) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
                      document.cookie.split('; ').find(row => row.startsWith('csrf_token='))?.split('=')[1] || '';
     
-    // Generate updated content for death saves section
-    const deathSavesContent = `## Death Saves
+    console.log('💾 Saving death saves to server...');
+    
+    // The issue is likely in this endpoint - let's send the individual saves separately
+    // instead of trying to update the whole section at once
+    
+    // Start with successes
+    for (let i = 0; i < 3; i++) {
+        fetch(`/characters/${characterId}/field`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                field: `death_save_success_${i+1}`,
+                value: states.successMarks[i] ? 'marked' : 'unmarked'
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                console.error(`Error saving success ${i+1}:`, response.status);
+            }
+        })
+        .catch(error => {
+            console.error(`Error saving success ${i+1}:`, error);
+        });
+    }
+    
+    // Then failures
+    for (let i = 0; i < 3; i++) {
+        fetch(`/characters/${characterId}/field`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                field: `death_save_failure_${i+1}`,
+                value: states.failureMarks[i] ? 'marked' : 'unmarked'
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                console.error(`Error saving failure ${i+1}:`, response.status);
+            }
+        })
+        .catch(error => {
+            console.error(`Error saving failure ${i+1}:`, error);
+        });
+    }
+    
+    // Also update the displayed markdown
+    const originalMarkdownDiv = document.querySelector('.original-markdown');
+    if (originalMarkdownDiv) {
+        // Generate updated content for display
+        const deathSavesContent = `## Death Saves
 Success 1: ${states.successMarks[0] ? 'marked' : 'unmarked'}
 Success 2: ${states.successMarks[1] ? 'marked' : 'unmarked'}
 Success 3: ${states.successMarks[2] ? 'marked' : 'unmarked'}
 Failure 1: ${states.failureMarks[0] ? 'marked' : 'unmarked'}
 Failure 2: ${states.failureMarks[1] ? 'marked' : 'unmarked'}
 Failure 3: ${states.failureMarks[2] ? 'marked' : 'unmarked'}`;
-    
-    // Check if death saves section already exists in markdown
-    const updatedContent = updateMarkdownWithDeathSaves(markdownContent, deathSavesContent);
-    
-    console.log('💾 Saving death saves to server...');
-    
-    // Make API call to update character field
-    fetch(`/characters/${characterId}/field`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrfToken
-        },
-        body: JSON.stringify({
-            field: 'death_saves',
-            value: updatedContent
-        })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`Server error: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('✅ Death saves updated successfully:', data);
-        
-        // Update the local markdown variable for future updates
-        markdownContent = updatedContent;
-        
-        // Update the displayed markdown
-        const originalMarkdownDiv = document.querySelector('.original-markdown');
-        if (originalMarkdownDiv) {
-            originalMarkdownDiv.textContent = updatedContent;
-        }
-    })
-    .catch(error => {
-        console.error('❌ Error saving death saves:', error);
-    });
+
+        // Update the markdown display without trying to send the whole content
+        const updatedContent = updateMarkdownWithDeathSaves(markdownContent, deathSavesContent);
+        originalMarkdownDiv.textContent = updatedContent;
+    }
 }
 
 function updateMarkdownWithDeathSaves(markdownContent, deathSavesContent) {

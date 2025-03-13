@@ -234,44 +234,7 @@ function toggleDeathSave(indicator, characterId) {
     saveDeathSaveToServer(characterId, type, index, !isActive);
 }
 
-function saveDeathSaveToServer(characterId, type, index, isActive) {
-    console.log(`💾 Saving death save ${type} #${index + 1} state: ${isActive}`);
-    
-    // Format field name for the server
-    const fieldName = `death_save_${type}_${index + 1}`;
-    const value = isActive ? 'marked' : 'unmarked';
-    
-    fetch(`/characters/${characterId}/field`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken()
-        },
-        body: JSON.stringify({
-            field: fieldName,
-            value: value
-        })
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`Server error: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log(`✅ Successfully saved ${fieldName} to server:`, data);
-    })
-    .catch(error => {
-        console.error(`❌ Error saving death save: ${error}`);
-        // Revert the UI on error
-        const indicator = document.querySelector(`.death-save-indicator[data-type="${type}"][data-index="${index}"]`);
-        if (indicator) {
-            const currentState = indicator.dataset.active === 'true';
-            indicator.dataset.active = currentState ? 'false' : 'true';
-            indicator.textContent = currentState ? indicator.dataset.inactiveEmoji : indicator.dataset.activeEmoji;
-        }
-    });
-}
+
 
 function addEmojiIndicators(characterId) {
     console.log('🎭 Adding emoji indicators to saving throws and skills...');
@@ -371,6 +334,47 @@ function addEmojiIndicators(characterId) {
     });
 }
 
+// Update this function in your static/js/inline-editing.js file
+
+function saveDeathSaveToServer(characterId, type, index, isActive) {
+    console.log(`💾 Saving death save ${type} #${index + 1} state: ${isActive}`);
+    
+    // Format field name for the server - THIS IS THE KEY CHANGE
+    const fieldName = `death_save_${type}_${index + 1}`;
+    const value = isActive ? 'marked' : 'unmarked';
+    
+    fetch(`/characters/${characterId}/field`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({
+            field: fieldName,
+            value: value
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log(`✅ Successfully saved ${fieldName} to server:`, data);
+    })
+    .catch(error => {
+        console.error(`❌ Error saving death save: ${error}`);
+        // Revert the UI on error
+        const indicator = document.querySelector(`.death-save-indicator[data-type="${type}"][data-index="${index}"]`);
+        if (indicator) {
+            const currentState = indicator.dataset.active === 'true';
+            indicator.dataset.active = currentState ? 'false' : 'true';
+            indicator.textContent = currentState ? indicator.dataset.inactiveEmoji : indicator.dataset.activeEmoji;
+        }
+    });
+}
+
 function toggleSavingThrowProficiency(characterId, indicator, saveItem) {
     // Get current state
     const isProficient = indicator.dataset.proficient === 'true';
@@ -394,9 +398,11 @@ function toggleSavingThrowProficiency(characterId, indicator, saveItem) {
     // Update the display value
     updateSavingThrowValue(indicator, saveItem);
     
-    // Save to server - important for persistence!
-    saveProficiencyToServer(characterId, `${ability}_save_proficiency`, newProficient ? 'Proficient' : 'Not Proficient');
+    // THIS IS THE IMPORTANT CHANGE: send the correct field name format
+    // Note we're sending ability_save not ability_save_proficiency
+    saveProficiencyToServer(characterId, `${ability}_save`, newProficient ? 'Proficient' : 'Not Proficient');
 }
+
 
 function toggleSkillProficiency(characterId, indicator, skillItem) {
     // Get current state and info

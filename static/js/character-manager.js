@@ -274,6 +274,23 @@ class CharacterManager {
             });
         });
         
+        // Make character name editable
+        this.makeFieldEditable('character-name', 'name');
+        
+        // Make species editable
+        this.makeFieldEditable('species', 'species');
+        
+        // Make class & level editable
+        // For this one, we'll need special handling as it's combined
+        this.makeFieldEditable('class-level', 'class', (element, newValue) => {
+            // Extract level from the combined string
+            const parts = element.textContent.split(' ');
+            const level = parts[parts.length - 1];
+            
+            // Update to just show the class name and level
+            element.textContent = `${newValue} ${level}`;
+        });
+        
         // Basic information
         this.makeFieldEditable('background', 'background');
         this.makeFieldEditable('alignment', 'alignment');
@@ -315,12 +332,12 @@ class CharacterManager {
      * @private
      */
     _startEditingField(element, fieldName, callback) {
-        const originalValue = element.textContent;
+        const originalValue = element.textContent.trim();
         
         // Create input element for editing
         const input = document.createElement('input');
         input.type = 'text';
-        input.value = originalValue;
+        input.value = originalValue; // Set the input value to current text
         input.className = 'inline-edit-input';
         
         // Replace content with input
@@ -329,7 +346,7 @@ class CharacterManager {
         
         // Focus and select input
         input.focus();
-        input.select();
+        input.select(); // Select all text so user can immediately type to replace
         
         // Handle input events
         input.addEventListener('blur', () => {
@@ -345,7 +362,7 @@ class CharacterManager {
                 element.textContent = originalValue;
             }
         });
-    }
+    }    
     
     /**
      * Save an edited field value

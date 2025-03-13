@@ -86,6 +86,33 @@ class Character(db.Model):
         if field == 'markdown_content':
             self.save_content(value)
             return True
+        
+        # Special handling for saving throws
+        if field.endswith('_save'):
+            ability = field.split('_')[0]  # Extract ability name (str, dex, etc.)
+            updated_content = self._update_saving_throw(content, ability, value)
+            if updated_content:
+                self.save_content(updated_content)
+                return True
+                
+        # Special handling for skills
+        if field.startswith('skill_'):
+            skill_name = field[6:].replace('_', ' ').title()
+            updated_content = self._update_skill_proficiency(content, skill_name, value)
+            if updated_content:
+                self.save_content(updated_content)
+                return True
+        
+        # Special case for death saves
+        if field.startswith('death_save_'):
+            parts = field.split('_')
+            if len(parts) >= 3:  # Should have at least "death_save_success" or "death_save_failure"
+                save_type = parts[2]  # "success" or "failure"
+                save_index = parts[3] if len(parts) > 3 else "1"  # Default to 1 if not specified
+                updated_content = self._update_death_saves(content, save_type, save_index, value)
+                if updated_content:
+                    self.save_content(updated_content)
+                    return True
             
         # Dictionary mapping field names to regex patterns and their replacements
         field_patterns = {
@@ -128,26 +155,6 @@ class Character(db.Model):
             'flaws': (r'^(Flaws):\s*(.*)$', f'\\1: {value}', re.MULTILINE),
         }
         
-        # Create generic patterns for saving throws and skills
-        abilities = ['strength', 'dexterity', 'constitution', 'intelligence', 'wisdom', 'charisma']
-        abbr_abilities = ['str', 'dex', 'con', 'int', 'wis', 'cha']
-        
-        # Add saving throw patterns
-        for i, ability in enumerate(abilities):
-            field_patterns[f'{abbr_abilities[i]}_save'] = (
-                f'^({ability}|{abbr_abilities[i].upper()}|{abbr_abilities[i]}|{ability.capitalize()})\\s+Save:\\s*(Proficient|Not Proficient)$',
-                f'\\1 Save: {value}',
-                re.MULTILINE
-            )
-        
-        # Special handling for skills
-        if field.startswith('skill_'):
-            skill_name = field[6:].replace('_', ' ').title()
-            updated_content = self._update_skill_proficiency(content, skill_name, value)
-            if updated_content:
-                self.save_content(updated_content)
-                return True
-        
         # Check if we have a pattern for this field
         if field in field_patterns:
             pattern, replacement, flags = field_patterns[field]
@@ -160,10 +167,6 @@ class Character(db.Model):
             else:
                 # Field doesn't exist in markdown yet, need to add it to the appropriate section
                 updated_content = self._add_field_to_section(content, field, value)
-        else:
-            # Special case for death saves
-            if field.startswith('death_save_'):
-                updated_content = self._update_death_saves(content, field, value)
         
         # If we have updated content, save it
         if updated_content:
@@ -189,6 +192,62 @@ class Character(db.Model):
             return True
             
         return False
+
+    def _update_saving_throw(self, content, ability, value):
+        """Update saving throw proficiency in markdown content."""
+        # Map abbreviated ability names to their full names
+        ability_map = {
+            'str': 'strength',
+            'dex': 'dexterity',
+            'con': 'constitution',
+            'int': 'intelligence',
+            'wis': 'wisdom',
+            'cha': 'charisma'
+        }
+        
+        # Get the full ability name if we have an abbreviation
+        full_ability = ability_map.get(ability.lower(), ability.lower())
+        
+        # Try different formats to find the saving throw
+        patterns = [
+            # Format: "Strength Save: Proficient"
+            re.compile(f"({full_ability}|{ability.upper()}|{ability})\\s+Save:\\s*(Proficient|Not Proficient)", re.IGNORECASE | re.MULTILINE),
+            # Format: "STR Saving Throw: Proficient"
+            re.compile(f"({full_ability}|{ability.upper()}|{ability})\\s+Saving Throw:\\s*(Proficient|Not Proficient)", re.IGNORECASE | re.MULTILINE)
+        ]
+        
+        # Try to find and update an existing saving throw
+        for pattern in patterns:
+            match = pattern.search(content)
+            if match:
+                # Update existing saving throw
+                return pattern.sub(f"\\1 Save: {value}", content)
+        
+        # Find or create Saving Throws section
+        saves_section = re.search(r'^##\s*Saving Throws\s*\n([\s\S]*?)(?:\n\n|\n##|\n#|\s*$)', content, re.MULTILINE)
+        
+        if saves_section:
+            # Saving Throws section exists, add this save
+            section_end = saves_section.end()
+            # Use the same case as in the section title
+            ability_name = full_ability.capitalize() if full_ability != full_ability.upper() else ability.upper()
+            return content[:section_end] + f"\n{ability_name} Save: {value}" + content[section_end:]
+        else:
+            # Create new Saving Throws section
+            ability_name = full_ability.capitalize() if full_ability != full_ability.upper() else ability.upper()
+            saves_content = f"\n\n## Saving Throws\n{ability_name} Save: {value}"
+            
+            # Find a good place to insert it (after Core Statistics if it exists)
+            core_stats = re.search(r'^##\s*Core Statistics', content, re.MULTILINE)
+            if core_stats:
+                # Find the next section after Core Statistics
+                next_section_match = re.search(r'^##', content[core_stats.end():], re.MULTILINE)
+                if next_section_match:
+                    insert_point = core_stats.end() + next_section_match.start()
+                    return content[:insert_point] + saves_content + content[insert_point:]
+            
+            # Default: add at the end
+            return content + saves_content
 
     def _update_skill_proficiency(self, content, skill_name, proficiency_value):
         """Update skill proficiency in markdown content"""
@@ -323,25 +382,18 @@ class Character(db.Model):
         # If we don't have a mapping, just append to the end
         return content + f"\n\n{field}: {value}"
 
-    def _update_death_saves(self, content, field, value):
+    def _update_death_saves(self, content, save_type, save_index, value):
         """Update death save information in the markdown content.
         
         Args:
             content (str): Current markdown content
-            field (str): Death save field identifier (e.g., death_save_success_1)
+            save_type (str): 'success' or 'failure'
+            save_index (str): '1', '2', or '3'
             value (str): 'marked' or 'unmarked'
             
         Returns:
             str: Updated markdown content
         """
-        # Parse field name for type and index
-        parts = field.split('_')
-        if len(parts) < 4:
-            return None
-            
-        save_type = parts[2]  # 'success' or 'failure'
-        save_index = parts[3]  # '1', '2', or '3'
-        
         # Find the Death Saves section
         death_saves_section = re.search(r'^##\s*Death Saves\s*\n([\s\S]*?)(?:\n\n|\n##|\n#|\s*$)', content, re.MULTILINE)
         

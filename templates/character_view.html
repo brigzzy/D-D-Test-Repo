@@ -26,15 +26,15 @@
 <div class="d5e-character-sheet">
     <!-- Character Header -->
     <div class="d5e-header">
-        <div class="d5e-character-name">{{ character.name }}</div>
+        <div class="d5e-character-name" id="character-name">{{ character.name }}</div>
         <div class="d5e-character-details">
             <div class="d5e-detail-item">
                 <label>Class & Level</label>
-                <span>{{ character.character_class }} {{ character.level }}</span>
+                <span id="class-level">{{ character.character_class }} {{ character.level }}</span>
             </div>
             <div class="d5e-detail-item">
                 <label>Species</label>
-                <span>{{ character.species }}</span>
+                <span id="species">{{ character.species }}</span>
             </div>
             <div class="d5e-detail-item">
                 <label>Background</label>
@@ -141,7 +141,7 @@
                         <div class="d5e-value" id="current-hp">-</div>
                     </div>
                     <div class="d5e-hp-item">
-                        <label>Temporary HP</label>
+                        <label>Temp HP</label>
                         <div class="d5e-value" id="temp-hp">-</div>
                     </div>
                 </div>
