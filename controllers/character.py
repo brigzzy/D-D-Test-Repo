@@ -187,9 +187,6 @@ def update_character_field(character_id):
                 updated_content = field_pattern.sub(replacement, content)
             else:
                 # If field doesn't exist yet, add it after the header section or at a logical place
-                field_name = field.replace('_', ' ').title()  # Convert to title case
-                
-                # Try to find a logical section to add the field to
                 if field.endswith('_score'):
                     # Look for the ability scores section
                     ability_section = re.search(r'(##?\s*Core Statistics|##?\s*Ability Scores)', content, re.IGNORECASE)
@@ -200,6 +197,52 @@ def update_character_field(character_id):
                         else:
                             # Add at the end of the file
                             updated_content = content + f"\n\n{field_name}: {value}\n"
+                elif field.startswith('death_save_'):
+                    # Handle death saves
+                    # Parsing death_save_success_1 or death_save_failure_2
+                    parts = field.split('_')
+                    if len(parts) >= 4:
+                        save_type = parts[2]  # success or failure
+                        save_index = parts[3]  # 1, 2, or 3
+                        
+                        # Look for the Death Saves section
+                        death_save_section = re.search(r'##?\s*Death Saves', content, re.IGNORECASE)
+                        
+                        if death_save_section:
+                            # Find the line with this specific death save
+                            pattern = fr"{save_type.capitalize()} {save_index}: (marked|unmarked)"
+                            save_line = re.search(pattern, content, re.IGNORECASE)
+                            
+                            if save_line:
+                                # Replace the existing line
+                                updated_content = re.sub(
+                                    pattern, 
+                                    f"{save_type.capitalize()} {save_index}: {value}", 
+                                    content, 
+                                    flags=re.IGNORECASE
+                                )
+                            else:
+                                # Add a new line to the section
+                                section_end = content.find('\n\n', death_save_section.end())
+                                if section_end != -1:
+                                    updated_content = content[:section_end] + f"\n{save_type.capitalize()} {save_index}: {value}" + content[section_end:]
+                                else:
+                                    # Add at the end of the section
+                                    updated_content = content + f"\n{save_type.capitalize()} {save_index}: {value}\n"
+                        else:
+                            # Create a new Death Saves section
+                            combat_section = re.search(r'##?\s*Combat', content, re.IGNORECASE)
+                            
+                            if combat_section:
+                                section_end = content.find('\n\n', combat_section.end())
+                                if section_end != -1:
+                                    updated_content = content[:section_end] + f"\n\n## Death Saves\n{save_type.capitalize()} {save_index}: {value}" + content[section_end:]
+                                else:
+                                    # Add at the end
+                                    updated_content = content + f"\n\n## Death Saves\n{save_type.capitalize()} {save_index}: {value}\n"
+                            else:
+                                # Just add at the end
+                                updated_content = content + f"\n\n## Death Saves\n{save_type.capitalize()} {save_index}: {value}\n"
                 elif field.endswith('_save_proficiency'):
                     # Handle saving throw proficiencies
                     ability = field.split('_')[0]
@@ -242,15 +285,48 @@ def update_character_field(character_id):
                         else:
                             # Just add at the end
                             updated_content = content + f"\n\n## Saving Throws\n{ability_name} Save: {value}\n"
+        elif field.endswith('_save_proficiency'):
+            # Handle saving throw proficiencies
+            ability = field.split('_')[0]
+            save_section = re.search(r'##?\s*Saving Throws', content, re.IGNORECASE)
+            if save_section:
+                section_end = content.find('\n\n', save_section.end())
+                ability_name = {
+                    'str': 'Strength',
+                    'dex': 'Dexterity',
+                    'con': 'Constitution',
+                    'int': 'Intelligence',
+                    'wis': 'Wisdom',
+                    'cha': 'Charisma'
+                }.get(ability, ability.title())
+                
+                if section_end != -1:
+                    updated_content = content[:section_end] + f"\n{ability_name} Save: {value}" + content[section_end:]
                 else:
-                    # Generic case - add near the beginning after any front matter
-                    header_end = content.find('---\n', content.find('---\n') + 1) if '---' in content else -1
-                    
-                    if header_end != -1:
-                        updated_content = content[:header_end + 4] + f"{field_name}: {value}\n" + content[header_end + 4:]
+                    # Add at the end of the section
+                    updated_content = content + f"\n{ability_name} Save: {value}\n"
+            else:
+                # Create a saving throws section after Core Statistics
+                ability_name = {
+                    'str': 'Strength',
+                    'dex': 'Dexterity',
+                    'con': 'Constitution',
+                    'int': 'Intelligence',
+                    'wis': 'Wisdom',
+                    'cha': 'Charisma'
+                }.get(ability, ability.title())
+                
+                core_stats = re.search(r'##?\s*Core Statistics', content, re.IGNORECASE)
+                if core_stats:
+                    section_end = content.find('\n\n', core_stats.end())
+                    if section_end != -1:
+                        updated_content = content[:section_end] + f"\n\n## Saving Throws\n{ability_name} Save: {value}" + content[section_end:]
                     else:
-                        # Just add near the beginning
-                        updated_content = content.split('\n', 1)[0] + f"\n{field_name}: {value}\n" + content.split('\n', 1)[1]
+                        # Add at the end
+                        updated_content = content + f"\n\n## Saving Throws\n{ability_name} Save: {value}\n"
+                else:
+                    # Just add at the end
+                    updated_content = content + f"\n\n## Saving Throws\n{ability_name} Save: {value}\n"
         elif field.startswith('skill_'):
             # Handle skill proficiencies
             skill_name = field.replace('skill_', '').replace('_', ' ').title()

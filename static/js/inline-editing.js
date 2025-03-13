@@ -20,6 +20,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Second step: add emoji indicators with fallback
     initializeProficiencyIndicators(characterId);
+    
+    // Third step: initialize death save indicators
+    initializeDeathSaveIndicators(characterId);
 });
 
 function makeAbilityScoresEditable(characterId) {
@@ -67,6 +70,71 @@ function initializeProficiencyIndicators(characterId) {
     } else {
         // Proceed with normal initialization
         addEmojiIndicators(characterId);
+    }
+}
+
+function initializeDeathSaveIndicators(characterId) {
+    console.log('🎲 Initializing death save indicators...');
+    
+    // Get death save rows
+    const successRow = document.querySelector('.d5e-death-save-row:nth-child(1)');
+    const failureRow = document.querySelector('.d5e-death-save-row:nth-child(2)');
+    
+    if (!successRow || !failureRow) {
+        console.warn('⚠️ Death save rows not found');
+        return;
+    }
+    
+    // Clear and recreate the boxes containers
+    const successBoxes = successRow.querySelector('.d5e-death-save-boxes');
+    const failureBoxes = failureRow.querySelector('.d5e-death-save-boxes');
+    
+    if (successBoxes && failureBoxes) {
+        // Clear existing content
+        successBoxes.innerHTML = '';
+        failureBoxes.innerHTML = '';
+        
+        // Create success emoji indicators (hearts)
+        for (let i = 0; i < 3; i++) {
+            const indicator = document.createElement('span');
+            indicator.className = 'emoji-indicator death-save-indicator';
+            indicator.textContent = '⚪'; // Start with empty circle
+            indicator.dataset.index = i;
+            indicator.dataset.type = 'success';
+            indicator.dataset.active = 'false';
+            indicator.dataset.activeEmoji = '❤️'; // Heart for success
+            indicator.dataset.inactiveEmoji = '⚪';
+            
+            // Add click handler
+            indicator.addEventListener('click', function() {
+                toggleDeathSave(indicator, characterId);
+            });
+            
+            successBoxes.appendChild(indicator);
+        }
+        
+        // Create failure emoji indicators (skulls)
+        for (let i = 0; i < 3; i++) {
+            const indicator = document.createElement('span');
+            indicator.className = 'emoji-indicator death-save-indicator';
+            indicator.textContent = '⚪'; // Start with empty circle
+            indicator.dataset.index = i;
+            indicator.dataset.type = 'failure';
+            indicator.dataset.active = 'false';
+            indicator.dataset.activeEmoji = '💀'; // Skull for failure
+            indicator.dataset.inactiveEmoji = '⚪';
+            
+            // Add click handler
+            indicator.addEventListener('click', function() {
+                toggleDeathSave(indicator, characterId);
+            });
+            
+            failureBoxes.appendChild(indicator);
+        }
+        
+        console.log('✅ Death save indicators initialized successfully');
+    } else {
+        console.warn('⚠️ Death save boxes containers not found');
     }
 }
 
@@ -140,6 +208,69 @@ function createSkillsIfNeeded() {
         
         console.log('✅ Created skill elements:', skillsContainer.children.length);
     }
+}
+
+function toggleDeathSave(indicator, characterId) {
+    // Get current state
+    const isActive = indicator.dataset.active === 'true';
+    const type = indicator.dataset.type;
+    const index = parseInt(indicator.dataset.index);
+    
+    // Toggle state
+    indicator.dataset.active = isActive ? 'false' : 'true';
+    
+    // Update emoji display
+    indicator.textContent = isActive ? indicator.dataset.inactiveEmoji : indicator.dataset.activeEmoji;
+    
+    console.log(`🔄 Toggling ${type} death save #${index + 1}: ${isActive ? 'OFF' : 'ON'}`);
+    
+    // Add visual indicator that the change is being applied
+    indicator.classList.add('changed');
+    setTimeout(() => {
+        indicator.classList.remove('changed');
+    }, 500);
+    
+    // Save to server
+    saveDeathSaveToServer(characterId, type, index, !isActive);
+}
+
+function saveDeathSaveToServer(characterId, type, index, isActive) {
+    console.log(`💾 Saving death save ${type} #${index + 1} state: ${isActive}`);
+    
+    // Format field name for the server
+    const fieldName = `death_save_${type}_${index + 1}`;
+    const value = isActive ? 'marked' : 'unmarked';
+    
+    fetch(`/characters/${characterId}/field`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({
+            field: fieldName,
+            value: value
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`Server error: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log(`✅ Successfully saved ${fieldName} to server:`, data);
+    })
+    .catch(error => {
+        console.error(`❌ Error saving death save: ${error}`);
+        // Revert the UI on error
+        const indicator = document.querySelector(`.death-save-indicator[data-type="${type}"][data-index="${index}"]`);
+        if (indicator) {
+            const currentState = indicator.dataset.active === 'true';
+            indicator.dataset.active = currentState ? 'false' : 'true';
+            indicator.textContent = currentState ? indicator.dataset.inactiveEmoji : indicator.dataset.activeEmoji;
+        }
+    });
 }
 
 function addEmojiIndicators(characterId) {

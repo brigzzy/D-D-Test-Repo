@@ -24,6 +24,14 @@ Current HP: 10
 Temporary HP: 0
 Hit Dice: 1d8
 
+## Death Saves
+Success 1: unmarked
+Success 2: unmarked
+Success 3: unmarked
+Failure 1: unmarked
+Failure 2: unmarked
+Failure 3: unmarked
+
 ## Saving Throws
 [Ability] Save: Proficient
 [Ability] Save: Proficient
