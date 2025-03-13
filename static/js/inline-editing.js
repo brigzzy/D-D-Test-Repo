@@ -611,21 +611,35 @@ function saveSkillToServer(characterId, skillName, state) {
 }
 
 function startEditingField(element, fieldName, characterId, callback) {
-    const originalValue = element.textContent;
+    console.log('Starting edit for field:', fieldName);
+    console.log('Original element:', element);
+    console.log('Original text:', element.textContent);
+
+    const originalValue = element.textContent.trim();
     
     // Create input element for editing
     const input = document.createElement('input');
     input.type = 'text';
+    
+    // Explicitly set value BEFORE manipulating the DOM
     input.value = originalValue;
+    
+    console.log('Input value set to:', input.value);
+    
     input.className = 'inline-edit-input';
     
-    // Replace content with input
+    // Clear the element AFTER setting input value
     element.textContent = '';
     element.appendChild(input);
+    
+    console.log('Element after modification:', element);
     
     // Focus and select input
     input.focus();
     input.select();
+    
+    // Verify input value again
+    console.log('Input value after focus:', input.value);
     
     // Handle input events
     input.addEventListener('blur', function() {

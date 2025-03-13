@@ -331,22 +331,30 @@ class CharacterManager {
      * Start editing a field inline
      * @private
      */
+
     _startEditingField(element, fieldName, callback) {
+        // Explicitly trim the text content BEFORE any manipulation
         const originalValue = element.textContent.trim();
         
         // Create input element for editing
         const input = document.createElement('input');
         input.type = 'text';
-        input.value = originalValue; // Set the input value to current text
+        
+        // Set the input value BEFORE clearing the element
+        input.value = originalValue;
+        
         input.className = 'inline-edit-input';
         
-        // Replace content with input
-        element.textContent = '';
+        // Clear the element and append the input
+        element.innerHTML = ''; // Use innerHTML instead of textContent
         element.appendChild(input);
+        
+        // Verify the input value
+        input.value = originalValue;
         
         // Focus and select input
         input.focus();
-        input.select(); // Select all text so user can immediately type to replace
+        input.select();
         
         // Handle input events
         input.addEventListener('blur', () => {
@@ -362,8 +370,7 @@ class CharacterManager {
                 element.textContent = originalValue;
             }
         });
-    }    
-    
+    }
     /**
      * Save an edited field value
      * @private
