@@ -1,20 +1,25 @@
 /**
  * Enhanced emoji-based proficiency indicators for D&D character sheets
+ * Includes robust error handling and debugging
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Initializing emoji-based proficiency indicators...');
+    console.log('🔍 Character sheet JS initializing...');
     
     // Get character ID from URL
     const pathParts = window.location.pathname.split('/');
     const characterId = pathParts[pathParts.length - 1];
-    console.log('Character ID:', characterId);
+    console.log('📝 Character ID:', characterId);
+    
+    // Checking DOM structure for debugging
+    console.log('🔍 Checking for save items:', document.querySelectorAll('.d5e-save-item').length);
+    console.log('🔍 Checking for skill items:', document.querySelectorAll('.d5e-skill-item').length);
     
     // First step: make ability scores editable
     makeAbilityScoresEditable(characterId);
     
-    // Second step: replace circular indicators with emojis
-    replaceAllIndicatorsWithEmojis(characterId);
+    // Second step: add emoji indicators with fallback
+    initializeProficiencyIndicators(characterId);
 });
 
 function makeAbilityScoresEditable(characterId) {
@@ -22,10 +27,10 @@ function makeAbilityScoresEditable(characterId) {
     ['str', 'dex', 'con', 'int', 'wis', 'cha'].forEach(ability => {
         const scoreElement = document.getElementById(`${ability}-score`);
         if (scoreElement) {
-            console.log(`Making ${ability} score editable`);
+            console.log(`✏️ Making ${ability} score editable`);
             
             // Add editable styling
-            scoreElement.className = 'editable-field';
+            scoreElement.classList.add('editable-field');
             
             // Add click handler
             scoreElement.addEventListener('click', function() {
@@ -34,92 +39,204 @@ function makeAbilityScoresEditable(characterId) {
                     updateAbilityModifier(ability, newValue);
                 });
             });
+        } else {
+            console.warn(`⚠️ Could not find ability score element for ${ability}`);
         }
     });
 }
 
-function replaceAllIndicatorsWithEmojis(characterId) {
-    console.log('Replacing all proficiency indicators with emojis...');
+function initializeProficiencyIndicators(characterId) {
+    console.log('🎯 Initializing proficiency indicators...');
     
-    // Replace saving throw indicators
-    document.querySelectorAll('.d5e-save-item').forEach(saveItem => {
+    // First check if we have any saving throws or skills
+    const saveItems = document.querySelectorAll('.d5e-save-item');
+    const skillItems = document.querySelectorAll('.d5e-skill-item');
+    
+    if (saveItems.length === 0 && skillItems.length === 0) {
+        console.warn('⚠️ No save items or skill items found in the DOM. Using fallback method.');
+        
+        // Use a timeout to ensure the DOM is fully loaded
+        setTimeout(() => {
+            console.log('🔄 Attempting fallback initialization...');
+            createSavingThrowsIfNeeded();
+            createSkillsIfNeeded();
+            
+            // Try again after creating elements
+            addEmojiIndicators(characterId);
+        }, 500);
+    } else {
+        // Proceed with normal initialization
+        addEmojiIndicators(characterId);
+    }
+}
+
+function createSavingThrowsIfNeeded() {
+    const savingThrowsContainer = document.getElementById('saving-throws');
+    if (!savingThrowsContainer) {
+        console.warn('⚠️ No saving throws container found');
+        return;
+    }
+    
+    if (savingThrowsContainer.children.length === 0) {
+        console.log('🔧 Creating saving throw elements...');
+        const abilities = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+        
+        abilities.forEach(ability => {
+            const saveItem = document.createElement('div');
+            saveItem.className = 'd5e-save-item';
+            saveItem.innerHTML = `
+                <div class="d5e-prof-indicator"></div>
+                <div class="d5e-save-name">${ability.toUpperCase()}</div>
+                <div class="d5e-save-value">-5</div>
+            `;
+            savingThrowsContainer.appendChild(saveItem);
+        });
+        
+        console.log('✅ Created saving throw elements:', savingThrowsContainer.children.length);
+    }
+}
+
+function createSkillsIfNeeded() {
+    const skillsContainer = document.getElementById('skills');
+    if (!skillsContainer) {
+        console.warn('⚠️ No skills container found');
+        return;
+    }
+    
+    if (skillsContainer.children.length === 0) {
+        console.log('🔧 Creating skill elements...');
+        const skills = [
+            {name: 'Acrobatics', ability: 'dex'},
+            {name: 'Animal Handling', ability: 'wis'},
+            {name: 'Arcana', ability: 'int'},
+            {name: 'Athletics', ability: 'str'},
+            {name: 'Deception', ability: 'cha'},
+            {name: 'History', ability: 'int'},
+            {name: 'Insight', ability: 'wis'},
+            {name: 'Intimidation', ability: 'cha'},
+            {name: 'Investigation', ability: 'int'},
+            {name: 'Medicine', ability: 'wis'},
+            {name: 'Nature', ability: 'int'},
+            {name: 'Perception', ability: 'wis'},
+            {name: 'Performance', ability: 'cha'},
+            {name: 'Persuasion', ability: 'cha'},
+            {name: 'Religion', ability: 'int'},
+            {name: 'Sleight of Hand', ability: 'dex'},
+            {name: 'Stealth', ability: 'dex'},
+            {name: 'Survival', ability: 'wis'}
+        ];
+        
+        skills.forEach(skill => {
+            const skillItem = document.createElement('div');
+            skillItem.className = 'd5e-skill-item';
+            skillItem.innerHTML = `
+                <div class="d5e-prof-indicator"></div>
+                <div class="d5e-skill-ability">${skill.ability.toUpperCase()}</div>
+                <div class="d5e-skill-name">${skill.name}</div>
+                <div class="d5e-skill-value">-5</div>
+            `;
+            skillsContainer.appendChild(skillItem);
+        });
+        
+        console.log('✅ Created skill elements:', skillsContainer.children.length);
+    }
+}
+
+function addEmojiIndicators(characterId) {
+    console.log('🎭 Adding emoji indicators to saving throws and skills...');
+    
+    // Add to saving throw items
+    const saveItems = document.querySelectorAll('.d5e-save-item');
+    console.log(`🔍 Found ${saveItems.length} saving throw items`);
+    
+    saveItems.forEach(saveItem => {
+        // Check if an emoji indicator already exists to avoid duplicates
+        if (saveItem.querySelector('.emoji-indicator')) {
+            return;
+        }
+        
         const nameElement = saveItem.querySelector('.d5e-save-name');
-        if (!nameElement) return;
+        if (!nameElement) {
+            console.warn('⚠️ Save item missing name element:', saveItem);
+            return;
+        }
         
         const ability = nameElement.textContent.toLowerCase();
-        const originalIndicator = saveItem.querySelector('.d5e-prof-indicator');
         
-        if (originalIndicator) {
-            // Determine initial proficiency state
-            const isProficient = originalIndicator.classList.contains('proficient');
-            
-            // Create emoji indicator
-            const emojiIndicator = document.createElement('span');
-            emojiIndicator.className = 'emoji-indicator';
-            emojiIndicator.textContent = isProficient ? '✅' : '⚪';
-            emojiIndicator.style.cursor = 'pointer';
-            emojiIndicator.style.marginRight = '8px';
-            emojiIndicator.style.fontSize = '16px';
-            emojiIndicator.dataset.ability = ability;
-            emojiIndicator.dataset.proficient = isProficient ? 'true' : 'false';
-            
-            // Add click handler
-            emojiIndicator.addEventListener('click', function() {
-                toggleSavingThrowProficiency(characterId, emojiIndicator, saveItem);
-            });
-            
-            // Replace the original indicator
-            originalIndicator.parentNode.replaceChild(emojiIndicator, originalIndicator);
-            console.log(`Replaced ${ability} save indicator with emoji`);
-        }
+        // Check if proficient by looking for the 'proficient' class on the (hidden) indicator
+        const hiddenIndicator = saveItem.querySelector('.d5e-prof-indicator');
+        const isProficient = hiddenIndicator ? hiddenIndicator.classList.contains('proficient') : false;
+        
+        // Create emoji indicator
+        const emojiIndicator = document.createElement('span');
+        emojiIndicator.className = 'emoji-indicator';
+        emojiIndicator.textContent = isProficient ? '✅' : '⚪';
+        emojiIndicator.dataset.ability = ability;
+        emojiIndicator.dataset.proficient = isProficient ? 'true' : 'false';
+        
+        // Add click handler
+        emojiIndicator.addEventListener('click', function() {
+            toggleSavingThrowProficiency(characterId, emojiIndicator, saveItem);
+        });
+        
+        // Insert at the beginning of the item
+        saveItem.insertBefore(emojiIndicator, saveItem.firstChild);
+        console.log(`✅ Added ${ability} save indicator emoji`);
     });
     
-    // Replace skill indicators
-    document.querySelectorAll('.d5e-skill-item').forEach(skillItem => {
+    // Add to skill items
+    const skillItems = document.querySelectorAll('.d5e-skill-item');
+    console.log(`🔍 Found ${skillItems.length} skill items`);
+    
+    skillItems.forEach(skillItem => {
+        // Check if an emoji indicator already exists to avoid duplicates
+        if (skillItem.querySelector('.emoji-indicator')) {
+            return;
+        }
+        
         const nameElement = skillItem.querySelector('.d5e-skill-name');
         const abilityElement = skillItem.querySelector('.d5e-skill-ability');
-        if (!nameElement || !abilityElement) return;
+        
+        if (!nameElement || !abilityElement) {
+            console.warn('⚠️ Skill item missing name or ability element:', skillItem);
+            return;
+        }
         
         const skillName = nameElement.textContent.trim();
         const ability = abilityElement.textContent.toLowerCase();
-        const originalIndicator = skillItem.querySelector('.d5e-prof-indicator');
         
-        if (originalIndicator) {
-            // Determine initial state
-            const isProficient = originalIndicator.classList.contains('proficient');
-            const hasExpertise = originalIndicator.classList.contains('expertise');
-            
-            let emoji = '⚪';  // default: not proficient
-            let state = 'none';
-            
-            if (hasExpertise) {
-                emoji = '⭐';  // expertise
-                state = 'expertise';
-            } else if (isProficient) {
-                emoji = '✅';  // proficient
-                state = 'proficient';
-            }
-            
-            // Create emoji indicator
-            const emojiIndicator = document.createElement('span');
-            emojiIndicator.className = 'emoji-indicator';
-            emojiIndicator.textContent = emoji;
-            emojiIndicator.style.cursor = 'pointer';
-            emojiIndicator.style.marginRight = '8px';
-            emojiIndicator.style.fontSize = '16px';
-            emojiIndicator.dataset.ability = ability;
-            emojiIndicator.dataset.skillName = skillName;
-            emojiIndicator.dataset.state = state;
-            
-            // Add click handler
-            emojiIndicator.addEventListener('click', function() {
-                toggleSkillProficiency(characterId, emojiIndicator, skillItem);
-            });
-            
-            // Replace the original indicator
-            originalIndicator.parentNode.replaceChild(emojiIndicator, originalIndicator);
-            console.log(`Replaced ${skillName} skill indicator with emoji`);
+        // Check for proficiency/expertise in the hidden indicator
+        const hiddenIndicator = skillItem.querySelector('.d5e-prof-indicator');
+        const isProficient = hiddenIndicator ? hiddenIndicator.classList.contains('proficient') : false;
+        const hasExpertise = hiddenIndicator ? hiddenIndicator.classList.contains('expertise') : false;
+        
+        let emoji = '⚪';  // default: not proficient
+        let state = 'none';
+        
+        if (hasExpertise) {
+            emoji = '⭐';  // expertise
+            state = 'expertise';
+        } else if (isProficient) {
+            emoji = '✅';  // proficient
+            state = 'proficient';
         }
+        
+        // Create emoji indicator
+        const emojiIndicator = document.createElement('span');
+        emojiIndicator.className = 'emoji-indicator';
+        emojiIndicator.textContent = emoji;
+        emojiIndicator.dataset.ability = ability;
+        emojiIndicator.dataset.skillName = skillName;
+        emojiIndicator.dataset.state = state;
+        
+        // Add click handler
+        emojiIndicator.addEventListener('click', function() {
+            toggleSkillProficiency(characterId, emojiIndicator, skillItem);
+        });
+        
+        // Insert at the beginning of the item
+        skillItem.insertBefore(emojiIndicator, skillItem.firstChild);
+        console.log(`✅ Added ${skillName} skill indicator emoji`);
     });
 }
 
@@ -135,7 +252,13 @@ function toggleSavingThrowProficiency(characterId, indicator, saveItem) {
     // Update emoji display
     indicator.textContent = newProficient ? '✅' : '⚪';
     
-    console.log(`Toggling ${ability} save proficiency: ${isProficient ? 'OFF' : 'ON'}`);
+    console.log(`🔄 Toggling ${ability} save proficiency: ${isProficient ? 'OFF' : 'ON'}`);
+    
+    // Add a visual indicator that the change is being applied
+    indicator.classList.add('changed');
+    setTimeout(() => {
+        indicator.classList.remove('changed');
+    }, 500);
     
     // Update the display value
     updateSavingThrowValue(indicator, saveItem);
@@ -164,11 +287,17 @@ function toggleSkillProficiency(characterId, indicator, skillItem) {
         nextEmoji = '⚪';
     }
     
-    console.log(`Toggling ${skillName} proficiency: ${currentState} → ${nextState}`);
+    console.log(`🔄 Toggling ${skillName} proficiency: ${currentState} → ${nextState}`);
     
     // Update indicator
     indicator.dataset.state = nextState;
     indicator.textContent = nextEmoji;
+    
+    // Add a visual indicator that the change is being applied
+    indicator.classList.add('changed');
+    setTimeout(() => {
+        indicator.classList.remove('changed');
+    }, 500);
     
     // Update the display value
     updateSkillValue(indicator, skillItem);
@@ -216,6 +345,16 @@ function updateSavingThrowValue(indicator, saveItem) {
     const valueElement = saveItem.querySelector('.d5e-save-value');
     if (valueElement) {
         valueElement.textContent = saveText;
+        
+        // Add color classes
+        valueElement.classList.remove('positive', 'negative', 'neutral');
+        if (saveValue > 0) {
+            valueElement.classList.add('positive');
+        } else if (saveValue < 0) {
+            valueElement.classList.add('negative');
+        } else {
+            valueElement.classList.add('neutral');
+        }
     }
 }
 
@@ -260,11 +399,21 @@ function updateSkillValue(indicator, skillItem) {
     const valueElement = skillItem.querySelector('.d5e-skill-value');
     if (valueElement) {
         valueElement.textContent = skillText;
+        
+        // Add color classes
+        valueElement.classList.remove('positive', 'negative', 'neutral');
+        if (skillValue > 0) {
+            valueElement.classList.add('positive');
+        } else if (skillValue < 0) {
+            valueElement.classList.add('negative');
+        } else {
+            valueElement.classList.add('neutral');
+        }
     }
 }
 
 function saveProficiencyToServer(characterId, field, value) {
-    console.log(`Saving ${field} as ${value} to server`);
+    console.log(`💾 Saving ${field} as ${value} to server`);
     
     fetch(`/characters/${characterId}/field`, {
         method: 'POST',
@@ -284,15 +433,15 @@ function saveProficiencyToServer(characterId, field, value) {
         return response.json();
     })
     .then(data => {
-        console.log(`Successfully saved ${field} to server:`, data);
+        console.log(`✅ Successfully saved ${field} to server:`, data);
     })
     .catch(error => {
-        console.error('Error saving proficiency:', error);
+        console.error('❌ Error saving proficiency:', error);
     });
 }
 
 function saveSkillToServer(characterId, skillName, state) {
-    console.log(`Saving ${skillName} as ${state} to server`);
+    console.log(`💾 Saving ${skillName} as ${state} to server`);
     
     // Format field name as expected by server (snake_case)
     const formattedSkillName = `skill_${skillName.toLowerCase().replace(/\s+/g, '_')}`;
@@ -317,10 +466,10 @@ function saveSkillToServer(characterId, skillName, state) {
         return response.json();
     })
     .then(data => {
-        console.log(`Successfully saved ${skillName} to server:`, data);
+        console.log(`✅ Successfully saved ${skillName} to server:`, data);
     })
     .catch(error => {
-        console.error('Error saving skill:', error);
+        console.error('❌ Error saving skill:', error);
     });
 }
 

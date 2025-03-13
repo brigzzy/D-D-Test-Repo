@@ -278,6 +278,29 @@ def update_character_field(character_id):
                     else:
                         # Just add at the end
                         updated_content = content + f"\n\n## Skills\n{skill_name}: {value}\n"
+
+        # After checking field_patterns, add this check:
+        elif field.endswith('_save_proficiency'):
+            # Handle saving throw proficiencies
+            ability = field.split('_')[0]
+            ability_name = {
+                'str': 'Strength',
+                'dex': 'Dexterity',
+                'con': 'Constitution',
+                'int': 'Intelligence',
+                'wis': 'Wisdom',
+                'cha': 'Charisma'
+            }.get(ability, ability.title())
+            
+            save_section = re.search(r'##?\s*Saving Throws', content, re.IGNORECASE)
+            if save_section:
+                # Add to existing section
+                insertion_point = save_section.end()
+                updated_content = content[:insertion_point] + f"\n{ability_name} Save: {value}" + content[insertion_point:]
+            else:
+                # Create new section
+                updated_content = content + f"\n\n## Saving Throws\n{ability_name} Save: {value}\n"
+                
         else:
             return jsonify({"error": f"Field '{field}' is not supported for editing"}), 400
         
