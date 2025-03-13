@@ -288,12 +288,19 @@
 {% block extra_js %}
 <script src="{{ url_for('static', filename='js/inline-editing.js') }}"></script>
 <script src="{{ url_for('static', filename='js/death-saves.js') }}"></script>
+<script src="{{ url_for('static', filename='js/character-manager.js') }}"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Store the raw markdown content for parsing
-        const markdownContent = `{{ content|replace("\n", "\\n")|safe }}`;
+        // Get character ID from URL
+        const pathParts = window.location.pathname.split('/');
+        const characterId = pathParts[pathParts.length - 1];
         
-        // Parse the markdown content to extract character data
+        // Initialize character manager
+        window.characterManager = new CharacterManager(characterId);
+        window.characterManager.initializeSheet();
+
+        // Fallback parser for initial load
+        const markdownContent = `{{ content|replace("\n", "\\n")|safe }}`;
         parseCharacterSheet(markdownContent);
     });
     
@@ -371,7 +378,7 @@
             saveElement.innerHTML = `
                 <div class="d5e-prof-indicator ${isProficient ? 'proficient' : ''}"></div>
                 <div class="d5e-save-name">${ability.toUpperCase()}</div>
-                <div class="d5e-save-value">${saveValue}</div>
+                <div class="d5e-save-value ${saveValue > 0 ? 'positive' : (saveValue < 0 ? 'negative' : 'neutral')}">${saveValue}</div>
             `;
             savingThrowsContainer.appendChild(saveElement);
         });
@@ -427,7 +434,7 @@
                 <div class="d5e-prof-indicator ${profMultiplier === 1 ? 'proficient' : ''} ${profMultiplier === 2 ? 'expertise' : ''}"></div>
                 <div class="d5e-skill-ability">${skill.ability.toUpperCase()}</div>
                 <div class="d5e-skill-name">${skill.name}</div>
-                <div class="d5e-skill-value">${skillValue}</div>
+                <div class="d5e-skill-value ${skillValue > 0 ? 'positive' : (skillValue < 0 ? 'negative' : 'neutral')}">${skillValue}</div>
             `;
             
             skillsContainer.appendChild(skillElement);
@@ -527,4 +534,5 @@
         document.getElementById('spell-attack').textContent = extractValue(/spell attack bonus:?\s*([-+]?\d+)/i);
     }
 </script>
+
 {% endblock %}

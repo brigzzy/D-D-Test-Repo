@@ -57,7 +57,7 @@ def new():
             template_content = """# Character Name
 
 ## Character Information
-species: 
+Species: 
 Class: 
 Level: 1
 Background: 
@@ -79,6 +79,14 @@ Maximum HP: 10
 Current HP: 10
 Temporary HP: 0
 Hit Dice: 1d8
+
+## Death Saves
+Success 1: unmarked
+Success 2: unmarked
+Success 3: unmarked
+Failure 1: unmarked
+Failure 2: unmarked
+Failure 3: unmarked
 
 ## Skills
 (List skills you're proficient in)
@@ -116,14 +124,17 @@ Copper: 0
     
     return render_template('character_edit.html', character=None, is_new=True)
 
-# Add this function to your controllers/character.py file
-# Replace the existing update_character_field function with this version
-
-@character.route('/<character_id>/field', methods=['POST'])
+@character.route('/<int:character_id>/field', methods=['POST'])
 @login_required
-def update_character_field(character_id):
+def update_field(character_id):
     """
-    API endpoint to update a specific field in a character's markdown file
+    Unified API endpoint to update a field in a character's markdown file.
+    
+    Expected JSON payload:
+    {
+        "field": "field_name",
+        "value": "new_value"
+    }
     """
     # Validate request
     if not request.is_json:
@@ -132,6 +143,9 @@ def update_character_field(character_id):
     data = request.json
     field = data.get('field')
     value = data.get('value')
+    
+    # Debug logging
+    print(f"Updating field: {field} with value: {value}")
     
     # Validate required fields
     if not field or value is None:
@@ -145,91 +159,26 @@ def update_character_field(character_id):
         return jsonify({"error": "Not authorized to edit this character"}), 403
     
     try:
-        # Get the content of the markdown file
-        content = character.get_content()
+        # Use the standardized update_field method from the Character model
+        success = character.update_field(field, value)
         
-        # Special case for death saves (whole markdown content is passed)
-        if field == 'death_saves':
-            # Save the provided content directly
-            updated_content = value
-            character.save_content(updated_content)
-            return jsonify({"success": True, "message": "Death saves updated successfully"}), 200
-            
-        # Update the field based on the field name
-        updated_content = None
-        
-        # Dictionary of field names to their regex patterns
-        field_patterns = {
-            'species': (r'^(species|Species):\s*(.*)$', f"\\1: {value}"),
-            'background': (r'^(background|Background):\s*(.*)$', f"\\1: {value}"),
-            'alignment': (r'^(alignment|Alignment):\s*(.*)$', f"\\1: {value}"),
-            'str_score': (r'^(str|strength|STR|Strength):\s*(\d+)$', f"\\1: {value}"),
-            'dex_score': (r'^(dex|dexterity|DEX|Dexterity):\s*(\d+)$', f"\\1: {value}"),
-            'con_score': (r'^(con|constitution|CON|Constitution):\s*(\d+)$', f"\\1: {value}"),
-            'int_score': (r'^(int|intelligence|INT|Intelligence):\s*(\d+)$', f"\\1: {value}"),
-            'wis_score': (r'^(wis|wisdom|WIS|Wisdom):\s*(\d+)$', f"\\1: {value}"),
-            'cha_score': (r'^(cha|charisma|CHA|Charisma):\s*(\d+)$', f"\\1: {value}"),
-            'max_hp': (r'^(max hp|maximum hp|Max HP|Maximum HP):\s*(\d+)$', f"\\1: {value}"),
-            'current_hp': (r'^(current hp|Current HP):\s*(\d+)$', f"\\1: {value}"),
-            'temp_hp': (r'^(temp hp|temporary hp|Temp HP|Temporary HP):\s*(\d+)$', f"\\1: {value}"),
-            'personality_traits': (r'^(personality traits|Personality Traits):\s*(.*)$', f"\\1: {value}"),
-            'ideals': (r'^(ideals|Ideals):\s*(.*)$', f"\\1: {value}"),
-            'bonds': (r'^(bonds|Bonds):\s*(.*)$', f"\\1: {value}"),
-            'flaws': (r'^(flaws|Flaws):\s*(.*)$', f"\\1: {value}"),
-            
-            # Add patterns for saving throw proficiencies
-            'str_save_proficiency': (r'^(str|strength|STR|Strength)\s+Save:\s*(Proficient|Not Proficient)$', f"\\1 Save: {value}"),
-            'dex_save_proficiency': (r'^(dex|dexterity|DEX|Dexterity)\s+Save:\s*(Proficient|Not Proficient)$', f"\\1 Save: {value}"),
-            'con_save_proficiency': (r'^(con|constitution|CON|Constitution)\s+Save:\s*(Proficient|Not Proficient)$', f"\\1 Save: {value}"),
-            'int_save_proficiency': (r'^(int|intelligence|INT|Intelligence)\s+Save:\s*(Proficient|Not Proficient)$', f"\\1 Save: {value}"),
-            'wis_save_proficiency': (r'^(wis|wisdom|WIS|Wisdom)\s+Save:\s*(Proficient|Not Proficient)$', f"\\1 Save: {value}"),
-            'cha_save_proficiency': (r'^(cha|charisma|CHA|Charisma)\s+Save:\s*(Proficient|Not Proficient)$', f"\\1 Save: {value}")
-        }
-        
-        # Check if we have a pattern for this field
-        if field in field_patterns:
-            pattern, replacement = field_patterns[field]
-            field_pattern = re.compile(pattern, re.MULTILINE | re.IGNORECASE)
-            
-            match = field_pattern.search(content)
-            if match:
-                # Replace the value part
-                updated_content = field_pattern.sub(replacement, content)
-            else:
-                # If field doesn't exist yet, add it after the header section or at a logical place
-                if field.endswith('_score'):
-                    # Look for the ability scores section
-                    ability_section = re.search(r'(##?\s*Core Statistics|##?\s*Ability Scores)', content, re.IGNORECASE)
-                    if ability_section:
-                        section_end = content.find('\n\n', ability_section.end())
-                        if section_end != -1:
-                            updated_content = content[:section_end] + f"\n{field_name}: {value}" + content[section_end:]
-                        else:
-                            # Add at the end of the file
-                            updated_content = content + f"\n\n{field_name}: {value}\n"
-                # More conditions for other fields...
-    
-        # Handle special fields and more conditions
-        # [existing code for other field types]
-        
-        # Write the updated content back to the file
-        if updated_content:
-            character.save_content(updated_content)
-            
-            # Update the character model in the database for certain fields
-            if field == 'species':
-                character.species = value
-                db.session.commit()
-            # Add more database field updates as needed
-            
-            return jsonify({"success": True, "message": f"Updated {field} to '{value}'"}), 200
+        if success:
+            return jsonify({
+                "success": True, 
+                "message": f"Updated {field} successfully"
+            }), 200
         else:
-            return jsonify({"error": f"Failed to update {field}"}), 500
+            # Debug logging for failed updates
+            print(f"Failed to update field {field} - not supported or no pattern match")
+            return jsonify({
+                "error": f"Failed to update {field}. Field may not be supported."
+            }), 400
             
     except Exception as e:
         import traceback
+        error_trace = traceback.format_exc()
         print(f"Error updating character field: {str(e)}")
-        print(traceback.format_exc())
+        print(error_trace)
         return jsonify({"error": str(e)}), 500
 
 @character.route('/<int:character_id>', methods=['GET'])
@@ -246,6 +195,37 @@ def view(character_id):
     
     # Use the new 5E character sheet view template
     return render_template('character_view.html', character=character, content=content)
+
+@character.route('/<int:character_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit(character_id):
+    """Edit a character."""
+    character = Character.query.get_or_404(character_id)
+    
+    # Security check - only owner can edit (and admin)
+    if character.user_id != current_user.id and not current_user.is_admin:
+        abort(403)  # Forbidden
+    
+    if request.method == 'POST':
+        # Update character metadata
+        character.name = request.form.get('name', character.name)
+        character.character_class = request.form.get('character_class', character.character_class)
+        character.level = int(request.form.get('level', character.level))
+        character.species = request.form.get('species', character.species)
+        
+        # Update character content
+        content = request.form.get('content', '')
+        character.save_content(content)
+        
+        # Save changes to database
+        db.session.commit()
+        
+        flash('Character updated successfully', 'success')
+        return redirect(url_for('character.view', character_id=character.id))
+    
+    # GET request - show the edit form
+    content = character.get_content()
+    return render_template('character_edit.html', character=character, content=content, is_new=False)
 
 @character.route('/<int:character_id>/delete', methods=['POST'])
 @login_required
@@ -269,80 +249,196 @@ def delete(character_id):
     flash(f'Character "{character_name}" has been deleted', 'success')
     return redirect(url_for('main.dashboard'))
 
-@character.route('/<int:character_id>', methods=['PATCH'])
-@login_required
-def update_character(character_id):
-    try:
-        character = Character.query.get_or_404(character_id)
-        
-        # Security check
-        if character.user_id != current_user.id and not current_user.is_admin:
-            abort(403)
-        
-        data = request.json
-        print(f"Received data: {data}")
-        
-        content = character.get_content()
-        print(f"Current content (first 100 chars): {content[:100]}")
-        
-        # Define field mappings from frontend to markdown patterns
-        field_mappings = {
-            'currency': {
-                'cp': 'Copper',
-                'sp': 'Silver',
-                'gp': 'Gold',
-                'ep': 'Electrum',
-                'pp': 'Platinum'
-            },
-            'class-level': 'Level',
-            'class': 'Class',
-            'species': 'species',
-            'background': 'Background',
-            'alignment': 'Alignment',
-            # Add more mappings as needed
-        }
-        
-        # Update fields
-        for key, value in data.items():
-            pattern = rf"{re.escape(key)}:\s*(.+)"
-            print(f"Searching for pattern: {pattern}")
 
-            if key in field_mappings:
-                if isinstance(value, dict):
-                    # Handle nested fields like currency.cp
-                    for nested_key, nested_value in value.items():
-                        if nested_key in field_mappings[key]:
-                            markdown_field = field_mappings[key][nested_key]
-                            pattern = rf"{markdown_field}:\s*(\d+)"
-                            print(f"Searching for pattern: {pattern}")
-                            
-                            # Use a function for replacement
-                            content = re.sub(pattern, f"{key}: {value}", content)
-                            
-                            # Check if any replacements were made
-                            if re.search(pattern, content) is None:
-                                print(f"Warning: No match found for {markdown_field}")
-                else:
-                    # Handle direct fields
-                    markdown_field = field_mappings[key]
-                    pattern = rf"{markdown_field}:\s*(.+)"
-                    print(f"Searching for pattern: {pattern}")
-                    
-                    # Use a function for replacement
-                    content = re.sub(pattern, f"{markdown_field}: {value}", content)
-                    
-                    # Check if any replacements were made
-                    if re.search(pattern, content) is None:
-                        print(f"Warning: No match found for {markdown_field}")
-            else:
-                print(f"Warning: No mapping found for field {key}")
+
+
+def _update_skill_proficiency(self, content, skill_name, proficiency_value):
+    """Update skill proficiency in markdown content"""
+    # Find Skills section
+    skills_section = re.search(r'^##\s*Skills\s*\n([\s\S]*?)(?:\n\n|\n##|\n#|\s*$)', content, re.MULTILINE)
+    
+    skill_pattern = re.compile(f"{re.escape(skill_name)}:\\s*(Proficient|Expertise|Not Proficient)", re.MULTILINE | re.IGNORECASE)
+    
+    if skills_section:
+        # Skills section exists, check if the skill is listed
+        skill_match = skill_pattern.search(content)
         
-        # Save updated content
-        character.save_content(content)
-        return jsonify({'success': True, 'message': 'Character updated successfully'})
-    except Exception as e:
-        import traceback
-        traceback_str = traceback.format_exc()
-        print(f"Error in update_character: {str(e)}")
-        print(traceback_str)
-        return jsonify({'success': False, 'message': f'Server error: {str(e)}'}), 500
+        if skill_match:
+            # Update existing skill
+            return skill_pattern.sub(f"{skill_name}: {proficiency_value}", content)
+        else:
+            # Add skill to existing section
+            section_end = skills_section.end()
+            return content[:section_end] + f"\n{skill_name}: {proficiency_value}" + content[section_end:]
+    else:
+        # Create new Skills section
+        skills_content = f"\n\n## Skills\n{skill_name}: {proficiency_value}"
+        
+        # Find a good place to insert it
+        abilities_section = re.search(r'^##\s*Core Statistics', content, re.MULTILINE)
+        if abilities_section:
+            # Add after abilities
+            next_section = re.search(r'^##', content[abilities_section.end():], re.MULTILINE)
+            if next_section:
+                insert_point = abilities_section.end() + next_section.start()
+                return content[:insert_point] + skills_content + content[insert_point:]
+        
+        # Default: add at the end
+        return content + skills_content
+
+
+def _add_field_to_section(self, content, field, value):
+    """Add a field to the appropriate section if it doesn't exist.
+    
+    Args:
+        content (str): Current markdown content
+        field (str): Field identifier
+        value (any): Value to set
+        
+    Returns:
+        str: Updated markdown content
+    """
+    # Determine which section the field belongs to
+    section_mappings = {
+        # Map fields to section titles and field labels
+        'species': ('Character Information', 'Species'),
+        'class': ('Character Information', 'Class'),
+        'level': ('Character Information', 'Level'),
+        'background': ('Character Information', 'Background'),
+        'alignment': ('Character Information', 'Alignment'),
+        
+        'str_score': ('Core Statistics', 'Strength'),
+        'dex_score': ('Core Statistics', 'Dexterity'),
+        'con_score': ('Core Statistics', 'Constitution'),
+        'int_score': ('Core Statistics', 'Intelligence'),
+        'wis_score': ('Core Statistics', 'Wisdom'),
+        'cha_score': ('Core Statistics', 'Charisma'),
+        
+        'armor_class': ('Combat', 'Armor Class'),
+        'initiative': ('Combat', 'Initiative'),
+        'speed': ('Combat', 'Speed'),
+        'max_hp': ('Combat', 'Maximum HP'),
+        'current_hp': ('Combat', 'Current HP'),
+        'temp_hp': ('Combat', 'Temporary HP'),
+        'hit_dice': ('Combat', 'Hit Dice'),
+        
+        'gold': ('Currency', 'Gold'),
+        'silver': ('Currency', 'Silver'),
+        'copper': ('Currency', 'Copper'),
+        'electrum': ('Currency', 'Electrum'),
+        'platinum': ('Currency', 'Platinum'),
+        
+        'personality_traits': ('Personality', 'Personality Traits'),
+        'ideals': ('Personality', 'Ideals'),
+        'bonds': ('Personality', 'Bonds'),
+        'flaws': ('Personality', 'Flaws'),
+    }
+    
+    if field in section_mappings:
+        section_title, field_label = section_mappings[field]
+        
+        # Look for the section
+        section_match = re.search(f'^##\\s*{section_title}', content, re.MULTILINE)
+        
+        if section_match:
+            # Find the end of the section (next section or end of file)
+            section_start = section_match.start()
+            next_section = re.search('^##\\s', content[section_match.end():], re.MULTILINE)
+            
+            if next_section:
+                section_end = section_match.end() + next_section.start()
+            else:
+                section_end = len(content)
+            
+            # Add the new field at the end of the section
+            return (
+                content[:section_end] + 
+                f"\n{field_label}: {value}" + 
+                content[section_end:]
+            )
+        else:
+            # Section doesn't exist, create it with the field
+            # Find a good spot to add it (after the last section or at the end)
+            last_section = list(re.finditer('^##\\s', content, re.MULTILINE))
+            
+            if last_section:
+                last_section_end = last_section[-1].start()
+                next_section = re.search('^##\\s', content[last_section_end+1:], re.MULTILINE)
+                
+                if next_section:
+                    insert_point = last_section_end + 1 + next_section.start()
+                else:
+                    insert_point = len(content)
+            else:
+                # No sections, add after the title
+                title_match = re.search('^#\\s', content, re.MULTILINE)
+                if title_match:
+                    insert_point = title_match.end() + content[title_match.end():].find('\n') + 1
+                else:
+                    insert_point = len(content)
+            
+            return (
+                content[:insert_point] + 
+                f"\n\n## {section_title}\n{field_label}: {value}\n" + 
+                content[insert_point:]
+            )
+    
+    # If we don't have a mapping, just append to the end
+    return content + f"\n\n{field}: {value}"
+
+
+def _update_death_saves(self, content, field, value):
+    """Update death save information in the markdown content.
+    
+    Args:
+        content (str): Current markdown content
+        field (str): Death save field identifier (e.g., death_save_success_1)
+        value (str): 'marked' or 'unmarked'
+        
+    Returns:
+        str: Updated markdown content
+    """
+    # Parse field name for type and index
+    parts = field.split('_')
+    if len(parts) < 4:
+        return None
+        
+    save_type = parts[2]  # 'success' or 'failure'
+    save_index = parts[3]  # '1', '2', or '3'
+    
+    # Find the Death Saves section
+    death_saves_section = re.search(r'^##\s*Death Saves\s*\n([\s\S]*?)(?:\n\n|\n##|\n#|\s*$)', content, re.MULTILINE)
+    
+    if death_saves_section:
+        # Extract the section to modify it
+        section_text = death_saves_section.group(0)
+        
+        # Find and replace the specific save entry
+        save_pattern = re.compile(f"{save_type.capitalize()} {save_index}: (marked|unmarked)", re.IGNORECASE)
+        updated_section = save_pattern.sub(f"{save_type.capitalize()} {save_index}: {value}", section_text)
+        
+        # Replace the section in the content
+        return content.replace(section_text, updated_section)
+    else:
+        # Need to create the Death Saves section
+        death_saves_content = f"""## Death Saves
+Success 1: unmarked
+Success 2: unmarked
+Success 3: unmarked
+Failure 1: unmarked
+Failure 2: unmarked
+Failure 3: unmarked"""
+        
+        # Update the specific save
+        save_pattern = re.compile(f"{save_type.capitalize()} {save_index}: (marked|unmarked)", re.IGNORECASE)
+        death_saves_content = save_pattern.sub(f"{save_type.capitalize()} {save_index}: {value}", death_saves_content)
+        
+        # Find the right place to add it (after Combat section if it exists)
+        combat_section = re.search(r'^##\s*Combat\s*\n([\s\S]*?)(?:\n\n|\n##|\n#|\s*$)', content, re.MULTILINE)
+        
+        if combat_section:
+            combat_end = combat_section.end()
+            return content[:combat_end] + "\n\n" + death_saves_content + content[combat_end:]
+        else:
+            # Just add at the end
+            return content + "\n\n" + death_saves_content
