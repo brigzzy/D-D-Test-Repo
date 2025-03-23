@@ -812,3 +812,46 @@ input[type=number] {
 
 
 
+/* Remove the yellow background and dashed border from custom skills */
+.skill-item.custom-skill {
+  background-color: transparent !important;
+  border: none !important;
+}
+
+/* Make custom skills follow the same zebra striping as standard skills */
+.skill-item:nth-child(odd) {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.skill-item:nth-child(even) {
+  background-color: transparent;
+}
+
+/* Style for editing mode - only appears when editing */
+.custom-skill-name-edit {
+  flex-grow: 1;
+  width: auto;
+  padding: 0.25rem;
+  margin-right: 0.5rem;
+  border: 1px solid var(--primary-color);
+  border-radius: 4px;
+}
+
+.custom-skill-ability-edit {
+  width: auto;
+  padding: 0.25rem;
+  margin-right: 0.5rem;
+  border: 1px solid var(--primary-color);
+  border-radius: 4px;
+}
+
+/* Make the remove button less obtrusive */
+.remove-skill-btn {
+  opacity: 0.4;
+  margin-left: 5px;
+  transition: opacity 0.2s ease;
+}
+
+.skill-item:hover .remove-skill-btn {
+  opacity: 1;
+}
