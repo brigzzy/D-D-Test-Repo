@@ -1,0 +1,561 @@
+<!-- views/character_form.ejs -->
+<div class="character-sheet-container">
+  <div class="character-sheet-header">
+    <h2><%= isNew ? 'Create New Character' : 'Edit Character' %></h2>
+    <% if (!isNew) { %>
+      <div class="save-status" id="saveStatus">All changes saved</div>
+    <% } %>
+    <div class="character-actions">
+      <a href="/characters" class="btn btn-secondary">Back to Characters</a>
+      <% if (isNew) { %>
+        <button type="submit" form="characterForm" class="btn btn-primary">Create Character</button>
+      <% } %>
+    </div>
+  </div>
+  
+  <form id="characterForm" action="/characters<%= isNew ? '' : '/' + characterId %>" method="POST" class="character-sheet">
+    <% if (!isNew) { %>
+      <input type="hidden" name="_method" value="PUT">
+    <% } %>
+    
+    <!-- Character Header Section -->
+    <div class="character-header-section">
+      <div class="form-group">
+        <label for="name">Character Name</label>
+        <input type="text" id="name" name="name" value="<%= character.name %>" class="autosave editable-field" data-field="name" required readonly>
+      </div>
+      
+      <div class="character-details">
+        <div class="form-group">
+          <label for="class">Class</label>
+          <input type="text" id="class" name="class" value="<%= character.class %>" class="autosave editable-field" data-field="class" readonly>
+        </div>
+        
+        <div class="form-group">
+          <label for="level">Level</label>
+          <input type="number" id="level" name="level" value="<%= character.level %>" min="1" max="20" class="autosave editable-field" data-field="level" readonly>
+        </div>
+        
+        <div class="form-group">
+          <label for="race">Race</label>
+          <input type="text" id="race" name="race" value="<%= character.race %>" class="autosave editable-field" data-field="race" readonly>
+        </div>
+        
+        <div class="form-group">
+          <label for="background">Background</label>
+          <input type="text" id="background" name="background" value="<%= character.background || '' %>" class="autosave editable-field" data-field="background" readonly>
+        </div>
+        
+        <div class="form-group">
+          <label for="alignment">Alignment</label>
+          <select id="alignment" name="alignment" class="autosave editable-field" data-field="alignment" readonly>
+            <option value="" <%= !character.alignment ? 'selected' : '' %>>Select Alignment</option>
+            <option value="Lawful Good" <%= character.alignment === 'Lawful Good' ? 'selected' : '' %>>Lawful Good</option>
+            <option value="Neutral Good" <%= character.alignment === 'Neutral Good' ? 'selected' : '' %>>Neutral Good</option>
+            <option value="Chaotic Good" <%= character.alignment === 'Chaotic Good' ? 'selected' : '' %>>Chaotic Good</option>
+            <option value="Lawful Neutral" <%= character.alignment === 'Lawful Neutral' ? 'selected' : '' %>>Lawful Neutral</option>
+            <option value="True Neutral" <%= character.alignment === 'True Neutral' ? 'selected' : '' %>>True Neutral</option>
+            <option value="Chaotic Neutral" <%= character.alignment === 'Chaotic Neutral' ? 'selected' : '' %>>Chaotic Neutral</option>
+            <option value="Lawful Evil" <%= character.alignment === 'Lawful Evil' ? 'selected' : '' %>>Lawful Evil</option>
+            <option value="Neutral Evil" <%= character.alignment === 'Neutral Evil' ? 'selected' : '' %>>Neutral Evil</option>
+            <option value="Chaotic Evil" <%= character.alignment === 'Chaotic Evil' ? 'selected' : '' %>>Chaotic Evil</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Main Character Sheet Layout (3 columns) -->
+    <div class="character-main-section">
+      <!-- Left Column: Abilities and Skills -->
+      <div class="character-column abilities-column">
+        <h3>Abilities</h3>
+        <div class="abilities-container">
+          <% const abilities = [
+            { key: 'strength', name: 'Strength' },
+            { key: 'dexterity', name: 'Dexterity' },
+            { key: 'constitution', name: 'Constitution' },
+            { key: 'intelligence', name: 'Intelligence' },
+            { key: 'wisdom', name: 'Wisdom' },
+            { key: 'charisma', name: 'Charisma' }
+          ]; %>
+          
+          <% abilities.forEach(ability => { %>
+            <div class="ability-block">
+              <label for="<%= ability.key %>"><%= ability.name %></label>
+              <input 
+                type="number" 
+                id="<%= ability.key %>" 
+                name="<%= ability.key %>" 
+                value="<%= character.abilities[ability.key] %>" 
+                min="1" 
+                max="30" 
+                class="ability-score autosave editable-field" 
+                data-field="abilities.<%= ability.key %>"
+                readonly
+              >
+              <div class="ability-modifier">
+                <%= Math.floor((character.abilities[ability.key] - 10) / 2) >= 0 ? '+' : '' %><%= Math.floor((character.abilities[ability.key] - 10) / 2) %>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+        
+        <h3>Skills</h3>
+        <div class="skills-container" id="skillsContainer">
+          <% character.skills.forEach((skill, index) => { %>
+            <div class="skill-item">
+              <input 
+                type="checkbox" 
+                id="skill_<%= index %>" 
+                class="skill-proficient" 
+                <%= skill.proficient ? 'checked' : '' %> 
+                data-index="<%= index %>"
+              >
+              <span class="skill-modifier">
+                <%= Math.floor((character.abilities[skill.ability] - 10) / 2) + (skill.proficient ? 2 : 0) >= 0 ? '+' : '' %><%= Math.floor((character.abilities[skill.ability] - 10) / 2) + (skill.proficient ? 2 : 0) %>
+              </span>
+              <span class="skill-name"><%= skill.name %></span>
+              <span class="skill-ability">(<%= skill.ability.charAt(0).toUpperCase() %>)</span>
+            </div>
+          <% }); %>
+          
+          <!-- Custom Skills -->
+          <% if (character.customSkills && character.customSkills.length > 0) { %>
+            <% character.customSkills.forEach((skill, index) => { %>
+              <div class="skill-item custom-skill">
+                <input 
+                  type="checkbox" 
+                  id="custom_skill_<%= index %>" 
+                  class="skill-proficient" 
+                  <%= skill.proficient ? 'checked' : '' %> 
+                  data-index="<%= index %>"
+                  data-custom="true"
+                >
+                <span class="skill-modifier">
+                  <%= Math.floor((character.abilities[skill.ability] - 10) / 2) + (skill.proficient ? 2 : 0) >= 0 ? '+' : '' %><%= Math.floor((character.abilities[skill.ability] - 10) / 2) + (skill.proficient ? 2 : 0) %>
+                </span>
+                <input 
+                  type="text" 
+                  class="custom-skill-name" 
+                  value="<%= skill.name %>" 
+                  data-index="<%= index %>"
+                >
+                <select class="custom-skill-ability" data-index="<%= index %>">
+                  <% abilities.forEach(ability => { %>
+                    <option value="<%= ability.key %>" <%= skill.ability === ability.key ? 'selected' : '' %>>
+                      <%= ability.key.charAt(0).toUpperCase() %>
+                    </option>
+                  <% }); %>
+                </select>
+                <button type="button" class="remove-skill-btn" data-index="<%= index %>">×</button>
+              </div>
+            <% }); %>
+          <% } %>
+        </div>
+        
+        <button type="button" id="addSkillBtn" class="btn btn-small">Add Custom Skill</button>
+      </div>
+      
+      <!-- Middle Column: Combat Stats -->
+      <div class="character-column combat-column">
+        <div class="combat-stats">
+          <div class="stat-block">
+            <label for="armorClass">Armor Class</label>
+            <input 
+              type="number" 
+              id="armorClass" 
+              name="armorClass" 
+              value="<%= character.armorClass || 10 %>" 
+              class="autosave editable-field" 
+              data-field="armorClass"
+              readonly
+            >
+          </div>
+          
+          <div class="stat-block">
+            <label for="initiative">Initiative</label>
+            <div class="calculated-value">
+              <%= Math.floor((character.abilities.dexterity - 10) / 2) >= 0 ? '+' : '' %><%= Math.floor((character.abilities.dexterity - 10) / 2) %>
+            </div>
+          </div>
+          
+          <div class="stat-block">
+            <label for="speed">Speed</label>
+            <input 
+              type="number" 
+              id="speed" 
+              name="speed" 
+              value="<%= character.speed || 30 %>" 
+              class="autosave editable-field" 
+              data-field="speed"
+              readonly
+            >
+          </div>
+        </div>
+        
+        <div class="hit-points">
+          <h4>Hit Points</h4>
+          <div class="hp-container">
+            <div class="form-group">
+              <label for="maxHitPoints">Maximum</label>
+              <input 
+                type="number" 
+                id="maxHitPoints" 
+                name="maxHitPoints" 
+                value="<%= character.hitPoints ? character.hitPoints.maximum : '' %>" 
+                class="autosave editable-field" 
+                data-field="hitPoints.maximum"
+                readonly
+              >
+            </div>
+            
+            <div class="form-group">
+              <label for="currentHitPoints">Current</label>
+              <input 
+                type="number" 
+                id="currentHitPoints" 
+                name="currentHitPoints" 
+                value="<%= character.hitPoints ? character.hitPoints.current : '' %>" 
+                class="autosave editable-field" 
+                data-field="hitPoints.current"
+                readonly
+              >
+            </div>
+          </div>
+        </div>
+        
+        <div class="equipment-section">
+          <h4>Equipment</h4>
+          <textarea 
+            id="equipment" 
+            name="equipment" 
+            class="autosave editable-field" 
+            data-field="equipment"
+            readonly
+          ><%= character.equipment || '' %></textarea>
+        </div>
+      </div>
+      
+      <!-- Right Column: Features and Spells -->
+      <div class="character-column features-column">
+        <div class="features-section">
+          <h4>Features & Traits</h4>
+          <textarea 
+            id="features" 
+            name="features" 
+            class="autosave editable-field" 
+            data-field="features"
+            readonly
+          ><%= character.features || '' %></textarea>
+        </div>
+        
+        <div class="spells-section">
+          <h4>Spells</h4>
+          <textarea 
+            id="spells" 
+            name="spells" 
+            class="autosave editable-field" 
+            data-field="spells"
+            readonly
+          ><%= character.spells || '' %></textarea>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Hidden fields for storing skills data -->
+    <input type="hidden" id="skills" name="skills" value="<%= JSON.stringify(character.skills) %>">
+    <input type="hidden" id="customSkills" name="customSkills" value="<%= JSON.stringify(character.customSkills || []) %>">
+  </form>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Make read-only fields editable on click
+    const editableFields = document.querySelectorAll('.editable-field');
+    
+    editableFields.forEach(field => {
+      field.addEventListener('click', function() {
+        // Remove readonly attribute to make field editable
+        this.removeAttribute('readonly');
+        this.focus();
+        
+        // For select elements
+        if (this.tagName === 'SELECT') {
+          this.removeAttribute('readonly');
+        }
+      });
+      
+      // Make field read-only again when focus is lost
+      field.addEventListener('blur', function() {
+        this.setAttribute('readonly', true);
+      });
+      
+      // For select elements, handle them specially
+      if (field.tagName === 'SELECT') {
+        field.addEventListener('mousedown', function(e) {
+          if (this.hasAttribute('readonly')) {
+            this.removeAttribute('readonly');
+            // This timeout ensures the dropdown opens
+            setTimeout(() => this.focus(), 0);
+          }
+        });
+        
+        field.addEventListener('change', function() {
+          this.setAttribute('readonly', true);
+        });
+      }
+    });
+    
+    // Only add auto-save functionality if we're editing an existing character
+    <% if (!isNew) { %>
+      // Auto-save functionality
+      const autosaveInputs = document.querySelectorAll('.autosave');
+      const saveStatus = document.getElementById('saveStatus');
+      
+      autosaveInputs.forEach(input => {
+        input.addEventListener('change', function() {
+          saveField(input.dataset.field, input.value);
+        });
+      });
+      
+      async function saveField(field, value) {
+        saveStatus.textContent = 'Saving...';
+        saveStatus.classList.add('saving');
+        
+        try {
+          const response = await fetch('/characters/<%= characterId %>', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ field, value })
+          });
+          
+          if (response.ok) {
+            saveStatus.textContent = 'All changes saved';
+            saveStatus.classList.remove('saving');
+            saveStatus.classList.add('saved');
+            
+            setTimeout(() => {
+              saveStatus.classList.remove('saved');
+            }, 2000);
+          } else {
+            throw new Error('Failed to save');
+          }
+        } catch (error) {
+          saveStatus.textContent = 'Error saving changes';
+          saveStatus.classList.remove('saving');
+          saveStatus.classList.add('error');
+          
+          setTimeout(() => {
+            saveStatus.classList.remove('error');
+          }, 3000);
+        }
+      }
+    <% } %>
+    
+    // Skills functionality
+    const skillsContainer = document.getElementById('skillsContainer');
+    const skillsInput = document.getElementById('skills');
+    const customSkillsInput = document.getElementById('customSkills');
+    const addSkillBtn = document.getElementById('addSkillBtn');
+    
+    // Initialize skills data
+    let skills = JSON.parse(skillsInput.value);
+    let customSkills = JSON.parse(customSkillsInput.value);
+    
+    // Update skill proficiency
+    skillsContainer.addEventListener('change', function(e) {
+      if (e.target.classList.contains('skill-proficient')) {
+        const index = parseInt(e.target.dataset.index);
+        const isCustom = e.target.dataset.custom === 'true';
+        
+        if (isCustom) {
+          customSkills[index].proficient = e.target.checked;
+          customSkillsInput.value = JSON.stringify(customSkills);
+          <% if (!isNew) { %>
+            saveField('customSkills', customSkillsInput.value);
+          <% } %>
+        } else {
+          skills[index].proficient = e.target.checked;
+          skillsInput.value = JSON.stringify(skills);
+          <% if (!isNew) { %>
+            saveField('skills', skillsInput.value);
+          <% } %>
+        }
+        
+        // Update modifier display
+        const skillItem = e.target.closest('.skill-item');
+        const modifierSpan = skillItem.querySelector('.skill-modifier');
+        const ability = isCustom ? customSkills[index].ability : skills[index].ability;
+        const abilityMod = Math.floor((<%- JSON.stringify(character.abilities) %>[ability] - 10) / 2);
+        const profBonus = 2; // This would ideally be calculated based on level
+        
+        const totalMod = abilityMod + (e.target.checked ? profBonus : 0);
+        modifierSpan.textContent = (totalMod >= 0 ? '+' : '') + totalMod;
+      }
+    });
+    
+    // Handle custom skill name change
+    skillsContainer.addEventListener('change', function(e) {
+      if (e.target.classList.contains('custom-skill-name')) {
+        const index = parseInt(e.target.dataset.index);
+        customSkills[index].name = e.target.value;
+        customSkillsInput.value = JSON.stringify(customSkills);
+        <% if (!isNew) { %>
+          saveField('customSkills', customSkillsInput.value);
+        <% } %>
+      }
+    });
+    
+    // Handle custom skill ability change
+    skillsContainer.addEventListener('change', function(e) {
+      if (e.target.classList.contains('custom-skill-ability')) {
+        const index = parseInt(e.target.dataset.index);
+        customSkills[index].ability = e.target.value;
+        customSkillsInput.value = JSON.stringify(customSkills);
+        
+        // Update modifier display
+        const skillItem = e.target.closest('.skill-item');
+        const modifierSpan = skillItem.querySelector('.skill-modifier');
+        const ability = e.target.value;
+        const abilityMod = Math.floor((<%- JSON.stringify(character.abilities) %>[ability] - 10) / 2);
+        const profBonus = 2;
+        const isProficient = skillItem.querySelector('.skill-proficient').checked;
+        
+        const totalMod = abilityMod + (isProficient ? profBonus : 0);
+        modifierSpan.textContent = (totalMod >= 0 ? '+' : '') + totalMod;
+        
+        <% if (!isNew) { %>
+          saveField('customSkills', customSkillsInput.value);
+        <% } %>
+      }
+    });
+    
+    // Remove custom skill
+    skillsContainer.addEventListener('click', function(e) {
+      if (e.target.classList.contains('remove-skill-btn')) {
+        const index = parseInt(e.target.dataset.index);
+        customSkills.splice(index, 1);
+        customSkillsInput.value = JSON.stringify(customSkills);
+        <% if (!isNew) { %>
+          saveField('customSkills', customSkillsInput.value);
+        <% } %>
+        
+        // Re-render custom skills
+        renderCustomSkills();
+      }
+    });
+    
+    // Add new custom skill
+    addSkillBtn.addEventListener('click', function() {
+      const newSkill = {
+        name: 'New Skill',
+        ability: 'dexterity',
+        proficient: false
+      };
+      
+      customSkills.push(newSkill);
+      customSkillsInput.value = JSON.stringify(customSkills);
+      <% if (!isNew) { %>
+        saveField('customSkills', customSkillsInput.value);
+      <% } %>
+      
+      // Re-render custom skills
+      renderCustomSkills();
+    });
+    
+    // Function to render custom skills
+    function renderCustomSkills() {
+      // First, remove all existing custom skills
+      const existingCustomSkills = skillsContainer.querySelectorAll('.custom-skill');
+      existingCustomSkills.forEach(skill => skill.remove());
+      
+      // Add custom skills at the end
+      customSkills.forEach((skill, index) => {
+        const skillItem = document.createElement('div');
+        skillItem.className = 'skill-item custom-skill';
+        
+        const abilityMod = Math.floor((<%- JSON.stringify(character.abilities) %>[skill.ability] - 10) / 2);
+        const profBonus = 2;
+        const totalMod = abilityMod + (skill.proficient ? profBonus : 0);
+        
+        skillItem.innerHTML = `
+          <input 
+            type="checkbox" 
+            id="custom_skill_${index}" 
+            class="skill-proficient" 
+            ${skill.proficient ? 'checked' : ''} 
+            data-index="${index}"
+            data-custom="true"
+          >
+          <span class="skill-modifier">
+            ${totalMod >= 0 ? '+' : ''}${totalMod}
+          </span>
+          <input 
+            type="text" 
+            class="custom-skill-name" 
+            value="${skill.name}" 
+            data-index="${index}"
+          >
+          <select class="custom-skill-ability" data-index="${index}">
+            <% abilities.forEach(ability => { %>
+              <option value="<%= ability.key %>" ${skill.ability === '<%= ability.key %>' ? 'selected' : ''}>
+                <%= ability.key.charAt(0).toUpperCase() %>
+              </option>
+            <% }); %>
+          </select>
+          <button type="button" class="remove-skill-btn" data-index="${index}">×</button>
+        `;
+        
+        skillsContainer.appendChild(skillItem);
+      });
+    }
+    
+    // Update ability modifiers when ability scores change
+    const abilityInputs = document.querySelectorAll('.ability-score');
+    abilityInputs.forEach(input => {
+      input.addEventListener('change', function() {
+        // Update the displayed modifier
+        const abilityBlock = input.closest('.ability-block');
+        const modifierDiv = abilityBlock.querySelector('.ability-modifier');
+        const newMod = Math.floor((parseInt(input.value) - 10) / 2);
+        modifierDiv.textContent = (newMod >= 0 ? '+' : '') + newMod;
+        
+        // Update all skills that use this ability
+        const ability = input.id;
+        updateSkillModifiers(ability, newMod);
+      });
+    });
+    
+    function updateSkillModifiers(ability, mod) {
+      // Update standard skills
+      skills.forEach((skill, index) => {
+        if (skill.ability === ability) {
+          const skillItem = document.querySelector(`.skill-item:not(.custom-skill):nth-child(${index + 1})`);
+          if (skillItem) {
+            const modifierSpan = skillItem.querySelector('.skill-modifier');
+            const profBonus = 2;
+            const isProficient = skillItem.querySelector('.skill-proficient').checked;
+            const totalMod = mod + (isProficient ? profBonus : 0);
+            modifierSpan.textContent = (totalMod >= 0 ? '+' : '') + totalMod;
+          }
+        }
+      });
+      
+      // Update custom skills
+      customSkills.forEach((skill, index) => {
+        if (skill.ability === ability) {
+          const skillItem = document.querySelector(`.custom-skill:nth-child(${skills.length + index + 1})`);
+          if (skillItem) {
+            const modifierSpan = skillItem.querySelector('.skill-modifier');
+            const profBonus = 2;
+            const isProficient = skillItem.querySelector('.skill-proficient').checked;
+            const totalMod = mod + (isProficient ? profBonus : 0);
+            modifierSpan.textContent = (totalMod >= 0 ? '+' : '') + totalMod;
+          }
+        }
+      });
+    }
+  });
+</script>
