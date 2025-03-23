@@ -1,0 +1,43 @@
+<!-- views/layout.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title + ' - ' : '' %>D&D Character Sheet App</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>D&D Character Sheet App</h1>
+      <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+        <nav>
+          <ul>
+            <li><a href="/characters">My Characters</a></li>
+            <% if (currentUser.isAdmin) { %>
+              <li><a href="/users">Manage Users</a></li>
+            <% } %>
+            <li><a href="/logout">Logout (<%= currentUser.username %>)</a></li>
+          </ul>
+        </nav>
+      <% } %>
+    </div>
+  </header>
+
+  <main class="container">
+    <%- body %>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>&copy; <%= new Date().getFullYear() %> D&D Character Sheet App</p>
+    </div>
+  </footer>
+  
+  <% if (typeof script !== 'undefined') { %>
+    <%- script %>
+  <% } %>
+</body>
+</html>
