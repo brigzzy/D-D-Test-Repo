@@ -165,15 +165,20 @@
               value="<%= character.armorClass || 10 %>" 
               class="autosave editable-field" 
               data-field="armorClass"
-              readonly
             >
           </div>
           
           <div class="stat-block">
             <label for="initiative">Initiative</label>
-            <div class="calculated-value">
-              <%= Math.floor((character.abilities.dexterity - 10) / 2) >= 0 ? '+' : '' %><%= Math.floor((character.abilities.dexterity - 10) / 2) %>
-            </div>
+            <input 
+              type="number" 
+              id="initiative" 
+              name="initiative" 
+              value="<%= character.initiative || 0 %>" 
+              class="autosave editable-field" 
+              data-field="initiative"
+              
+            >
           </div>
           
           <div class="stat-block">
@@ -185,7 +190,6 @@
               value="<%= character.speed || 30 %>" 
               class="autosave editable-field" 
               data-field="speed"
-              readonly
             >
           </div>
         </div>
@@ -608,12 +612,7 @@ function updateAllSkillModifiers(profBonus) {
   });
   
   // Update initiative display if it uses proficiency
-  const initiativeDisplay = document.querySelector('.calculated-value');
-  if (initiativeDisplay) {
-    const dexMod = Math.floor((document.getElementById('dexterity').value - 10) / 2);
-    initiativeDisplay.textContent = (dexMod >= 0 ? '+' : '') + dexMod;
-  }
-}
+
 
 // Modify the existing updateSkillModifiers function to use the current proficiency bonus
 function updateSkillModifiers(ability, mod) {

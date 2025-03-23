@@ -286,36 +286,41 @@ app.post('/characters', requireAuth, async (req, res) => {
     const characterData = req.body;
     
     // Process the form data to create the character object
-    const character = {
-      name: characterData.name,
-      race: characterData.race,
-      class: characterData.class,
-      level: parseInt(characterData.level),
-      owner: req.session.user.username,
-      createdAt: new Date().toISOString(),
-      abilities: {
-        strength: parseInt(characterData.strength),
-        dexterity: parseInt(characterData.dexterity),
-        constitution: parseInt(characterData.constitution),
-        intelligence: parseInt(characterData.intelligence),
-        wisdom: parseInt(characterData.wisdom),
-        charisma: parseInt(characterData.charisma)
-      },
-      skills: JSON.parse(characterData.skills),
-      customSkills: JSON.parse(characterData.customSkills),
-      background: characterData.background,
-      alignment: characterData.alignment,
-      hitPoints: {
-        maximum: parseInt(characterData.maxHitPoints),
-        current: parseInt(characterData.currentHitPoints)
-      },
-      armorClass: parseInt(characterData.armorClass),
-      speed: parseInt(characterData.speed),
-      equipment: characterData.equipment,
-      features: characterData.features,
-      spells: characterData.spells
-    };
-    
+// Add 'initiative' to the character object in your index.js file
+// Find the app.post('/characters') and app.put('/characters/:id') routes
+
+// In the POST route for creating a character, add an initiative field:
+const character = {
+  name: characterData.name,
+  race: characterData.race,
+  class: characterData.class,
+  level: parseInt(characterData.level),
+  owner: req.session.user.username,
+  createdAt: new Date().toISOString(),
+  abilities: {
+    strength: parseInt(characterData.strength),
+    dexterity: parseInt(characterData.dexterity),
+    constitution: parseInt(characterData.constitution),
+    intelligence: parseInt(characterData.intelligence),
+    wisdom: parseInt(characterData.wisdom),
+    charisma: parseInt(characterData.charisma)
+  },
+  skills: JSON.parse(characterData.skills),
+  customSkills: JSON.parse(characterData.customSkills),
+  background: characterData.background,
+  alignment: characterData.alignment,
+  hitPoints: {
+    maximum: parseInt(characterData.maxHitPoints),
+    current: parseInt(characterData.currentHitPoints)
+  },
+  initiative: parseInt(characterData.initiative || 0), // Add this line
+  armorClass: parseInt(characterData.armorClass),
+  speed: parseInt(characterData.speed),
+  equipment: characterData.equipment,
+  features: characterData.features,
+  spells: characterData.spells
+};
+
     const id = Date.now().toString();
     const charPath = path.join(__dirname, 'data', 'characters', `${id}.yaml`);
     
