@@ -18,51 +18,48 @@
       <input type="hidden" name="_method" value="PUT">
     <% } %>
     
-    <!-- Character Header Section -->
-    <div class="character-header-section">
-      <div class="form-group">
-        <label for="name">Character Name</label>
-        <input type="text" id="name" name="name" value="<%= character.name %>" class="autosave editable-field" data-field="name" required readonly>
-      </div>
-      
-      <div class="character-details">
-        <div class="form-group">
-          <label for="class">Class</label>
-          <input type="text" id="class" name="class" value="<%= character.class %>" class="autosave editable-field" data-field="class" readonly>
-        </div>
-        
-        <div class="form-group">
-          <label for="level">Level</label>
-          <input type="number" id="level" name="level" value="<%= character.level %>" min="1" max="20" class="autosave editable-field" data-field="level" readonly>
-        </div>
-        
-        <div class="form-group">
-          <label for="race">Race</label>
-          <input type="text" id="race" name="race" value="<%= character.race %>" class="autosave editable-field" data-field="race" readonly>
-        </div>
-        
-        <div class="form-group">
-          <label for="background">Background</label>
-          <input type="text" id="background" name="background" value="<%= character.background || '' %>" class="autosave editable-field" data-field="background" readonly>
-        </div>
-        
-        <div class="form-group">
-          <label for="alignment">Alignment</label>
-          <select id="alignment" name="alignment" class="autosave editable-field" data-field="alignment" readonly>
-            <option value="" <%= !character.alignment ? 'selected' : '' %>>Select Alignment</option>
-            <option value="Lawful Good" <%= character.alignment === 'Lawful Good' ? 'selected' : '' %>>Lawful Good</option>
-            <option value="Neutral Good" <%= character.alignment === 'Neutral Good' ? 'selected' : '' %>>Neutral Good</option>
-            <option value="Chaotic Good" <%= character.alignment === 'Chaotic Good' ? 'selected' : '' %>>Chaotic Good</option>
-            <option value="Lawful Neutral" <%= character.alignment === 'Lawful Neutral' ? 'selected' : '' %>>Lawful Neutral</option>
-            <option value="True Neutral" <%= character.alignment === 'True Neutral' ? 'selected' : '' %>>True Neutral</option>
-            <option value="Chaotic Neutral" <%= character.alignment === 'Chaotic Neutral' ? 'selected' : '' %>>Chaotic Neutral</option>
-            <option value="Lawful Evil" <%= character.alignment === 'Lawful Evil' ? 'selected' : '' %>>Lawful Evil</option>
-            <option value="Neutral Evil" <%= character.alignment === 'Neutral Evil' ? 'selected' : '' %>>Neutral Evil</option>
-            <option value="Chaotic Evil" <%= character.alignment === 'Chaotic Evil' ? 'selected' : '' %>>Chaotic Evil</option>
-          </select>
-        </div>
-      </div>
+<!-- Updated Character Header Section with correctly aligned proficiency bonus -->
+<div class="character-header-section">
+  <!-- Character name section -->
+  <div class="form-group character-name-group">
+    <label for="name">Character Name</label>
+    <input type="text" id="name" name="name" value="<%= character.name %>" class="autosave editable-field" data-field="name" required readonly>
+  </div>
+  
+  <!-- Character details section with proficiency in last row -->
+  <div class="details-labels-row">
+    <label for="class">Class</label>
+    <label for="level">Level</label>
+    <label for="race">Race</label>
+    <label for="background">Background</label>
+    <label for="alignment">Alignment</label>
+    <label class="proficiency-label">Proficiency Bonus</label>
+  </div>
+  
+  <div class="details-fields-row">
+    <input type="text" id="class" name="class" value="<%= character.class %>" class="autosave editable-field" data-field="class" readonly>
+    <input type="number" id="level" name="level" value="<%= character.level %>" min="1" max="20" class="autosave editable-field" data-field="level" readonly>
+    <input type="text" id="race" name="race" value="<%= character.race %>" class="autosave editable-field" data-field="race" readonly>
+    <input type="text" id="background" name="background" value="<%= character.background || '' %>" class="autosave editable-field" data-field="background" readonly>
+    <select id="alignment" name="alignment" class="autosave editable-field" data-field="alignment" readonly>
+      <option value="" <%= !character.alignment ? 'selected' : '' %>>Select Alignment</option>
+      <option value="Lawful Good" <%= character.alignment === 'Lawful Good' ? 'selected' : '' %>>Lawful Good</option>
+      <option value="Neutral Good" <%= character.alignment === 'Neutral Good' ? 'selected' : '' %>>Neutral Good</option>
+      <option value="Chaotic Good" <%= character.alignment === 'Chaotic Good' ? 'selected' : '' %>>Chaotic Good</option>
+      <option value="Lawful Neutral" <%= character.alignment === 'Lawful Neutral' ? 'selected' : '' %>>Lawful Neutral</option>
+      <option value="True Neutral" <%= character.alignment === 'True Neutral' ? 'selected' : '' %>>True Neutral</option>
+      <option value="Chaotic Neutral" <%= character.alignment === 'Chaotic Neutral' ? 'selected' : '' %>>Chaotic Neutral</option>
+      <option value="Lawful Evil" <%= character.alignment === 'Lawful Evil' ? 'selected' : '' %>>Lawful Evil</option>
+      <option value="Neutral Evil" <%= character.alignment === 'Neutral Evil' ? 'selected' : '' %>>Neutral Evil</option>
+      <option value="Chaotic Evil" <%= character.alignment === 'Chaotic Evil' ? 'selected' : '' %>>Chaotic Evil</option>
+    </select>
+    <div class="proficiency-display">
+      <span id="proficiencyBonus">+<%= Math.floor((character.level - 1) / 4) + 2 %></span>
     </div>
+  </div>
+</div>
+
+
     
     <!-- Main Character Sheet Layout (3 columns) -->
     <div class="character-main-section">
@@ -558,4 +555,95 @@
       });
     }
   });
+
+
+// Update proficiency bonus when level changes
+const levelInput = document.getElementById('level');
+const proficiencyBonusDisplay = document.getElementById('proficiencyBonus');
+
+// Function to calculate proficiency bonus based on level
+function calculateProficiencyBonus(level) {
+  // D&D 5e proficiency bonus formula: +2 at level 1, +1 every 4 levels
+  return Math.floor((level - 1) / 4) + 2;
+}
+
+// Update proficiency bonus when level changes
+levelInput.addEventListener('change', function() {
+  const level = parseInt(this.value);
+  const profBonus = calculateProficiencyBonus(level);
+  proficiencyBonusDisplay.textContent = '+' + profBonus;
+  
+  // Also update skill modifiers since proficiency bonus has changed
+  updateAllSkillModifiers(profBonus);
+});
+
+// Function to update all skill modifiers
+function updateAllSkillModifiers(profBonus) {
+  // Update standard skills
+  skills.forEach((skill, index) => {
+    const skillItem = document.querySelector(`.skill-item:not(.custom-skill):nth-child(${index + 1})`);
+    if (skillItem) {
+      const modifierSpan = skillItem.querySelector('.skill-modifier');
+      const ability = skill.ability;
+      const abilityMod = Math.floor((document.getElementById(ability).value - 10) / 2);
+      const isProficient = skillItem.querySelector('.skill-proficient').checked;
+      
+      const totalMod = abilityMod + (isProficient ? profBonus : 0);
+      modifierSpan.textContent = (totalMod >= 0 ? '+' : '') + totalMod;
+    }
+  });
+  
+  // Update custom skills
+  customSkills.forEach((skill, index) => {
+    const skillItem = document.querySelector(`.custom-skill`);
+    if (skillItem) {
+      const modifierSpan = skillItem.querySelector('.skill-modifier');
+      const ability = skill.ability;
+      const abilityMod = Math.floor((document.getElementById(ability).value - 10) / 2);
+      const isProficient = skillItem.querySelector('.skill-proficient').checked;
+      
+      const totalMod = abilityMod + (isProficient ? profBonus : 0);
+      modifierSpan.textContent = (totalMod >= 0 ? '+' : '') + totalMod;
+    }
+  });
+  
+  // Update initiative display if it uses proficiency
+  const initiativeDisplay = document.querySelector('.calculated-value');
+  if (initiativeDisplay) {
+    const dexMod = Math.floor((document.getElementById('dexterity').value - 10) / 2);
+    initiativeDisplay.textContent = (dexMod >= 0 ? '+' : '') + dexMod;
+  }
+}
+
+// Modify the existing updateSkillModifiers function to use the current proficiency bonus
+function updateSkillModifiers(ability, mod) {
+  const level = parseInt(levelInput.value);
+  const profBonus = calculateProficiencyBonus(level);
+  
+  // Update standard skills
+  skills.forEach((skill, index) => {
+    if (skill.ability === ability) {
+      const skillItem = document.querySelector(`.skill-item:not(.custom-skill):nth-child(${index + 1})`);
+      if (skillItem) {
+        const modifierSpan = skillItem.querySelector('.skill-modifier');
+        const isProficient = skillItem.querySelector('.skill-proficient').checked;
+        const totalMod = mod + (isProficient ? profBonus : 0);
+        modifierSpan.textContent = (totalMod >= 0 ? '+' : '') + totalMod;
+      }
+    }
+  });
+  
+  // Update custom skills
+  customSkills.forEach((skill, index) => {
+    if (skill.ability === ability) {
+      const skillItem = document.querySelector(`.custom-skill:nth-child(${skills.length + index + 1})`);
+      if (skillItem) {
+        const modifierSpan = skillItem.querySelector('.skill-modifier');
+        const isProficient = skillItem.querySelector('.skill-proficient').checked;
+        const totalMod = mod + (isProficient ? profBonus : 0);
+        modifierSpan.textContent = (totalMod >= 0 ? '+' : '') + totalMod;
+      }
+    }
+  });
+}
 </script>
