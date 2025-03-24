@@ -63,7 +63,7 @@ function handleFieldSave(field, characterId) {
     // Update save status
     updateSaveStatus('saving');
     
-    // Save the field
+    // Notice we pass the primitive value, not the field itself
     saveField(characterId, fieldName, fieldValue)
       .then(() => {
         field.readOnly = true;

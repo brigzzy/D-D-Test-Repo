@@ -466,6 +466,11 @@ app.delete('/characters/:id', requireAuth, async (req, res) => {
   }
 });
 
+// Add this to block bootstrap-autofill-overlay.js
+app.get('*/bootstrap-autofill-overlay.js', (req, res) => {
+  res.status(404).end(); // Not found response
+});
+
 // Start the server
 async function startServer() {
   await initializeApp();

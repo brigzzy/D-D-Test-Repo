@@ -15,26 +15,6 @@ export function debounce(func, delay) {
 }
 
 /**
- * Extract primitive value from any type of input
- * @param {*} value - Value to extract from
- * @returns {*} Primitive value
- */
-function extractValue(value) {
-  // If it's a DOM element with a value property
-  if (value instanceof Element && 'value' in value) {
-    return value.value;
-  }
-  
-  // If it's a DOM element without a value property
-  if (value instanceof Element) {
-    return value.textContent || '';
-  }
-  
-  // Return the value as is for non-DOM elements
-  return value;
-}
-
-/**
  * Save a field value to the server
  * @param {string} characterId - ID of the character
  * @param {string} field - Field to update
@@ -43,14 +23,20 @@ function extractValue(value) {
  */
 export async function saveField(characterId, field, value) {
   try {
-    // Ensure we extract primitive values
-    const primitiveValue = extractValue(value);
+    // Ensure we're only sending a primitive value, not DOM elements
+    let primitiveValue;
     
-    // Prepare data for request
-    const data = {
-      field: field,
-      value: primitiveValue
-    };
+    // If it's an HTML element, extract its value
+    if (value instanceof HTMLElement) {
+      if ('value' in value) {
+        primitiveValue = value.value;
+      } else {
+        primitiveValue = value.textContent || '';
+      }
+    } else {
+      // Otherwise, use the value as is
+      primitiveValue = value;
+    }
     
     // Send request to server
     const response = await fetch(`/characters/${characterId}`, {
@@ -58,7 +44,10 @@ export async function saveField(characterId, field, value) {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify({
+        field: field,
+        value: primitiveValue
+      })
     });
     
     if (!response.ok) {

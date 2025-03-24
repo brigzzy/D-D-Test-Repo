@@ -8,6 +8,91 @@
   <title><%= typeof title !== 'undefined' ? title + ' - ' : '' %>D&D Character Sheet App</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
+
+  <script>
+    // Prevent bootstrap-autofill-overlay issues
+    window.addEventListener('DOMContentLoaded', function() {
+      // 1. Override cloneNode for inputs
+      if (window.Element && Element.prototype) {
+        const originalCloneNode = Element.prototype.cloneNode;
+        Element.prototype.cloneNode = function(deep) {
+          if (this instanceof HTMLInputElement) {
+            const clone = document.createElement('input');
+            // Copy attributes
+            for (let i = 0; i < this.attributes.length; i++) {
+              const attr = this.attributes[i];
+              clone.setAttribute(attr.name, attr.value);
+            }
+            // Copy properties safely
+            if (this.value !== undefined) clone.value = this.value;
+            if (this.checked !== undefined) clone.checked = this.checked;
+            return clone;
+          }
+          return originalCloneNode.call(this, deep);
+        };
+      }
+      
+      // 2. Override structuredClone to handle DOM elements
+      if (window.structuredClone) {
+        const originalStructuredClone = window.structuredClone;
+        window.structuredClone = function(value, options) {
+          if (value instanceof Element) {
+            return null; // Return null instead of DOM elements
+          }
+          
+          // Handle objects that might contain DOM elements
+          if (typeof value === 'object' && value !== null) {
+            // Create a safe copy without DOM elements
+            const safeValue = JSON.parse(JSON.stringify(value, (key, val) => {
+              if (val instanceof Element) {
+                return null;
+              }
+              return val;
+            }));
+            return safeValue;
+          }
+          
+          return originalStructuredClone(value, options);
+        };
+      }
+      
+      // 3. Override JSON.stringify to handle DOM elements
+      const originalStringify = JSON.stringify;
+      JSON.stringify = function(value, replacer, space) {
+        const domSafeReplacer = function(key, val) {
+          if (val instanceof Element) {
+            return null;
+          }
+          if (replacer) {
+            return replacer(key, val);
+          }
+          return val;
+        };
+        
+        return originalStringify.call(this, value, domSafeReplacer, space);
+      };
+      
+      // 4. Add a MutationObserver to remove bootstrap-autofill-overlay script elements
+      const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+          if (mutation.addedNodes) {
+            mutation.addedNodes.forEach(function(node) {
+              if (node.tagName === 'SCRIPT' && node.src && node.src.includes('bootstrap-autofill-overlay')) {
+                console.log('Removed bootstrap-autofill-overlay script via MutationObserver');
+                node.parentNode.removeChild(node);
+              }
+            });
+          }
+        });
+      });
+      
+      observer.observe(document.documentElement, { 
+        childList: true, 
+        subtree: true 
+      });
+    });
+  </script>
+  
 </head>
 <body>
   <header>
@@ -40,33 +125,6 @@
   <% if (typeof script !== 'undefined') { %>
     <%- script %>
   <% } %>
-
-  <script>
-    // Fix for DataCloneError related to HTMLInputElement cloning
-    document.addEventListener('DOMContentLoaded', function() {
-      // Override element cloning to handle input elements safely
-      if (window.Element && Element.prototype) {
-        const originalCloneNode = Element.prototype.cloneNode;
-        Element.prototype.cloneNode = function(deep) {
-          if (this instanceof HTMLInputElement) {
-            // Create a safe clone for input elements
-            const clone = document.createElement('input');
-            // Copy attributes
-            for (let i = 0; i < this.attributes.length; i++) {
-              const attr = this.attributes[i];
-              clone.setAttribute(attr.name, attr.value);
-            }
-            // Copy properties safely
-            if (this.value) clone.value = this.value;
-            if (this.checked) clone.checked = this.checked;
-            return clone;
-          }
-          // Use original method for other elements
-          return originalCloneNode.call(this, deep);
-        };
-      }
-    });
-  </script>
 
 </body>
 </html>
