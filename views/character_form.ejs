@@ -157,7 +157,7 @@
       <div class="character-column combat-column">
         <div class="combat-stats">
           <div class="stat-block">
-            <label for="armorClass">Armor Class</label>
+            <label for="armorClass">AC</label>
             <input 
               type="number" 
               id="armorClass" 
@@ -276,7 +276,6 @@
 
 
 
-
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     console.log("DOM fully loaded - initializing character sheet functionality");
@@ -322,6 +321,7 @@
     });
     
     // Auto-save functionality if this is an existing character
+    let saveField; // Declare at this scope level
     if (document.getElementById('saveStatus')) {
       // Use a single change event listener on the form
       document.addEventListener('change', function(e) {
@@ -332,7 +332,8 @@
         }
       });
       
-      async function saveField(field, value) {
+      // Define saveField function
+      saveField = async function(field, value) {
         if (!field) {
           console.error("Missing data-field attribute for field:", field);
           return;
@@ -376,7 +377,7 @@
             saveStatus.classList.remove('error');
           }, 3000);
         }
-      }
+      };
     }
     
     // Skills functionality
@@ -388,6 +389,10 @@
     // Initialize skills data
     let skills = JSON.parse(skillsInput.value);
     let customSkills = JSON.parse(customSkillsInput.value);
+    
+    // Flag to track if we're currently editing a skill
+    let isEditingSkill = false;
+    let currentEditingElements = []; // Track elements involved in current edit
     
     function renderAllSkills() {
       // First, clear all existing skills
@@ -424,7 +429,7 @@
         const totalMod = abilityMod + (skill.proficient ? profBonus : 0);
         
         if (skill.isCustom) {
-          // Custom skill content looks like standard skills
+          // Custom skill content - remove delete button from initial render
           skillItem.innerHTML = `
             <input 
               type="checkbox" 
@@ -439,8 +444,10 @@
             </span>
             <span class="skill-name">${skill.name}</span>
             <span class="skill-ability">(${skill.ability.charAt(0).toUpperCase()})</span>
-            <button type="button" class="remove-skill-btn" data-index="${skill.originalIndex}">×</button>
           `;
+          
+          // Store the index for later use
+          skillItem.dataset.skillIndex = skill.originalIndex;
         } else {
           // Standard skill content
           skillItem.innerHTML = `
@@ -469,6 +476,13 @@
         // If we double-click on a custom skill name, make it editable
         if (e.target.classList.contains('skill-name') && 
             e.target.closest('.skill-item').querySelector('[data-custom="true"]')) {
+          
+          // Reset any existing edit mode first
+          if (isEditingSkill) {
+            finishEditing();
+          }
+          
+          isEditingSkill = true;
           
           const skillItem = e.target.closest('.skill-item');
           const checkbox = skillItem.querySelector('.skill-proficient');
@@ -501,23 +515,77 @@
             abilitySelect.appendChild(option);
           });
           
+          // Add delete button when in edit mode
+          const deleteButton = document.createElement('button');
+          deleteButton.type = 'button';
+          deleteButton.className = 'remove-skill-btn';
+          deleteButton.dataset.index = index;
+          deleteButton.textContent = '×';
+          
           // Replace elements
           oldSpan.replaceWith(nameInput);
           abilitySpan.replaceWith(abilitySelect);
           
+          // Add delete button to the end of the skillItem
+          skillItem.appendChild(deleteButton);
+          
+          // Track current editing elements
+          currentEditingElements = [nameInput, abilitySelect, deleteButton];
+          
           // Focus the name input
           nameInput.focus();
           
-          // Add blur handler to save changes
-          nameInput.addEventListener('blur', function() {
-            saveCustomSkillChanges(index, nameInput, abilitySelect);
+          // Add blur handler to save changes when name input loses focus
+          nameInput.addEventListener('blur', function(e) {
+            // Don't save immediately if we're clicking on the ability select
+            if (e.relatedTarget !== abilitySelect && e.relatedTarget !== deleteButton) {
+              finishEditing();
+            }
           });
           
-          abilitySelect.addEventListener('change', function() {
-            saveCustomSkillChanges(index, nameInput, abilitySelect);
+          // Add blur handler for ability select
+          abilitySelect.addEventListener('blur', function(e) {
+            // Don't save immediately if we're clicking on the name input or delete button
+            if (e.relatedTarget !== nameInput && e.relatedTarget !== deleteButton) {
+              finishEditing();
+            }
           });
+          
+          // The change event for ability select should only update the value, not finish editing
+          abilitySelect.addEventListener('change', function() {
+            customSkills[index].ability = abilitySelect.value;
+          });
+          
+          // Add an explicit save button or handle document clicks
+          document.addEventListener('click', handleGlobalClick);
         }
       });
+      
+      function handleGlobalClick(e) {
+        if (isEditingSkill) {
+          // If we click outside the current editing elements
+          if (!currentEditingElements.includes(e.target) && 
+              !currentEditingElements.some(el => el.contains(e.target))) {
+            finishEditing();
+          }
+        }
+      }
+      
+      function finishEditing() {
+        if (!isEditingSkill || currentEditingElements.length === 0) return;
+        
+        const nameInput = currentEditingElements[0];
+        const abilitySelect = currentEditingElements[1];
+        const index = parseInt(nameInput.dataset.index);
+        
+        saveCustomSkillChanges(index, nameInput, abilitySelect);
+        
+        // Remove our global click handler
+        document.removeEventListener('click', handleGlobalClick);
+        
+        isEditingSkill = false;
+        currentEditingElements = [];
+      }
     }
 
     function saveCustomSkillChanges(index, nameInput, abilitySelect) {
@@ -530,137 +598,265 @@
       
       // Save changes if we're editing an existing character
       if (document.getElementById('saveStatus')) {
-        saveField('customSkills', customSkillsInput.value);
+        if (typeof saveField === 'function') {
+          saveField('customSkills', customSkillsInput.value);
+        } else {
+          const saveStatus = document.getElementById('saveStatus');
+          saveStatus.textContent = 'Saving...';
+          saveStatus.classList.add('saving');
+          
+          fetch('/characters/<%= characterId %>', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ field: 'customSkills', value: customSkillsInput.value })
+          })
+          .then(response => response.json())
+          .then(result => {
+            saveStatus.textContent = 'All changes saved';
+            saveStatus.classList.remove('saving');
+            saveStatus.classList.add('saved');
+            
+            setTimeout(() => {
+              saveStatus.classList.remove('saved');
+            }, 2000);
+          })
+          .catch(error => {
+            console.error("Error saving:", error);
+            saveStatus.textContent = 'Error saving changes';
+            saveStatus.classList.remove('saving');
+            saveStatus.classList.add('error');
+            
+            setTimeout(() => {
+              saveStatus.classList.remove('error');
+            }, 3000);
+          });
+        }
       }
       
       // Re-render skills
       renderAllSkills();
     }
 
-    
-// Updated version of the Add Custom Skill button handler
-// This fixes the reference to saveField when it's not defined
-
-// Update the Add Custom Skill button handler
-addSkillBtn.addEventListener('click', function() {
-  const newSkill = {
-    name: 'New Skill',
-    ability: 'dexterity',
-    proficient: false
-  };
-  
-  customSkills.push(newSkill);
-  customSkillsInput.value = JSON.stringify(customSkills);
-  
-  // Only try to save if we're editing an existing character
-  if (document.getElementById('saveStatus')) {
-    // Check if saveField is defined before calling it
-    if (typeof saveField === 'function') {
-      saveField('customSkills', customSkillsInput.value);
-    } else {
-      console.log('Note: saveField function not available, skipping auto-save');
-      // Update the UI to reflect we need to save manually
-      const saveStatus = document.getElementById('saveStatus');
-      if (saveStatus) {
-        saveStatus.textContent = 'Changes pending - save form to apply';
-        saveStatus.classList.add('warning');
-      }
-    }
-  }
-  
-  // Re-render skills alphabetically
-  renderAllSkills();
-});
-
-// Similarly, fix the other functions that call saveField
-function saveCustomSkillChanges(index, nameInput, abilitySelect) {
-  // Update the custom skill data
-  customSkills[index].name = nameInput.value;
-  customSkills[index].ability = abilitySelect.value;
-  
-  // Update hidden input
-  customSkillsInput.value = JSON.stringify(customSkills);
-  
-  // Save changes if we're editing an existing character
-  if (document.getElementById('saveStatus')) {
-    // Check if saveField is defined before calling it
-    if (typeof saveField === 'function') {
-      saveField('customSkills', customSkillsInput.value);
-    } else {
-      console.log('Note: saveField function not available, skipping auto-save');
-      // Update the UI to reflect we need to save manually
-      const saveStatus = document.getElementById('saveStatus');
-      if (saveStatus) {
-        saveStatus.textContent = 'Changes pending - save form to apply';
-        saveStatus.classList.add('warning');
-      }
-    }
-  }
-  
-  // Re-render skills
-  renderAllSkills();
-}
-
-// Fix skill proficiency change handler
-skillsContainer.addEventListener('change', function(e) {
-  if (e.target.classList.contains('skill-proficient')) {
-    const index = parseInt(e.target.dataset.index);
-    const isCustom = e.target.dataset.custom === 'true';
-    
-    if (isCustom) {
-      customSkills[index].proficient = e.target.checked;
+    // Add Custom Skill button handler
+    addSkillBtn.addEventListener('click', function() {
+      const newSkill = {
+        name: 'New Skill',
+        ability: 'dexterity',
+        proficient: false
+      };
+      
+      customSkills.push(newSkill);
       customSkillsInput.value = JSON.stringify(customSkills);
       
-      // Only try to save if we're editing an existing character
-      if (document.getElementById('saveStatus') && typeof saveField === 'function') {
-        saveField('customSkills', customSkillsInput.value);
+      // Save changes if we're editing an existing character
+      if (document.getElementById('saveStatus')) {
+        if (typeof saveField === 'function') {
+          saveField('customSkills', customSkillsInput.value);
+        } else {
+          const saveStatus = document.getElementById('saveStatus');
+          saveStatus.textContent = 'Saving...';
+          saveStatus.classList.add('saving');
+          
+          fetch('/characters/<%= characterId %>', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ field: 'customSkills', value: customSkillsInput.value })
+          })
+          .then(response => response.json())
+          .then(result => {
+            saveStatus.textContent = 'All changes saved';
+            saveStatus.classList.remove('saving');
+            saveStatus.classList.add('saved');
+            
+            setTimeout(() => {
+              saveStatus.classList.remove('saved');
+            }, 2000);
+          })
+          .catch(error => {
+            console.error("Error saving:", error);
+            saveStatus.textContent = 'Error saving changes';
+            saveStatus.classList.remove('saving');
+            saveStatus.classList.add('error');
+            
+            setTimeout(() => {
+              saveStatus.classList.remove('error');
+            }, 3000);
+          });
+        }
       }
-    } else {
-      skills[index].proficient = e.target.checked;
-      skillsInput.value = JSON.stringify(skills);
       
-      // Only try to save if we're editing an existing character
-      if (document.getElementById('saveStatus') && typeof saveField === 'function') {
-        saveField('skills', skillsInput.value);
+      // Re-render skills alphabetically
+      renderAllSkills();
+    });
+
+    // Skill proficiency change handler
+    skillsContainer.addEventListener('change', function(e) {
+      if (e.target.classList.contains('skill-proficient')) {
+        const index = parseInt(e.target.dataset.index);
+        const isCustom = e.target.dataset.custom === 'true';
+        
+        if (isCustom) {
+          customSkills[index].proficient = e.target.checked;
+          customSkillsInput.value = JSON.stringify(customSkills);
+          
+          // Save changes if we're editing an existing character
+          if (document.getElementById('saveStatus')) {
+            if (typeof saveField === 'function') {
+              saveField('customSkills', customSkillsInput.value);
+            } else {
+              const saveStatus = document.getElementById('saveStatus');
+              saveStatus.textContent = 'Saving...';
+              saveStatus.classList.add('saving');
+              
+              fetch('/characters/<%= characterId %>', {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ field: 'customSkills', value: customSkillsInput.value })
+              })
+              .then(response => response.json())
+              .then(result => {
+                saveStatus.textContent = 'All changes saved';
+                saveStatus.classList.remove('saving');
+                saveStatus.classList.add('saved');
+                
+                setTimeout(() => {
+                  saveStatus.classList.remove('saved');
+                }, 2000);
+              })
+              .catch(error => {
+                console.error("Error saving:", error);
+                saveStatus.textContent = 'Error saving changes';
+                saveStatus.classList.remove('saving');
+                saveStatus.classList.add('error');
+                
+                setTimeout(() => {
+                  saveStatus.classList.remove('error');
+                }, 3000);
+              });
+            }
+          }
+        } else {
+          skills[index].proficient = e.target.checked;
+          skillsInput.value = JSON.stringify(skills);
+          
+          // Save changes if we're editing an existing character
+          if (document.getElementById('saveStatus')) {
+            if (typeof saveField === 'function') {
+              saveField('skills', skillsInput.value);
+            } else {
+              const saveStatus = document.getElementById('saveStatus');
+              saveStatus.textContent = 'Saving...';
+              saveStatus.classList.add('saving');
+              
+              fetch('/characters/<%= characterId %>', {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ field: 'skills', value: skillsInput.value })
+              })
+              .then(response => response.json())
+              .then(result => {
+                saveStatus.textContent = 'All changes saved';
+                saveStatus.classList.remove('saving');
+                saveStatus.classList.add('saved');
+                
+                setTimeout(() => {
+                  saveStatus.classList.remove('saved');
+                }, 2000);
+              })
+              .catch(error => {
+                console.error("Error saving:", error);
+                saveStatus.textContent = 'Error saving changes';
+                saveStatus.classList.remove('saving');
+                saveStatus.classList.add('error');
+                
+                setTimeout(() => {
+                  saveStatus.classList.remove('error');
+                }, 3000);
+              });
+            }
+          }
+        }
+        
+        // Update the display without full re-render
+        const skillItem = e.target.closest('.skill-item');
+        const modifierSpan = skillItem.querySelector('.skill-modifier');
+        
+        // Get ability and calculate new modifier
+        const ability = isCustom ? customSkills[index].ability : skills[index].ability;
+        const abilityMod = Math.floor((Number(document.getElementById(ability).value) - 10) / 2);
+        
+        // Calculate proficiency bonus based on level
+        const level = parseInt(document.getElementById('level').value);
+        const profBonus = Math.floor((level - 1) / 4) + 2;
+        
+        const totalMod = abilityMod + (e.target.checked ? profBonus : 0);
+        modifierSpan.textContent = (totalMod >= 0 ? '+' : '') + totalMod;
       }
-    }
-    
-    // Update the display without full re-render
-    const skillItem = e.target.closest('.skill-item');
-    const modifierSpan = skillItem.querySelector('.skill-modifier');
-    
-    // Get ability and calculate new modifier
-    const ability = isCustom ? customSkills[index].ability : skills[index].ability;
-    const abilityMod = Math.floor((Number(document.getElementById(ability).value) - 10) / 2);
-    
-    // Calculate proficiency bonus based on level
-    const level = parseInt(document.getElementById('level').value);
-    const profBonus = Math.floor((level - 1) / 4) + 2;
-    
-    const totalMod = abilityMod + (e.target.checked ? profBonus : 0);
-    modifierSpan.textContent = (totalMod >= 0 ? '+' : '') + totalMod;
-  }
-});
+    });
 
-// Fix remove custom skill handler
-skillsContainer.addEventListener('click', function(e) {
-  if (e.target.classList.contains('remove-skill-btn')) {
-    const index = parseInt(e.target.dataset.index);
-    customSkills.splice(index, 1);
-    customSkillsInput.value = JSON.stringify(customSkills);
+    // Remove custom skill handler - only triggers when delete button is visible in edit mode
+    skillsContainer.addEventListener('click', function(e) {
+      if (e.target.classList.contains('remove-skill-btn')) {
+        const index = parseInt(e.target.dataset.index);
+        customSkills.splice(index, 1);
+        customSkillsInput.value = JSON.stringify(customSkills);
+        
+        // Save changes if we're editing an existing character
+        if (document.getElementById('saveStatus')) {
+          if (typeof saveField === 'function') {
+            saveField('customSkills', customSkillsInput.value);
+          } else {
+            const saveStatus = document.getElementById('saveStatus');
+            saveStatus.textContent = 'Saving...';
+            saveStatus.classList.add('saving');
+            
+            fetch('/characters/<%= characterId %>', {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ field: 'customSkills', value: customSkillsInput.value })
+            })
+            .then(response => response.json())
+            .then(result => {
+              saveStatus.textContent = 'All changes saved';
+              saveStatus.classList.remove('saving');
+              saveStatus.classList.add('saved');
+              
+              setTimeout(() => {
+                saveStatus.classList.remove('saved');
+              }, 2000);
+            })
+            .catch(error => {
+              console.error("Error saving:", error);
+              saveStatus.textContent = 'Error saving changes';
+              saveStatus.classList.remove('saving');
+              saveStatus.classList.add('error');
+              
+              setTimeout(() => {
+                saveStatus.classList.remove('error');
+              }, 3000);
+            });
+          }
+        }
+        
+        // Clear editing state
+        isEditingSkill = false;
+        currentEditingElements = [];
+        
+        // Re-render skills
+        renderAllSkills();
+      }
+    });
     
-    // Only try to save if we're editing an existing character
-    if (document.getElementById('saveStatus') && typeof saveField === 'function') {
-      saveField('customSkills', customSkillsInput.value);
-    }
-    
-    // Re-render skills
-    renderAllSkills();
-  }
-});
-
-
-
     // Update ability modifiers when ability scores change
     const abilityInputs = document.querySelectorAll('.ability-score');
     abilityInputs.forEach(input => {
