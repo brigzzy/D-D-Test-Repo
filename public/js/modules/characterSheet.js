@@ -6,7 +6,6 @@ import { AbilityManager } from './abilities.js';
 import { SkillManager } from './skills.js';
 import { HitPointManager } from './hitPoints.js';
 import { RestManager } from './rest.js';
-import { Middleware } from './middleware.js';
 import { ManaManager } from './mana.js';  // Import the new mana module
 
 
@@ -73,25 +72,13 @@ function initializeEditableFields(saveCallback) {
  * @param {HTMLElement} field - The edited field element
  * @param {function} saveCallback - Callback to save field changes
  */
+
 function saveEditedField(field, saveCallback) {
   const fieldName = field.dataset.field;
+  // Pass the VALUE of the field, not the field itself
   const value = field.value;
   
   try {
-    // Context-specific handling for different field types
-    switch (true) {
-      case fieldName.startsWith('abilities.'):
-        // Update ability modifier display when ability score changes
-        const abilityCard = field.closest('.ability-card');
-        AbilityManager.updateModifierDisplay(abilityCard, parseInt(value));
-        break;
-      
-      case fieldName === 'level':
-        // Recalculate proficiency bonus when level changes
-        updateProficiencyBonus();
-        break;
-    }
-    
     // Save the field value
     saveCallback(fieldName, value);
     

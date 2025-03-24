@@ -23,12 +23,20 @@ export function debounce(func, delay) {
    */
   export async function saveField(characterId, field, value) {
     try {
+      // Handle the value to ensure it's safe to serialize
+      let safeValue = value;
+      
+      // If value is a DOM element, extract just its value property
+      if (value instanceof HTMLElement && 'value' in value) {
+        safeValue = value.value;
+      }
+      
       const response = await fetch(`/characters/${characterId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ field, value })
+        body: JSON.stringify({ field, safeValue })
       });
       
       if (!response.ok) {
