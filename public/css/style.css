@@ -520,13 +520,9 @@ textarea {
   font-style: italic;
 }
 
-.custom-skill {
-  background-color: rgba(255, 255, 153, 0.2) !important;
-  border: 1px dashed var(--secondary-color);
-}
-
 .custom-skill-name {
   flex-grow: 1;
+  width: auto;
   padding: 0.25rem;
   margin-right: 0.5rem;
   border: 1px solid var(--border-color);
@@ -555,10 +551,16 @@ textarea {
   font-weight: bold;
   font-size: 1rem;
   transition: background-color 0.2s;
+  opacity: 0.4;
+  margin-left: 5px;
 }
 
 .remove-skill-btn:hover {
   background-color: #d32f2f;
+}
+
+.skill-item:hover .remove-skill-btn {
+  opacity: 1;
 }
 
 #addSkillBtn {
@@ -604,12 +606,6 @@ textarea {
   text-transform: uppercase;
   font-size: 0.875rem;
   color: var(--primary-dark);
-}
-
-.calculated-value {
-  font-weight: bold;
-  font-size: 1.5rem;
-  color: var(--primary-color);
 }
 
 .hp-container {
@@ -713,24 +709,10 @@ input[type=number]::-webkit-outer-spin-button {
 /* Firefox */
 input[type=number] {
   -moz-appearance: textfield;
-}
-
-/* Keep the same styling for number inputs as other inputs */
-input[type=number] {
-  text-align: center; /* For your ability scores and other numeric fields */
+  text-align: center;
 }
 
 /* Updated CSS for the character header section with proficiency bonus in the bottom row */
-
-.character-header-section {
-  padding: 1.5rem;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  background-color: #f9f9f9;
-  margin-bottom: 1.5rem;
-}
-
-/* Character name group styling */
 .character-name-group {
   margin-bottom: 1rem;
 }
@@ -781,56 +763,97 @@ input[type=number] {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* More compact vertical spacing */
-.character-header-section input,
-.character-header-section select {
-  padding: 0.4rem;
+/* Mana active ability styling */
+.mana-active-ability {
+  border: 2px solid #3f51b5;
+  box-shadow: 0 0 5px rgba(63, 81, 181, 0.5);
 }
 
-/* Fix for form-group styling */
-.form-group {
-  margin-bottom: 0;
+/* HP Popup animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Remove up/down arrows (spinners) from number inputs */
-/* Chrome, Safari, Edge, Opera */
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { 
-  -webkit-appearance: none; 
-  margin: 0; 
+.hp-popup {
+  animation: fadeIn 0.2s ease-out;
 }
 
-/* Firefox */
-input[type=number] {
-  -moz-appearance: textfield;
+/* Mana container styling */
+.mana-container {
+  margin-top: 1rem;
 }
 
-/* Keep the same styling for number inputs as other inputs */
-input[type=number] {
-  text-align: center; /* For your ability scores and other numeric fields */
+/* Clickable current HP and mana */
+#currentHitPoints, #currentMana {
+  cursor: pointer;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+#currentHitPoints:hover, #currentMana:hover {
+  border-color: var(--secondary-color);
+  background-color: #f0f0f0;
 }
 
 
 
-/* Remove the yellow background and dashed border from custom skills */
-.skill-item.custom-skill {
-  background-color: transparent !important;
-  border: none !important;
+
+/* Additional styles for the skills section */
+.skill-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
 }
 
-/* Make custom skills follow the same zebra striping as standard skills */
 .skill-item:nth-child(odd) {
   background-color: rgba(0, 0, 0, 0.03);
 }
 
-.skill-item:nth-child(even) {
-  background-color: transparent;
+.skill-item:hover {
+  background-color: rgba(0, 0, 0, 0.06);
 }
 
-/* Style for editing mode - only appears when editing */
+.skill-proficient {
+  margin-right: 0.5rem;
+  cursor: pointer;
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.skill-modifier {
+  display: inline-block;
+  width: 2rem;
+  text-align: center;
+  margin-right: 0.5rem;
+  font-weight: bold;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 4px;
+  padding: 0.1rem 0.3rem;
+}
+
+.skill-name {
+  flex-grow: 1;
+}
+
+.skill-ability {
+  color: #6c757d;
+  font-size: 0.875rem;
+  margin-left: 0.25rem;
+  font-style: italic;
+}
+
+/* Custom skill styling */
+.custom-skill-name-display {
+  cursor: pointer;
+}
+
 .custom-skill-name-edit {
   flex-grow: 1;
-  width: auto;
   padding: 0.25rem;
   margin-right: 0.5rem;
   border: 1px solid var(--primary-color);
@@ -845,197 +868,192 @@ input[type=number] {
   border-radius: 4px;
 }
 
-/* Make the remove button less obtrusive */
 .remove-skill-btn {
-  opacity: 0.4;
-  margin-left: 5px;
-  transition: opacity 0.2s ease;
+  background-color: var(--error-color);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: background-color 0.2s;
+  opacity: 0.8;
 }
 
-.skill-item:hover .remove-skill-btn {
+.remove-skill-btn:hover {
+  background-color: #d32f2f;
+  opacity: 1;
+}
+
+/* Make custom skills appear the same as standard skills */
+.skill-item.custom-skill {
+  background-color: transparent;
+  border: none;
+}
+
+/* Custom skill in edit mode */
+.skill-item.editing {
+  background-color: rgba(123, 44, 191, 0.05);
+  border: 1px dashed var(--primary-color);
+}
+
+/* Tooltip for double-click */
+.skills-container {
+  position: relative;
+}
+
+.skills-tooltip {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.skills-container:hover .skills-tooltip {
   opacity: 1;
 }
 
 
 
 
+/* Rest Buttons Container */
+.rest-buttons-container {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+}
 
+/* Make the header a flex container */
+h4#hpManaHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
 
-
-/* Style for the current HP input to make it look clickable */
-#currentHitPoints {
+/* Rest Button Styling */
+.rest-button {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
   cursor: pointer;
-  background-color: #f8f9fa;
-  border: 1px solid #ddd;
-  transition: border-color 0.2s, background-color 0.2s;
+  margin-left: 5px;
+  padding: 0 5px;
+  border-radius: 5px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
 }
 
-#currentHitPoints:hover {
-  border-color: var(--secondary-color);
-  background-color: #f0f0f0;
+.short-rest-button {
+  background-color: rgba(63, 81, 181, 0.1);
 }
 
-/* HP Popup styles */
-.hp-popup {
-  animation: fadeIn 0.2s ease-out;
+.long-rest-button {
+  background-color: rgba(123, 44, 191, 0.1);
 }
 
-.hp-popup button:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+.rest-button:hover {
+  transform: scale(1.1);
 }
 
-.hp-popup button:active {
-  transform: translateY(0);
+.short-rest-button:hover {
+  background-color: rgba(63, 81, 181, 0.2);
 }
 
-#damageBtn:hover {
-  background-color: #d32f2f;
+.long-rest-button:hover {
+  background-color: rgba(123, 44, 191, 0.2);
 }
 
-#healBtn:hover {
-  background-color: #388e3c;
+.rest-button:active {
+  transform: scale(0.95);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+/* Rest Animation Styles */
+#restAnimationContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  background-color: rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
+#restAnimationContainer.show {
+  opacity: 1;
+  visibility: visible;
+}
 
-
-/* Add these styles to your style.css file */
-
-/* Mana container styling */
-.mana-container {
-  margin-top: 1rem;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 1rem;
+.rest-animation-box {
   background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transform: scale(0.8);
+  transition: transform 0.3s ease;
 }
 
-/* Style for the mana inputs, similar to HP */
-#currentMana {
-  cursor: pointer;
-  background-color: #f8f9fa;
-  border: 1px solid #ddd;
-  transition: border-color 0.2s, background-color 0.2s;
+#restAnimationContainer.show .rest-animation-box {
+  transform: scale(1);
 }
 
-#currentMana:hover {
-  border-color: var(--secondary-color);
-  background-color: #f0f0f0;
+.short-rest-box {
+  border: 2px solid #3f51b5;
 }
 
-/* Mana popup styles (similar to HP popup) */
-.mana-popup {
-  animation: fadeIn 0.2s ease-out;
+.long-rest-box {
+  border: 2px solid #7b2cbf;
 }
 
-/* Custom button colors for mana */
-#spendBtn {
-  background-color: #3f51b5;
+.animation-text {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 10px;
 }
 
-#restoreBtn {
-  background-color: #2196f3;
+.animation-emoji {
+  font-size: 3rem;
+  animation: pulse 1s ease-in-out;
 }
 
-#spendBtn:hover {
-  background-color: #303f9f;
+.short-rest-box .animation-text {
+  color: #3f51b5;
 }
 
-#restoreBtn:hover {
-  background-color: #1976d2;
+.long-rest-box .animation-text {
+  color: #7b2cbf;
 }
 
-
-
-
-
-/* Style for the current HP input to make it look clickable */
-#currentHitPoints {
-  cursor: pointer;
-  background-color: #f8f9fa;
-  border: 1px solid #ddd;
-  transition: border-color 0.2s, background-color 0.2s;
+@keyframes pulse {
+  0% { transform: scale(0.8); opacity: 0.5; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
-#currentHitPoints:hover {
-  border-color: var(--secondary-color);
-  background-color: #f0f0f0;
-}
-
-/* HP Popup styles */
-.hp-popup {
-  animation: fadeIn 0.2s ease-out;
-}
-
-.hp-popup button:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-.hp-popup button:active {
-  transform: translateY(0);
-}
-
-#damageBtn:hover {
-  background-color: #d32f2f;
-}
-
-#healBtn:hover {
-  background-color: #388e3c;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Mana container styling */
-.mana-container {
-  margin-top: 1rem;
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 1rem;
-  background-color: white;
-}
-
-/* Style for the mana inputs, similar to HP */
-#currentMana {
-  cursor: pointer;
-  background-color: #f8f9fa;
-  border: 1px solid #ddd;
-  transition: border-color 0.2s, background-color 0.2s;
-}
-
-#currentMana:hover {
-  border-color: var(--secondary-color);
-  background-color: #f0f0f0;
-}
-
-/* Mana popup styles (similar to HP popup) */
-.mana-popup {
-  animation: fadeIn 0.2s ease-out;
-}
-
-/* Custom button colors for mana */
-#spendBtn {
-  background-color: #3f51b5;
-}
-
-#restoreBtn {
-  background-color: #2196f3;
-}
-
-#spendBtn:hover {
-  background-color: #303f9f;
-}
-
-#restoreBtn:hover {
-  background-color: #1976d2;
-}

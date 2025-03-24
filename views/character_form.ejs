@@ -1,57 +1,5 @@
+<!-- views/character_form.ejs -->
 <style>
-  /* Toggle Switch Styles for Ability Mana */
-  .mana-switch {
-    position: relative;
-    display: inline-block;
-    width: 24px;
-    height: 14px;
-    margin-left: 5px;
-  }
-  
-  .mana-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-  
-  .mana-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: .3s;
-    border-radius: 14px;
-  }
-  
-  .mana-slider:before {
-    position: absolute;
-    content: "";
-    height: 10px;
-    width: 10px;
-    left: 2px;
-    bottom: 2px;
-    background-color: white;
-    transition: .3s;
-    border-radius: 50%;
-  }
-  
-  input:checked + .mana-slider {
-    background-color: #3f51b5;
-  }
-  
-  input:checked + .mana-slider:before {
-    transform: translateX(10px);
-  }
-  
-  /* Style to indicate which ability is controlling mana */
-  .mana-active-ability {
-    border: 2px solid #3f51b5;
-  }
-
-
   /* Star Toggle Styles for Ability Mana */
   .mana-toggle-star {
     font-size: 1.2rem;
@@ -84,13 +32,8 @@
     margin-bottom: 0;
     line-height: 1.2;
   }
-  
-
-  
 </style>
 
-
-<!-- views/character_form.ejs -->
 <div class="character-sheet-container">
   <div class="character-sheet-header">
     <h2><%= isNew ? 'Create New Character' : 'Edit Character' %></h2>
@@ -110,48 +53,46 @@
       <input type="hidden" name="_method" value="PUT">
     <% } %>
     
-<!-- Updated Character Header Section with correctly aligned proficiency bonus -->
-<div class="character-header-section">
-  <!-- Character name section -->
-  <div class="form-group character-name-group">
-    <label for="name">Character Name</label>
-    <input type="text" id="name" name="name" value="<%= character.name %>" class="autosave editable-field" data-field="name" required readonly>
-  </div>
-  
-  <!-- Character details section with proficiency in last row -->
-  <div class="details-labels-row">
-    <label for="class">Class</label>
-    <label for="level">Level</label>
-    <label for="race">Race</label>
-    <label for="background">Background</label>
-    <label for="alignment">Alignment</label>
-    <label class="proficiency-label">Proficiency Bonus</label>
-  </div>
-  
-  <div class="details-fields-row">
-    <input type="text" id="class" name="class" value="<%= character.class %>" class="autosave editable-field" data-field="class" readonly>
-    <input type="number" id="level" name="level" value="<%= character.level %>" min="1" max="20" class="autosave editable-field" data-field="level" readonly>
-    <input type="text" id="race" name="race" value="<%= character.race %>" class="autosave editable-field" data-field="race" readonly>
-    <input type="text" id="background" name="background" value="<%= character.background || '' %>" class="autosave editable-field" data-field="background" readonly>
-    <select id="alignment" name="alignment" class="autosave editable-field" data-field="alignment" readonly>
-      <option value="" <%= !character.alignment ? 'selected' : '' %>>Select Alignment</option>
-      <option value="Lawful Good" <%= character.alignment === 'Lawful Good' ? 'selected' : '' %>>Lawful Good</option>
-      <option value="Neutral Good" <%= character.alignment === 'Neutral Good' ? 'selected' : '' %>>Neutral Good</option>
-      <option value="Chaotic Good" <%= character.alignment === 'Chaotic Good' ? 'selected' : '' %>>Chaotic Good</option>
-      <option value="Lawful Neutral" <%= character.alignment === 'Lawful Neutral' ? 'selected' : '' %>>Lawful Neutral</option>
-      <option value="True Neutral" <%= character.alignment === 'True Neutral' ? 'selected' : '' %>>True Neutral</option>
-      <option value="Chaotic Neutral" <%= character.alignment === 'Chaotic Neutral' ? 'selected' : '' %>>Chaotic Neutral</option>
-      <option value="Lawful Evil" <%= character.alignment === 'Lawful Evil' ? 'selected' : '' %>>Lawful Evil</option>
-      <option value="Neutral Evil" <%= character.alignment === 'Neutral Evil' ? 'selected' : '' %>>Neutral Evil</option>
-      <option value="Chaotic Evil" <%= character.alignment === 'Chaotic Evil' ? 'selected' : '' %>>Chaotic Evil</option>
-    </select>
-    <div class="proficiency-display">
-      <span id="proficiencyBonus">+<%= Math.floor((character.level - 1) / 4) + 2 %></span>
+    <!-- Character Header Section -->
+    <div class="character-header-section">
+      <!-- Character name section -->
+      <div class="form-group character-name-group">
+        <label for="name">Character Name</label>
+        <input type="text" id="name" name="name" value="<%= character.name %>" class="autosave editable-field" data-field="name" required readonly>
+      </div>
+      
+      <!-- Character details section with proficiency in last row -->
+      <div class="details-labels-row">
+        <label for="class">Class</label>
+        <label for="level">Level</label>
+        <label for="race">Race</label>
+        <label for="background">Background</label>
+        <label for="alignment">Alignment</label>
+        <label class="proficiency-label">Proficiency Bonus</label>
+      </div>
+      
+      <div class="details-fields-row">
+        <input type="text" id="class" name="class" value="<%= character.class %>" class="autosave editable-field" data-field="class" readonly>
+        <input type="number" id="level" name="level" value="<%= character.level %>" min="1" max="20" class="autosave editable-field" data-field="level" readonly>
+        <input type="text" id="race" name="race" value="<%= character.race %>" class="autosave editable-field" data-field="race" readonly>
+        <input type="text" id="background" name="background" value="<%= character.background || '' %>" class="autosave editable-field" data-field="background" readonly>
+        <select id="alignment" name="alignment" class="autosave editable-field" data-field="alignment" readonly>
+          <option value="" <%= !character.alignment ? 'selected' : '' %>>Select Alignment</option>
+          <option value="Lawful Good" <%= character.alignment === 'Lawful Good' ? 'selected' : '' %>>Lawful Good</option>
+          <option value="Neutral Good" <%= character.alignment === 'Neutral Good' ? 'selected' : '' %>>Neutral Good</option>
+          <option value="Chaotic Good" <%= character.alignment === 'Chaotic Good' ? 'selected' : '' %>>Chaotic Good</option>
+          <option value="Lawful Neutral" <%= character.alignment === 'Lawful Neutral' ? 'selected' : '' %>>Lawful Neutral</option>
+          <option value="True Neutral" <%= character.alignment === 'True Neutral' ? 'selected' : '' %>>True Neutral</option>
+          <option value="Chaotic Neutral" <%= character.alignment === 'Chaotic Neutral' ? 'selected' : '' %>>Chaotic Neutral</option>
+          <option value="Lawful Evil" <%= character.alignment === 'Lawful Evil' ? 'selected' : '' %>>Lawful Evil</option>
+          <option value="Neutral Evil" <%= character.alignment === 'Neutral Evil' ? 'selected' : '' %>>Neutral Evil</option>
+          <option value="Chaotic Evil" <%= character.alignment === 'Chaotic Evil' ? 'selected' : '' %>>Chaotic Evil</option>
+        </select>
+        <div class="proficiency-display">
+          <span id="proficiencyBonus">+<%= Math.floor((character.level - 1) / 4) + 2 %></span>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
-
-
     
     <!-- Main Character Sheet Layout (3 columns) -->
     <div class="character-main-section">
@@ -199,11 +140,6 @@
               </div>
             </div>
           <% }); %>
-
-
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <span></span> <!-- Empty span to maintain spacing -->
-          </div>
         </div>
         
         <h3>Skills</h3>
@@ -305,67 +241,63 @@
           </div>
         </div>
 
-        
-<!-- Update this section in character_form.ejs -->
-<div class="hit-points">
-  <h4 id="hpManaHeader">Hit Points<span id="manaHeaderText" style="<%= character.useManaAbility ? '' : 'display: none;' %>"> and Mana</span></h4>
-    <div class="hp-container">
-    <div class="form-group">
-      <label for="maxHitPoints">Maximum HP</label>
-      <input 
-        type="number" 
-        id="maxHitPoints" 
-        name="maxHitPoints" 
-        value="<%= character.hitPoints ? character.hitPoints.maximum : '' %>" 
-        class="autosave editable-field" 
-        data-field="hitPoints.maximum"
-        readonly
-      >
-    </div>
-    
-    <div class="form-group">
-      <label for="currentHitPoints">Current HP <i class="fas fa-heartbeat" style="color: #f44336; font-size: 0.8rem; vertical-align: middle;"></i></label>
-      <input 
-        type="number" 
-        id="currentHitPoints" 
-        name="currentHitPoints" 
-        value="<%= character.hitPoints ? character.hitPoints.current : '' %>" 
-        class="autosave editable-field" 
-        data-field="hitPoints.current"
-        readonly
-      >
-    </div>
-  </div>
-  
-  <div class="hp-container mana-container">
-    <div class="form-group">
-      <label for="maxMana">Maximum Mana</label>
-      <input 
-        type="number" 
-        id="maxMana" 
-        name="maxMana" 
-        value="<%= character.mana ? character.mana.maximum : '' %>" 
-        class="autosave editable-field" 
-        data-field="mana.maximum"
-        readonly
-      >
-    </div>
-    
-    <div class="form-group">
-      <label for="currentMana">Current Mana <i class="fas fa-hat-wizard" style="color: #3f51b5; font-size: 0.8rem; vertical-align: middle;"></i></label>
-      <input 
-        type="number" 
-        id="currentMana" 
-        name="currentMana" 
-        value="<%= character.mana ? character.mana.current : '' %>" 
-        class="autosave editable-field" 
-        data-field="mana.current"
-        readonly
-      >
-    </div>
-  </div>
-</div>
-
+        <div class="hit-points">
+          <h4 id="hpManaHeader">Hit Points<span id="manaHeaderText" style="<%= character.useManaAbility ? '' : 'display: none;' %>"> and Mana</span></h4>            <div class="hp-container">
+            <div class="form-group">
+              <label for="maxHitPoints">Maximum HP</label>
+              <input 
+                type="number" 
+                id="maxHitPoints" 
+                name="maxHitPoints" 
+                value="<%= character.hitPoints ? character.hitPoints.maximum : '' %>" 
+                class="autosave editable-field" 
+                data-field="hitPoints.maximum"
+                readonly
+              >
+            </div>
+            
+            <div class="form-group">
+              <label for="currentHitPoints">Current HP</label>
+              <input 
+                type="number" 
+                id="currentHitPoints" 
+                name="currentHitPoints" 
+                value="<%= character.hitPoints ? character.hitPoints.current : '' %>" 
+                class="autosave editable-field" 
+                data-field="hitPoints.current"
+                readonly
+              >
+            </div>
+          </div>
+          
+          <div class="hp-container mana-container" style="<%= character.useManaAbility ? '' : 'display: none;' %>">
+            <div class="form-group">
+              <label for="maxMana">Maximum Mana</label>
+              <input 
+                type="number" 
+                id="maxMana" 
+                name="maxMana" 
+                value="<%= character.mana ? character.mana.maximum : '' %>" 
+                class="autosave editable-field" 
+                data-field="mana.maximum"
+                readonly
+              >
+            </div>
+            
+            <div class="form-group">
+              <label for="currentMana">Current Mana</label>
+              <input 
+                type="number" 
+                id="currentMana" 
+                name="currentMana" 
+                value="<%= character.mana ? character.mana.current : '' %>" 
+                class="autosave editable-field" 
+                data-field="mana.current"
+                readonly
+              >
+            </div>
+          </div>
+        </div>
         
         <div class="equipment-section">
           <h4>Equipment</h4>
@@ -416,388 +348,1028 @@
 
 
 <script>
-
-
-// Ability-based Mana Star Toggle functionality
-document.addEventListener('DOMContentLoaded', function() {
-  const manaContainer = document.querySelector('.mana-container');
-  const manaStarToggles = document.querySelectorAll('.mana-toggle-star');
-  const abilityBlocks = document.querySelectorAll('.ability-block');
-  const manaHeaderText = document.getElementById('manaHeaderText');
+  // Auto-save functionality
+  let saveTimeout;
+  const saveStatus = document.getElementById('saveStatus');
+  const editableFields = document.querySelectorAll('.editable-field');
   
-  // Initialize the container visibility based on active state
-  updateManaVisibility();
-  
-  // Add click listeners to all mana star toggles
-  manaStarToggles.forEach(toggle => {
-    toggle.addEventListener('click', function(e) {
-      const ability = e.target.dataset.ability;
-      const isCurrentlyActive = e.target.dataset.active === 'true';
+  // Make fields editable on double-click
+  editableFields.forEach(field => {
+    field.addEventListener('dblclick', function() {
+      this.readOnly = false;
+      this.focus();
+    });
+    
+    field.addEventListener('blur', function() {
+      this.readOnly = true;
       
-      // Reset all toggles first
-      manaStarToggles.forEach(otherToggle => {
-        otherToggle.textContent = '○';
-        otherToggle.dataset.active = 'false';
-      });
-      
-      // Remove highlight from all ability blocks
-      abilityBlocks.forEach(block => {
-        block.classList.remove('mana-active-ability');
-      });
-      
-      let newValue = null;
-      
-      // If the clicked toggle wasn't active, activate it
-      if (!isCurrentlyActive) {
-        e.target.textContent = '★';
-        e.target.dataset.active = 'true';
-        newValue = ability;
-        
-        // Add highlight to the clicked ability block
-        e.target.closest('.ability-block').classList.add('mana-active-ability');
+      if (this.classList.contains('autosave')) {
+        saveField(this.dataset.field, this.value);
       }
-      
-      // Update header
-      if (manaHeaderText) {
-        manaHeaderText.style.display = newValue ? '' : 'none';
-      }
-      
-      // Update visibility
-      updateManaVisibility();
-      
-      // Save the toggle state
-      if (typeof saveField === 'function') {
-        // Use immediate save function to ensure data is persisted
-        saveField('useManaAbility', newValue);
-      } else {
-        // If saveField function doesn't exist, use direct fetch API
-        const saveStatus = document.getElementById('saveStatus');
-        if (saveStatus) {
-          saveStatus.textContent = 'Saving...';
-          saveStatus.classList.add('saving');
-          
-          // Get character ID from URL or data attribute
-          const characterId = '<%= characterId %>';
-          
-          fetch('/characters/' + characterId, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ field: 'useManaAbility', value: newValue })
-          })
-          .then(response => response.json())
-          .then(result => {
-            saveStatus.textContent = 'All changes saved';
-            saveStatus.classList.remove('saving');
-            saveStatus.classList.add('saved');
-            
-            setTimeout(() => {
-              saveStatus.classList.remove('saved');
-            }, 2000);
-          })
-          .catch(error => {
-            console.error("Error saving:", error);
-            saveStatus.textContent = 'Error saving changes';
-            saveStatus.classList.remove('saving');
-            saveStatus.classList.add('error');
-            
-            setTimeout(() => {
-              saveStatus.classList.remove('error');
-            }, 3000);
-          });
-        }
+    });
+    
+    field.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && this.tagName !== 'TEXTAREA') {
+        this.blur();
       }
     });
   });
   
-  function updateManaVisibility() {
-    // Any toggle active?
-    const anyToggleActive = Array.from(manaStarToggles).some(toggle => toggle.dataset.active === 'true');
+  // Field save function
+  function saveField(field, value) {
+    if (!saveStatus) return;
     
-    // Show/hide mana container
-    if (manaContainer) {
-      manaContainer.style.display = anyToggleActive ? 'grid' : 'none';
-    }
+    clearTimeout(saveTimeout);
+    saveStatus.textContent = 'Saving...';
+    saveStatus.className = 'save-status saving';
+    
+    saveTimeout = setTimeout(() => {
+      const characterId = '<%= characterId %>';
+      
+      fetch('/characters/' + characterId, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ field, value })
+      })
+      .then(response => response.json())
+      .then(result => {
+        saveStatus.textContent = 'All changes saved';
+        saveStatus.className = 'save-status saved';
+        
+        setTimeout(() => {
+          saveStatus.className = 'save-status';
+        }, 2000);
+        
+        // If we're updating abilities, recalculate modifiers
+        if (field.startsWith('abilities.')) {
+          updateModifiers();
+        }
+        
+        // Update level-dependent calculations when level changes
+        if (field === 'level') {
+          updateProficiencyBonus();
+        }
+        
+        // If hit points maximum changes, ensure current HP is not greater than max
+        if (field === 'hitPoints.maximum') {
+          const maxHP = parseInt(value);
+          const currentHP = parseInt(document.getElementById('currentHitPoints').value);
+          
+          if (currentHP > maxHP) {
+            document.getElementById('currentHitPoints').value = maxHP;
+            saveField('hitPoints.current', maxHP);
+          }
+        }
+        
+        // Similar check for mana points
+        if (field === 'mana.maximum') {
+          const maxMana = parseInt(value);
+          const currentMana = parseInt(document.getElementById('currentMana').value);
+          
+          if (currentMana > maxMana) {
+            document.getElementById('currentMana').value = maxMana;
+            saveField('mana.current', maxMana);
+          }
+        }
+      })
+      .catch(error => {
+        console.error("Error saving:", error);
+        saveStatus.textContent = 'Error saving changes';
+        saveStatus.className = 'save-status error';
+      });
+    }, 500);
   }
-});
-
-// HP Popup functionality
-const currentHPInput = document.getElementById('currentHitPoints');
-const maxHPInput = document.getElementById('maxHitPoints');
-let hpPopup = null;
-let isPopupOpen = false;
-
-// Create the HP popup
-function createHPPopup() {
-  // Check if popup already exists
-  if (hpPopup) {
-    hpPopup.remove();
+  
+  // Make saveField available globally
+  window.saveField = saveField;
+  
+  // Ability score change handling
+  const abilityInputs = document.querySelectorAll('.ability-score');
+  abilityInputs.forEach(input => {
+    input.addEventListener('change', updateModifiers);
+  });
+  
+  // Calculate and update ability modifiers and skill bonuses
+  function updateModifiers() {
+    // Update ability modifiers
+    const abilities = {};
+    abilityInputs.forEach(input => {
+      const ability = input.id;
+      const score = parseInt(input.value) || 0;
+      const modifier = Math.floor((score - 10) / 2);
+      abilities[ability] = score;
+      
+      // Find and update the modifier display
+      const modifierDisplay = input.nextElementSibling;
+      if (modifierDisplay && modifierDisplay.classList.contains('ability-modifier')) {
+        modifierDisplay.textContent = (modifier >= 0 ? '+' : '') + modifier;
+      }
+    });
+    
+    // Update skill modifiers
+    const profBonus = parseInt(document.getElementById('proficiencyBonus').textContent.replace('+', '')) || 2;
+    
+    // Update standard skills
+    const skillItems = document.querySelectorAll('.skill-item:not(.custom-skill)');
+    const skills = JSON.parse(document.getElementById('skills').value);
+    
+    skillItems.forEach((item, index) => {
+      if (index < skills.length) {
+        const skillData = skills[index];
+        const abilityScore = abilities[skillData.ability] || 10;
+        const abilityMod = Math.floor((abilityScore - 10) / 2);
+        const isProficient = item.querySelector('.skill-proficient').checked;
+        const totalBonus = abilityMod + (isProficient ? profBonus : 0);
+        
+        const modifierDisplay = item.querySelector('.skill-modifier');
+        if (modifierDisplay) {
+          modifierDisplay.textContent = (totalBonus >= 0 ? '+' : '') + totalBonus;
+        }
+      }
+    });
+    
+    // Update custom skills
+    const customSkillItems = document.querySelectorAll('.skill-item.custom-skill');
+    const customSkills = JSON.parse(document.getElementById('customSkills').value || '[]');
+    
+    customSkillItems.forEach((item, index) => {
+      if (index < customSkills.length) {
+        const skillData = customSkills[index];
+        const abilityScore = abilities[skillData.ability] || 10;
+        const abilityMod = Math.floor((abilityScore - 10) / 2);
+        const isProficient = item.querySelector('.skill-proficient').checked;
+        const totalBonus = abilityMod + (isProficient ? profBonus : 0);
+        
+        const modifierDisplay = item.querySelector('.skill-modifier');
+        if (modifierDisplay) {
+          modifierDisplay.textContent = (totalBonus >= 0 ? '+' : '') + totalBonus;
+        }
+      }
+    });
   }
-
-  // Create popup container
-  hpPopup = document.createElement('div');
-  hpPopup.className = 'hp-popup';
   
-  // Get the position of the current HP input
-  const inputRect = currentHPInput.getBoundingClientRect();
-  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+  // Update proficiency bonus when level changes
+  document.getElementById('level').addEventListener('change', updateProficiencyBonus);
   
-  // Position the popup below the input
-  hpPopup.style.position = 'absolute';
-  hpPopup.style.top = (inputRect.bottom + scrollTop) + 'px';
-  hpPopup.style.left = (inputRect.left + scrollLeft) + 'px';
-  hpPopup.style.zIndex = '1000';
-  hpPopup.style.backgroundColor = 'white';
-  hpPopup.style.padding = '10px';
-  hpPopup.style.borderRadius = '8px';
-  hpPopup.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
-  hpPopup.style.width = '220px';
+  function updateProficiencyBonus() {
+    const level = parseInt(document.getElementById('level').value) || 1;
+    const profBonus = Math.floor((level - 1) / 4) + 2;
+    document.getElementById('proficiencyBonus').textContent = '+' + profBonus;
+    
+    // Update skill modifiers since proficiency bonus changed
+    updateModifiers();
+  }
   
-  // Create popup content
-  hpPopup.innerHTML = `
-    <div style="margin-bottom: 10px;">
-      <label style="display:block; margin-bottom: 5px;">Amount:</label>
-      <input type="number" id="hpChangeAmount" min="1" value="1" style="width: 100%; padding: 5px;">
-    </div>
-    <div style="display: flex; gap: 10px; justify-content: space-between;">
-      <button id="damageBtn" style="flex: 1; padding: 8px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer;">Damage</button>
-      <button id="healBtn" style="flex: 1; padding: 8px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">Healing</button>
-    </div>
-  `;
+  // Skills functionality
+  const skillsContainer = document.getElementById('skillsContainer');
+  const skillsInput = document.getElementById('skills');
+  const customSkillsInput = document.getElementById('customSkills');
+  let skills = JSON.parse(skillsInput.value);
+  let customSkills = JSON.parse(customSkillsInput.value || '[]');
   
-  // Add to document
-  document.body.appendChild(hpPopup);
-  
-  // Focus on amount input
-  const amountInput = document.getElementById('hpChangeAmount');
-  amountInput.focus();
-  
-  // Add event listeners
-  document.getElementById('damageBtn').addEventListener('click', applyDamage);
-  document.getElementById('healBtn').addEventListener('click', applyHealing);
-  
-  // Close popup when clicking outside
-  document.addEventListener('click', handleOutsideClick);
-  
-  // Allow pressing Enter to apply damage (default action)
-  amountInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-      applyDamage();
+  // Skill proficiency toggle handling
+  skillsContainer.addEventListener('change', function(e) {
+    if (e.target.classList.contains('skill-proficient')) {
+      const isCustom = e.target.dataset.custom === 'true';
+      const index = parseInt(e.target.dataset.index);
+      
+      if (isCustom) {
+        customSkills[index].proficient = e.target.checked;
+        customSkillsInput.value = JSON.stringify(customSkills);
+        saveField('customSkills', JSON.stringify(customSkills));
+      } else {
+        skills[index].proficient = e.target.checked;
+        skillsInput.value = JSON.stringify(skills);
+        saveField('skills', JSON.stringify(skills));
+      }
+      
+      // Update skill modifiers after proficiency changes
+      updateModifiers();
     }
   });
   
-  isPopupOpen = true;
-}
-
-// Apply damage (subtract HP)
-function applyDamage() {
-  const amount = parseInt(document.getElementById('hpChangeAmount').value) || 0;
-  if (amount <= 0) return;
+  // Add new custom skill
+  document.getElementById('addSkillBtn').addEventListener('click', function() {
+    // Create a new custom skill with default values
+    const newSkill = {
+      name: 'New Skill',
+      ability: 'dexterity', // Default ability
+      proficient: false
+    };
+    
+    customSkills.push(newSkill);
+    customSkillsInput.value = JSON.stringify(customSkills);
+    saveField('customSkills', JSON.stringify(customSkills));
+    
+    // Re-render the skills list
+    sortAndRenderSkills();
+  });
   
-  let currentHP = parseInt(currentHPInput.value) || 0;
-  currentHP = Math.max(0, currentHP - amount); // Don't go below 0
-  
-  currentHPInput.value = currentHP;
-  
-  // Save the change if auto-save is enabled
-  if (typeof saveField === 'function') {
-    saveField('hitPoints.current', currentHP);
+  // Function to sort and render all skills alphabetically
+  function sortAndRenderSkills() {
+    // Combine all skills (standard and custom) into one array for sorting
+    const allSkills = [
+      ...skills.map(skill => ({ ...skill, isCustom: false, index: skills.indexOf(skill) })),
+      ...customSkills.map(skill => ({ ...skill, isCustom: true, index: customSkills.indexOf(skill) }))
+    ];
+    
+    // Sort alphabetically by name
+    allSkills.sort((a, b) => a.name.localeCompare(b.name));
+    
+    // Clear the skills container
+    skillsContainer.innerHTML = '';
+    
+    // Render all skills in alphabetical order
+    allSkills.forEach(skill => {
+      const abilities = {};
+      abilityInputs.forEach(input => {
+        abilities[input.id] = parseInt(input.value) || 10;
+      });
+      
+      const abilityScore = abilities[skill.ability] || 10;
+      const abilityMod = Math.floor((abilityScore - 10) / 2);
+      const profBonus = parseInt(document.getElementById('proficiencyBonus').textContent.replace('+', '')) || 2;
+      const totalBonus = abilityMod + (skill.proficient ? profBonus : 0);
+      
+      const skillItem = document.createElement('div');
+      skillItem.className = 'skill-item' + (skill.isCustom ? ' custom-skill' : '');
+      
+      const customFlag = skill.isCustom ? 'data-custom="true"' : '';
+      
+      skillItem.innerHTML = `
+        <input 
+          type="checkbox" 
+          id="${skill.isCustom ? 'custom_skill_' : 'skill_'}${skill.index}" 
+          class="skill-proficient" 
+          ${skill.proficient ? 'checked' : ''} 
+          data-index="${skill.index}"
+          ${customFlag}
+        >
+        <span class="skill-modifier">
+          ${totalBonus >= 0 ? '+' : ''}${totalBonus}
+        </span>
+        ${skill.isCustom ? 
+          `<span class="skill-name custom-skill-name-display">${skill.name}</span>
+           <input type="text" class="custom-skill-name-edit" value="${skill.name}" data-index="${skill.index}" style="display: none;">
+           <span class="skill-ability">(<span class="skill-ability-display">${skill.ability.charAt(0).toUpperCase()}</span>)</span>
+           <select class="custom-skill-ability-edit" data-index="${skill.index}" style="display: none;">
+             <option value="strength" ${skill.ability === 'strength' ? 'selected' : ''}>S</option>
+             <option value="dexterity" ${skill.ability === 'dexterity' ? 'selected' : ''}>D</option>
+             <option value="constitution" ${skill.ability === 'constitution' ? 'selected' : ''}>C</option>
+             <option value="intelligence" ${skill.ability === 'intelligence' ? 'selected' : ''}>I</option>
+             <option value="wisdom" ${skill.ability === 'wisdom' ? 'selected' : ''}>W</option>
+             <option value="charisma" ${skill.ability === 'charisma' ? 'selected' : ''}>C</option>
+           </select>
+           <button type="button" class="remove-skill-btn" data-index="${skill.index}" style="display: none;">×</button>`
+          : 
+          `<span class="skill-name">${skill.name}</span>
+           <span class="skill-ability">(${skill.ability.charAt(0).toUpperCase()})</span>`
+        }
+      `;
+      
+      skillsContainer.appendChild(skillItem);
+      
+      // Add double-click listener for custom skills to make them editable
+      if (skill.isCustom) {
+        const skillElement = skillItem;
+        
+        // Make the skill editable on double-click
+        skillElement.addEventListener('dblclick', function() {
+          const nameDisplay = this.querySelector('.custom-skill-name-display');
+          const nameEdit = this.querySelector('.custom-skill-name-edit');
+          const abilityDisplay = this.querySelector('.skill-ability-display').parentElement;
+          const abilityEdit = this.querySelector('.custom-skill-ability-edit');
+          const removeBtn = this.querySelector('.remove-skill-btn');
+          
+          // Switch to edit mode
+          if (nameDisplay) nameDisplay.style.display = 'none';
+          if (nameEdit) {
+            nameEdit.style.display = 'inline-block';
+            nameEdit.focus();
+          }
+          if (abilityDisplay) abilityDisplay.style.display = 'none';
+          if (abilityEdit) abilityEdit.style.display = 'inline-block';
+          if (removeBtn) removeBtn.style.display = 'inline-block';
+        });
+        
+        // Function to exit edit mode
+        const exitEditMode = function(skillElement) {
+          const nameDisplay = skillElement.querySelector('.custom-skill-name-display');
+          const nameEdit = skillElement.querySelector('.custom-skill-name-edit');
+          const abilityDisplay = skillElement.querySelector('.skill-ability-display').parentElement;
+          const abilityEdit = skillElement.querySelector('.custom-skill-ability-edit');
+          const removeBtn = skillElement.querySelector('.remove-skill-btn');
+          
+          // Update displayed text
+          if (nameDisplay && nameEdit) nameDisplay.textContent = nameEdit.value;
+          if (abilityDisplay && abilityEdit) 
+            skillElement.querySelector('.skill-ability-display').textContent = abilityEdit.options[abilityEdit.selectedIndex].text;
+          
+          // Switch back to display mode
+          if (nameDisplay) nameDisplay.style.display = 'inline-block';
+          if (nameEdit) nameEdit.style.display = 'none';
+          if (abilityDisplay) abilityDisplay.style.display = 'inline-block';
+          if (abilityEdit) abilityEdit.style.display = 'none';
+          if (removeBtn) removeBtn.style.display = 'none';
+          
+          // Save changes
+          const index = parseInt(nameEdit.dataset.index);
+          customSkills[index].name = nameEdit.value;
+          customSkills[index].ability = abilityEdit.value;
+          
+          customSkillsInput.value = JSON.stringify(customSkills);
+          saveField('customSkills', JSON.stringify(customSkills));
+          
+          // Update modifier for the changed ability
+          const abilityScore = abilities[abilityEdit.value] || 10;
+          const abilityMod = Math.floor((abilityScore - 10) / 2);
+          const profBonus = parseInt(document.getElementById('proficiencyBonus').textContent.replace('+', '')) || 2;
+          const totalBonus = abilityMod + (customSkills[index].proficient ? profBonus : 0);
+          
+          const modifierDisplay = skillElement.querySelector('.skill-modifier');
+          if (modifierDisplay) {
+            modifierDisplay.textContent = (totalBonus >= 0 ? '+' : '') + totalBonus;
+          }
+        };
+        
+        // Exit edit mode on blur
+        const nameEdit = skillElement.querySelector('.custom-skill-name-edit');
+        const abilityEdit = skillElement.querySelector('.custom-skill-ability-edit');
+        
+        if (nameEdit) {
+          nameEdit.addEventListener('blur', function() {
+            // Short delay to allow other elements to get focus
+            setTimeout(() => {
+              // If neither edit field has focus, exit edit mode
+              if (document.activeElement !== nameEdit && document.activeElement !== abilityEdit) {
+                exitEditMode(skillElement);
+              }
+            }, 100);
+          });
+          
+          // Exit edit mode on Enter key
+          nameEdit.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+              exitEditMode(skillElement);
+            }
+          });
+        }
+        
+        if (abilityEdit) {
+          abilityEdit.addEventListener('blur', function() {
+            setTimeout(() => {
+              if (document.activeElement !== nameEdit && document.activeElement !== abilityEdit) {
+                exitEditMode(skillElement);
+              }
+            }, 100);
+          });
+          
+          abilityEdit.addEventListener('change', function() {
+            // When ability changes, update the modifier immediately
+            const index = parseInt(this.dataset.index);
+            customSkills[index].ability = this.value;
+            
+            const abilityScore = abilities[this.value] || 10;
+            const abilityMod = Math.floor((abilityScore - 10) / 2);
+            const profBonus = parseInt(document.getElementById('proficiencyBonus').textContent.replace('+', '')) || 2;
+            const totalBonus = abilityMod + (customSkills[index].proficient ? profBonus : 0);
+            
+            const modifierDisplay = skillElement.querySelector('.skill-modifier');
+            if (modifierDisplay) {
+              modifierDisplay.textContent = (totalBonus >= 0 ? '+' : '') + totalBonus;
+            }
+          });
+        }
+        
+        // Handle remove button
+        const removeBtn = skillElement.querySelector('.remove-skill-btn');
+        if (removeBtn) {
+          removeBtn.addEventListener('click', function() {
+            const index = parseInt(this.dataset.index);
+            customSkills.splice(index, 1);
+            customSkillsInput.value = JSON.stringify(customSkills);
+            saveField('customSkills', JSON.stringify(customSkills));
+            
+            // Re-render the skills list
+            sortAndRenderSkills();
+          });
+        }
+      }
+    });
   }
   
-  closePopup();
-}
-
-// Apply healing (add HP)
-function applyHealing() {
-  const amount = parseInt(document.getElementById('hpChangeAmount').value) || 0;
-  if (amount <= 0) return;
+  // Initialize by sorting and rendering all skills
+  sortAndRenderSkills();
   
-  let currentHP = parseInt(currentHPInput.value) || 0;
-  const maxHP = parseInt(maxHPInput.value) || 0;
-  currentHP = Math.min(maxHP, currentHP + amount); // Don't exceed max HP
+  // Ability-based Mana Star Toggle functionality
+  (function() {
+    const manaContainer = document.querySelector('.mana-container');
+    const manaStarToggles = document.querySelectorAll('.mana-toggle-star');
+    const abilityBlocks = document.querySelectorAll('.ability-block');
+    const manaHeaderText = document.getElementById('manaHeaderText');
+    
+    // Initialize the container visibility based on active state
+    updateManaVisibility();
+    
+    // Add click listeners to all mana star toggles
+    manaStarToggles.forEach(toggle => {
+      toggle.addEventListener('click', function(e) {
+        const ability = e.target.dataset.ability;
+        const isCurrentlyActive = e.target.dataset.active === 'true';
+        
+        // Reset all toggles first
+        manaStarToggles.forEach(otherToggle => {
+          otherToggle.textContent = '○';
+          otherToggle.dataset.active = 'false';
+        });
+        
+        // Remove highlight from all ability blocks
+        abilityBlocks.forEach(block => {
+          block.classList.remove('mana-active-ability');
+        });
+        
+        let newValue = null;
+        
+        // If the clicked toggle wasn't active, activate it
+        if (!isCurrentlyActive) {
+          e.target.textContent = '★';
+          e.target.dataset.active = 'true';
+          newValue = ability;
+          
+          // Add highlight to the clicked ability block
+          e.target.closest('.ability-block').classList.add('mana-active-ability');
+        }
+        
+        // Update header
+        if (manaHeaderText) {
+          manaHeaderText.style.display = newValue ? '' : 'none';
+        }
+        
+        // Update visibility
+        updateManaVisibility();
+        
+        // Save the toggle state
+        if (typeof saveField === 'function') {
+          // Use immediate save function to ensure data is persisted
+          saveField('useManaAbility', newValue);
+        } else {
+          // If saveField function doesn't exist, use direct fetch API
+          const saveStatus = document.getElementById('saveStatus');
+          if (saveStatus) {
+            saveStatus.textContent = 'Saving...';
+            saveStatus.classList.add('saving');
+            
+            // Get character ID from URL or data attribute
+            const characterId = '<%= characterId %>';
+            
+            fetch('/characters/' + characterId, {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ field: 'useManaAbility', value: newValue })
+            })
+            .then(response => response.json())
+            .then(result => {
+              saveStatus.textContent = 'All changes saved';
+              saveStatus.classList.remove('saving');
+              saveStatus.classList.add('saved');
+              
+              setTimeout(() => {
+                saveStatus.classList.remove('saved');
+              }, 2000);
+            })
+            .catch(error => {
+              console.error("Error saving:", error);
+              saveStatus.textContent = 'Error saving changes';
+              saveStatus.classList.remove('saving');
+              saveStatus.classList.add('error');
+              
+              setTimeout(() => {
+                saveStatus.classList.remove('error');
+              }, 3000);
+            });
+          }
+        }
+      });
+    });
+    
+    function updateManaVisibility() {
+      // Any toggle active?
+      const anyToggleActive = Array.from(manaStarToggles).some(toggle => toggle.dataset.active === 'true');
+      
+      // Show/hide mana container
+      if (manaContainer) {
+        manaContainer.style.display = anyToggleActive ? 'grid' : 'none';
+      }
+    }
+  })();
   
-  currentHPInput.value = currentHP;
+  // HP Popup functionality
+  const currentHPInput = document.getElementById('currentHitPoints');
+  const maxHPInput = document.getElementById('maxHitPoints');
+  let hpPopup = null;
+  let isPopupOpen = false;
   
-  // Save the change if auto-save is enabled
-  if (typeof saveField === 'function') {
-    saveField('hitPoints.current', currentHP);
+  // Create the HP popup
+  function createHPPopup() {
+    // Check if popup already exists
+    if (hpPopup) {
+      hpPopup.remove();
+    }
+  
+    // Create popup container
+    hpPopup = document.createElement('div');
+    hpPopup.className = 'hp-popup';
+    
+    // Get the position of the current HP input
+    const inputRect = currentHPInput.getBoundingClientRect();
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+    
+    // Position the popup below the input
+    hpPopup.style.position = 'absolute';
+    hpPopup.style.top = (inputRect.bottom + scrollTop) + 'px';
+    hpPopup.style.left = (inputRect.left + scrollLeft) + 'px';
+    hpPopup.style.zIndex = '1000';
+    hpPopup.style.backgroundColor = 'white';
+    hpPopup.style.padding = '10px';
+    hpPopup.style.borderRadius = '8px';
+    hpPopup.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+    hpPopup.style.width = '220px';
+    
+    // Create popup content
+    hpPopup.innerHTML = `
+      <div style="margin-bottom: 10px;">
+        <label style="display:block; margin-bottom: 5px;">Amount:</label>
+        <input type="number" id="hpChangeAmount" min="1" value="1" style="width: 100%; padding: 5px;">
+      </div>
+      <div style="display: flex; gap: 10px; justify-content: space-between;">
+        <button id="damageBtn" style="flex: 1; padding: 8px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer;">Damage</button>
+        <button id="healBtn" style="flex: 1; padding: 8px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">Healing</button>
+      </div>
+    `;
+    
+    // Add to document
+    document.body.appendChild(hpPopup);
+    
+    // Focus on amount input
+    const amountInput = document.getElementById('hpChangeAmount');
+    amountInput.focus();
+    
+    // Add event listeners
+    document.getElementById('damageBtn').addEventListener('click', applyDamage);
+    document.getElementById('healBtn').addEventListener('click', applyHealing);
+    
+    // Close popup when clicking outside
+    document.addEventListener('click', handleOutsideClick);
+    
+    // Allow pressing Enter to apply damage (default action)
+    amountInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        applyDamage();
+      }
+    });
+    
+    isPopupOpen = true;
   }
   
-  closePopup();
-}
-
-// Close the popup
-function closePopup() {
-  if (hpPopup) {
-    hpPopup.remove();
-    hpPopup = null;
-    document.removeEventListener('click', handleOutsideClick);
-    isPopupOpen = false;
-  }
-}
-
-// Handle clicks outside the popup to close it
-function handleOutsideClick(e) {
-  if (isPopupOpen && hpPopup && !hpPopup.contains(e.target) && e.target !== currentHPInput) {
+  // Apply damage (subtract HP)
+  function applyDamage() {
+    const amount = parseInt(document.getElementById('hpChangeAmount').value) || 0;
+    if (amount <= 0) return;
+    
+    let currentHP = parseInt(currentHPInput.value) || 0;
+    currentHP = Math.max(0, currentHP - amount); // Don't go below 0
+    
+    currentHPInput.value = currentHP;
+    
+    // Save the change if auto-save is enabled
+    if (typeof saveField === 'function') {
+      saveField('hitPoints.current', currentHP);
+    }
+    
     closePopup();
   }
-}
-
-// Modify the click handler for current HP
-currentHPInput.addEventListener('click', function(e) {
-  e.stopPropagation(); // Prevent triggering document click
-  if (!isPopupOpen) {
-    createHPPopup();
+  
+  // Apply healing (add HP)
+  function applyHealing() {
+    const amount = parseInt(document.getElementById('hpChangeAmount').value) || 0;
+    if (amount <= 0) return;
+    
+    let currentHP = parseInt(currentHPInput.value) || 0;
+    const maxHP = parseInt(maxHPInput.value) || 0;
+    currentHP = Math.min(maxHP, currentHP + amount); // Don't exceed max HP
+    
+    currentHPInput.value = currentHP;
+    
+    // Save the change if auto-save is enabled
+    if (typeof saveField === 'function') {
+      saveField('hitPoints.current', currentHP);
+    }
+    
+    closePopup();
   }
-});
-
-// Ensure current HP remains read-only
-currentHPInput.readOnly = true;
-
-// Add a small indicator to show it's clickable
-currentHPInput.style.cursor = 'pointer';
-currentHPInput.title = 'Click to adjust HP';
-
-// Mana Popup functionality
-const currentManaInput = document.getElementById('currentMana');
-const maxManaInput = document.getElementById('maxMana');
-let manaPopup = null;
-let isManaPopupOpen = false;
-
-// Create the Mana popup
-function createManaPopup() {
-  // Check if popup already exists
-  if (manaPopup) {
-    manaPopup.remove();
+  
+  // Close the popup
+  function closePopup() {
+    if (hpPopup) {
+      hpPopup.remove();
+      hpPopup = null;
+      document.removeEventListener('click', handleOutsideClick);
+      isPopupOpen = false;
+    }
   }
-
-  // Create popup container
-  manaPopup = document.createElement('div');
-  manaPopup.className = 'hp-popup mana-popup';
   
-  // Get the position of the current Mana input
-  const inputRect = currentManaInput.getBoundingClientRect();
-  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+  // Handle clicks outside the popup to close it
+  function handleOutsideClick(e) {
+    if (isPopupOpen && hpPopup && !hpPopup.contains(e.target) && e.target !== currentHPInput) {
+      closePopup();
+    }
+  }
   
-  // Position the popup below the input
-  manaPopup.style.position = 'absolute';
-  manaPopup.style.top = (inputRect.bottom + scrollTop) + 'px';
-  manaPopup.style.left = (inputRect.left + scrollLeft) + 'px';
-  manaPopup.style.zIndex = '1000';
-  manaPopup.style.backgroundColor = 'white';
-  manaPopup.style.padding = '10px';
-  manaPopup.style.borderRadius = '8px';
-  manaPopup.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
-  manaPopup.style.width = '220px';
-  
-  // Create popup content
-  manaPopup.innerHTML = `
-    <div style="margin-bottom: 10px;">
-      <label style="display:block; margin-bottom: 5px;">Amount:</label>
-      <input type="number" id="manaChangeAmount" min="1" value="1" style="width: 100%; padding: 5px;">
-    </div>
-    <div style="display: flex; gap: 10px; justify-content: space-between;">
-      <button id="spendBtn" style="flex: 1; padding: 8px; background-color: #3f51b5; color: white; border: none; border-radius: 4px; cursor: pointer;">Spend</button>
-      <button id="restoreBtn" style="flex: 1; padding: 8px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer;">Restore</button>
-    </div>
-  `;
-  
-  // Add to document
-  document.body.appendChild(manaPopup);
-  
-  // Focus on amount input
-  const amountInput = document.getElementById('manaChangeAmount');
-  amountInput.focus();
-  
-  // Add event listeners
-  document.getElementById('spendBtn').addEventListener('click', spendMana);
-  document.getElementById('restoreBtn').addEventListener('click', restoreMana);
-  
-  // Close popup when clicking outside
-  document.addEventListener('click', handleManaOutsideClick);
-  
-  // Allow pressing Enter to spend mana (default action)
-  amountInput.addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-      spendMana();
+  // Modify the click handler for current HP
+  currentHPInput.addEventListener('click', function(e) {
+    e.stopPropagation(); // Prevent triggering document click
+    if (!isPopupOpen) {
+      createHPPopup();
     }
   });
   
-  isManaPopupOpen = true;
-}
-
-// Spend mana (subtract mana)
-function spendMana() {
-  const amount = parseInt(document.getElementById('manaChangeAmount').value) || 0;
-  if (amount <= 0) return;
+  // Ensure current HP remains read-only
+  currentHPInput.readOnly = true;
   
-  let currentMana = parseInt(currentManaInput.value) || 0;
-  currentMana = Math.max(0, currentMana - amount); // Don't go below 0
+  // Add a small indicator to show it's clickable
+  currentHPInput.style.cursor = 'pointer';
+  currentHPInput.title = 'Click to adjust HP';
   
-  currentManaInput.value = currentMana;
+  // Mana Popup functionality
+  const currentManaInput = document.getElementById('currentMana');
+  const maxManaInput = document.getElementById('maxMana');
+  let manaPopup = null;
+  let isManaPopupOpen = false;
   
-  // Save the change if auto-save is enabled
-  if (typeof saveField === 'function') {
-    saveField('mana.current', currentMana);
+  // Create the Mana popup
+  function createManaPopup() {
+    // Check if popup already exists
+    if (manaPopup) {
+      manaPopup.remove();
+    }
+  
+    // Create popup container
+    manaPopup = document.createElement('div');
+    manaPopup.className = 'hp-popup mana-popup';
+    
+    // Get the position of the current Mana input
+    const inputRect = currentManaInput.getBoundingClientRect();
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+    
+    // Position the popup below the input
+    manaPopup.style.position = 'absolute';
+    manaPopup.style.top = (inputRect.bottom + scrollTop) + 'px';
+    manaPopup.style.left = (inputRect.left + scrollLeft) + 'px';
+    manaPopup.style.zIndex = '1000';
+    manaPopup.style.backgroundColor = 'white';
+    manaPopup.style.padding = '10px';
+    manaPopup.style.borderRadius = '8px';
+    manaPopup.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+    manaPopup.style.width = '220px';
+    
+    // Create popup content
+    manaPopup.innerHTML = `
+      <div style="margin-bottom: 10px;">
+        <label style="display:block; margin-bottom: 5px;">Amount:</label>
+        <input type="number" id="manaChangeAmount" min="1" value="1" style="width: 100%; padding: 5px;">
+      </div>
+      <div style="display: flex; gap: 10px; justify-content: space-between;">
+        <button id="spendBtn" style="flex: 1; padding: 8px; background-color: #3f51b5; color: white; border: none; border-radius: 4px; cursor: pointer;">Spend</button>
+        <button id="restoreBtn" style="flex: 1; padding: 8px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer;">Restore</button>
+      </div>
+    `;
+    
+    // Add to document
+    document.body.appendChild(manaPopup);
+    
+    // Focus on amount input
+    const amountInput = document.getElementById('manaChangeAmount');
+    amountInput.focus();
+    
+    // Add event listeners
+    document.getElementById('spendBtn').addEventListener('click', spendMana);
+    document.getElementById('restoreBtn').addEventListener('click', restoreMana);
+    
+    // Close popup when clicking outside
+    document.addEventListener('click', handleManaOutsideClick);
+    
+    // Allow pressing Enter to spend mana (default action)
+    amountInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        spendMana();
+      }
+    });
+    
+    isManaPopupOpen = true;
   }
   
-  closeManaPopup();
-}
-
-// Restore mana (add mana)
-function restoreMana() {
-  const amount = parseInt(document.getElementById('manaChangeAmount').value) || 0;
-  if (amount <= 0) return;
-  
-  let currentMana = parseInt(currentManaInput.value) || 0;
-  const maxMana = parseInt(maxManaInput.value) || 0;
-  currentMana = Math.min(maxMana, currentMana + amount); // Don't exceed max mana
-  
-  currentManaInput.value = currentMana;
-  
-  // Save the change if auto-save is enabled
-  if (typeof saveField === 'function') {
-    saveField('mana.current', currentMana);
+  // Spend mana (subtract mana)
+  function spendMana() {
+    const amount = parseInt(document.getElementById('manaChangeAmount').value) || 0;
+    if (amount <= 0) return;
+    
+    let currentMana = parseInt(currentManaInput.value) || 0;
+    currentMana = Math.max(0, currentMana - amount); // Don't go below 0
+    
+    currentManaInput.value = currentMana;
+    
+    // Save the change if auto-save is enabled
+    if (typeof saveField === 'function') {
+      saveField('mana.current', currentMana);
+    }
+    
+    closeManaPopup();
   }
   
-  closeManaPopup();
+  // Restore mana (add mana)
+  function restoreMana() {
+    const amount = parseInt(document.getElementById('manaChangeAmount').value) || 0;
+    if (amount <= 0) return;
+    
+    let currentMana = parseInt(currentManaInput.value) || 0;
+    const maxMana = parseInt(maxManaInput.value) || 0;
+    currentMana = Math.min(maxMana, currentMana + amount); // Don't exceed max mana
+    
+    currentManaInput.value = currentMana;
+    
+// Save the change if auto-save is enabled
+if (typeof saveField === 'function') {
+   saveField('mana.current', currentMana);
+ }
+ 
+ closeManaPopup();
 }
 
 // Close the mana popup
 function closeManaPopup() {
-  if (manaPopup) {
-    manaPopup.remove();
-    manaPopup = null;
-    document.removeEventListener('click', handleManaOutsideClick);
-    isManaPopupOpen = false;
-  }
+ if (manaPopup) {
+   manaPopup.remove();
+   manaPopup = null;
+   document.removeEventListener('click', handleManaOutsideClick);
+   isManaPopupOpen = false;
+ }
 }
 
 // Handle clicks outside the mana popup to close it
 function handleManaOutsideClick(e) {
-  if (isManaPopupOpen && manaPopup && !manaPopup.contains(e.target) && e.target !== currentManaInput) {
-    closeManaPopup();
-  }
+ if (isManaPopupOpen && manaPopup && !manaPopup.contains(e.target) && e.target !== currentManaInput) {
+   closeManaPopup();
+ }
 }
 
 // Set up the mana fields if they exist
 if (currentManaInput && maxManaInput) {
-  // Modify the click handler for current mana
-  currentManaInput.addEventListener('click', function(e) {
-    e.stopPropagation(); // Prevent triggering document click
-    if (!isManaPopupOpen) {
-      createManaPopup();
-    }
-  });
+ // Modify the click handler for current mana
+ currentManaInput.addEventListener('click', function(e) {
+   e.stopPropagation(); // Prevent triggering document click
+   if (!isManaPopupOpen) {
+     createManaPopup();
+   }
+ });
 
-  // Ensure current mana remains read-only
-  currentManaInput.readOnly = true;
+ // Ensure current mana remains read-only
+ currentManaInput.readOnly = true;
 
-  // Add a small indicator to show it's clickable
-  currentManaInput.style.cursor = 'pointer';
-  currentManaInput.title = 'Click to adjust Mana';
+ // Add a small indicator to show it's clickable
+ currentManaInput.style.cursor = 'pointer';
+ currentManaInput.title = 'Click to adjust Mana';
+}
+
+// Create the animation container once at page load
+const restAnimContainer = document.createElement('div');
+restAnimContainer.id = 'restAnimationContainer';
+restAnimContainer.style.position = 'fixed';
+restAnimContainer.style.top = '0';
+restAnimContainer.style.left = '0';
+restAnimContainer.style.right = '0';
+restAnimContainer.style.bottom = '0';
+restAnimContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+restAnimContainer.style.display = 'flex';
+restAnimContainer.style.justifyContent = 'center';
+restAnimContainer.style.alignItems = 'center';
+restAnimContainer.style.zIndex = '9999';
+restAnimContainer.style.opacity = '0';
+restAnimContainer.style.visibility = 'hidden';
+restAnimContainer.style.transition = 'opacity 0.3s, visibility 0.3s';
+
+const restAnimBox = document.createElement('div');
+restAnimBox.className = 'rest-animation-box';
+restAnimBox.style.backgroundColor = 'white';
+restAnimBox.style.padding = '20px';
+restAnimBox.style.borderRadius = '10px';
+restAnimBox.style.boxShadow = '0 0 30px rgba(0, 0, 0, 0.3)';
+restAnimBox.style.display = 'flex';
+restAnimBox.style.flexDirection = 'column';
+restAnimBox.style.alignItems = 'center';
+restAnimBox.style.justifyContent = 'center';
+restAnimBox.style.transform = 'scale(0.8)';
+restAnimBox.style.transition = 'transform 0.3s';
+
+const restAnimText = document.createElement('div');
+restAnimText.className = 'animation-text';
+restAnimText.style.fontSize = '1.5rem';
+restAnimText.style.fontWeight = 'bold';
+restAnimText.style.marginBottom = '10px';
+
+const restAnimEmoji = document.createElement('div');
+restAnimEmoji.className = 'animation-emoji';
+restAnimEmoji.style.fontSize = '3rem';
+restAnimEmoji.style.animation = 'pulse 1s ease-in-out';
+
+restAnimBox.appendChild(restAnimText);
+restAnimBox.appendChild(restAnimEmoji);
+restAnimContainer.appendChild(restAnimBox);
+document.body.appendChild(restAnimContainer);
+
+// Animation for rest buttons
+function showRestAnimation(type, emoji, color) {
+ restAnimText.textContent = type;
+ restAnimText.style.color = color;
+ restAnimEmoji.textContent = emoji;
+ restAnimBox.style.border = `2px solid ${color}`;
+ 
+ restAnimContainer.style.visibility = 'visible';
+ restAnimContainer.style.opacity = '1';
+ 
+ setTimeout(() => {
+   restAnimBox.style.transform = 'scale(1)';
+ }, 10);
+ 
+ setTimeout(() => {
+   restAnimBox.style.transform = 'scale(0.8)';
+   restAnimContainer.style.opacity = '0';
+   
+   setTimeout(() => {
+     restAnimContainer.style.visibility = 'hidden';
+   }, 300);
+ }, 1500);
+}
+
+// Add Rest Buttons
+document.addEventListener('DOMContentLoaded', function() {
+ if (document.querySelector('.rest-buttons-container')) {
+   return; // Don't add buttons if they already exist
+ }
+ 
+ const hpManaHeader = document.getElementById('hpManaHeader');
+ if (!hpManaHeader) return;
+ 
+ // Make header a flex container if it isn't already
+ if (getComputedStyle(hpManaHeader).display !== 'flex') {
+   hpManaHeader.style.display = 'flex';
+   hpManaHeader.style.justifyContent = 'space-between';
+   hpManaHeader.style.alignItems = 'center';
+   hpManaHeader.style.width = '100%';
+ }
+ 
+ // Create container for rest buttons
+ const restButtonsContainer = document.createElement('div');
+ restButtonsContainer.className = 'rest-buttons-container';
+ restButtonsContainer.style.display = 'inline-flex';
+ restButtonsContainer.style.alignItems = 'center';
+ restButtonsContainer.style.marginLeft = 'auto';
+ 
+ // Short Rest Button
+ const shortRestBtn = document.createElement('button');
+ shortRestBtn.type = 'button';
+ shortRestBtn.title = 'Short Rest';
+ shortRestBtn.innerHTML = '🌓';
+ shortRestBtn.style.background = 'rgba(63, 81, 181, 0.1)';
+ shortRestBtn.style.border = 'none';
+ shortRestBtn.style.fontSize = '1.2rem';
+ shortRestBtn.style.cursor = 'pointer';
+ shortRestBtn.style.marginLeft = '5px';
+ shortRestBtn.style.padding = '0 5px';
+ shortRestBtn.style.borderRadius = '5px';
+ shortRestBtn.style.width = '28px';
+ shortRestBtn.style.height = '28px';
+ shortRestBtn.style.display = 'flex';
+ shortRestBtn.style.alignItems = 'center';
+ shortRestBtn.style.justifyContent = 'center';
+ shortRestBtn.style.transition = 'all 0.2s ease';
+ 
+ // Long Rest Button
+ const longRestBtn = document.createElement('button');
+ longRestBtn.type = 'button';
+ longRestBtn.title = 'Long Rest';
+ longRestBtn.innerHTML = '🌙';
+ longRestBtn.style.background = 'rgba(123, 44, 191, 0.1)';
+ longRestBtn.style.border = 'none';
+ longRestBtn.style.fontSize = '1.2rem';
+ longRestBtn.style.cursor = 'pointer';
+ longRestBtn.style.marginLeft = '5px';
+ longRestBtn.style.padding = '0 5px';
+ longRestBtn.style.borderRadius = '5px';
+ longRestBtn.style.width = '28px';
+ longRestBtn.style.height = '28px';
+ longRestBtn.style.display = 'flex';
+ longRestBtn.style.alignItems = 'center';
+ longRestBtn.style.justifyContent = 'center';
+ longRestBtn.style.transition = 'all 0.2s ease';
+ 
+ // Add hover effects
+ shortRestBtn.addEventListener('mouseover', function() {
+   this.style.transform = 'scale(1.1)';
+   this.style.backgroundColor = 'rgba(63, 81, 181, 0.2)';
+ });
+ 
+ shortRestBtn.addEventListener('mouseout', function() {
+   this.style.transform = 'scale(1)';
+   this.style.backgroundColor = 'rgba(63, 81, 181, 0.1)';
+ });
+ 
+ longRestBtn.addEventListener('mouseover', function() {
+   this.style.transform = 'scale(1.1)';
+   this.style.backgroundColor = 'rgba(123, 44, 191, 0.2)';
+ });
+ 
+ longRestBtn.addEventListener('mouseout', function() {
+   this.style.transform = 'scale(1)';
+   this.style.backgroundColor = 'rgba(123, 44, 191, 0.1)';
+ });
+ 
+ // Add buttons to container
+ restButtonsContainer.appendChild(shortRestBtn);
+ restButtonsContainer.appendChild(longRestBtn);
+ 
+ // Add container to header
+ hpManaHeader.appendChild(restButtonsContainer);
+ 
+ // Short Rest functionality
+ shortRestBtn.addEventListener('click', function() {
+   const maxManaInput = document.getElementById('maxMana');
+   const currentManaInput = document.getElementById('currentMana');
+   
+   if (maxManaInput && currentManaInput) {
+     const maxMana = parseInt(maxManaInput.value) || 0;
+     const currentMana = parseInt(currentManaInput.value) || 0;
+     const manaRestoration = Math.ceil(maxMana / 2); // Half max mana, rounded up
+     const newMana = Math.min(maxMana, currentMana + manaRestoration); // Don't exceed max
+     
+     // Update mana and save
+     currentManaInput.value = newMana;
+     
+     if (typeof saveField === 'function') {
+       saveField('mana.current', newMana);
+     }
+   }
+   
+   // Show animation
+   showRestAnimation('Short Rest', '🌓', '#3f51b5');
+ });
+ 
+ // Long Rest functionality
+ longRestBtn.addEventListener('click', function() {
+   const maxHPInput = document.getElementById('maxHitPoints');
+   const currentHPInput = document.getElementById('currentHitPoints');
+   const maxManaInput = document.getElementById('maxMana');
+   const currentManaInput = document.getElementById('currentMana');
+   
+   if (maxHPInput && currentHPInput) {
+     const maxHP = parseInt(maxHPInput.value) || 0;
+     currentHPInput.value = maxHP;
+     
+     if (typeof saveField === 'function') {
+       saveField('hitPoints.current', maxHP);
+     }
+   }
+   
+   if (maxManaInput && currentManaInput) {
+     const maxMana = parseInt(maxManaInput.value) || 0;
+     currentManaInput.value = maxMana;
+     
+     if (typeof saveField === 'function') {
+       saveField('mana.current', maxMana);
+     }
+   }
+   
+   // Show animation
+   showRestAnimation('Long Rest', '🌙', '#7b2cbf');
+ });
+});
+
+// Define the pulse animation if not already in CSS
+if (!document.getElementById('restAnimationKeyframes')) {
+ const style = document.createElement('style');
+ style.id = 'restAnimationKeyframes';
+ style.textContent = `
+   @keyframes pulse {
+     0% { transform: scale(0.8); opacity: 0.5; }
+     50% { transform: scale(1.2); opacity: 1; }
+     100% { transform: scale(1); opacity: 1; }
+   }
+ `;
+ document.head.appendChild(style);
 }
 </script>

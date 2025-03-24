@@ -1,6 +1,4 @@
-// This is the main index.js file for our application
-// It sets up the Express server, authentication, and routes
-
+// Main application entry point for D&D Character Sheet App
 const express = require('express');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
@@ -29,7 +27,7 @@ app.set('view engine', 'ejs');
 app.use(expressLayouts);
 app.set('layout', 'layout');
 
-// Ensure directories exist
+// Ensure data directories exist
 async function ensureDirectories() {
   try {
     await fs.mkdir(path.join(__dirname, 'data'), { recursive: true });
@@ -90,82 +88,6 @@ app.get('/login', (req, res) => {
     title: 'Login',
     currentUser: null,
     error: null
-  });
-});
-
-app.post('/login', async (req, res) => {
-  const { username, password } = req.body;
-  
-  try {
-    const userPath = path.join(__dirname, 'data', 'users', `${username}.yaml`);
-    const userData = await fs.readFile(userPath, 'utf8');
-    const user = yaml.load(userData);
-    
-    const match = await bcrypt.compare(password, user.password);
-    if (match) {
-      req.session.user = {
-        username: user.username,
-        isAdmin: user.isAdmin || false
-      };
-      res.redirect('/characters');
-    } else {
-      res.render('login', { 
-        title: 'Login', 
-        currentUser: null,
-        error: 'Invalid credentials'
-      });
-    }
-  } catch (err) {
-    res.render('login', { 
-      title: 'Login', 
-      currentUser: null,
-      error: 'Invalid credentials'
-    });
-  }
-});
-
-app.get('/logout', (req, res) => {
-  req.session.destroy();
-  res.redirect('/login');
-});
-
-// User management (admin only)
-app.get('/users', requireAuth, requireAdmin, async (req, res) => {
-  try {
-    const usersDir = path.join(__dirname, 'data', 'users');
-    const files = await fs.readdir(usersDir);
-    
-    const users = await Promise.all(
-      files.map(async (file) => {
-        if (path.extname(file) === '.yaml') {
-          const userData = await fs.readFile(path.join(usersDir, file), 'utf8');
-          const user = yaml.load(userData);
-          return {
-            username: user.username,
-            isAdmin: user.isAdmin || false,
-            createdAt: user.createdAt
-          };
-        }
-        return null;
-      })
-    );
-    
-    res.render('users', { 
-      title: 'User Management',
-      users: users.filter(user => user !== null), 
-      currentUser: req.session.user
-    });
-  } catch (err) {
-    res.status(500).send('Error loading users');
-  }
-});
-
-app.get('/users/new', requireAuth, requireAdmin, (req, res) => {
-  res.render('user_form', { 
-    title: 'Create New User',
-    user: null, 
-    currentUser: req.session.user, 
-    error: null 
   });
 });
 
@@ -285,7 +207,6 @@ app.post('/characters', requireAuth, async (req, res) => {
   try {
     const characterData = req.body;
     
-
     const character = {
       name: characterData.name,
       race: characterData.race,
@@ -320,10 +241,6 @@ app.post('/characters', requireAuth, async (req, res) => {
       features: characterData.features,
       spells: characterData.spells
     };
-
-
-
-// Also update the same structure in the PUT route for updating a character if needed
 
     const id = Date.now().toString();
     const charPath = path.join(__dirname, 'data', 'characters', `${id}.yaml`);
@@ -430,3 +347,79 @@ async function startServer() {
 }
 
 startServer();
+  });
+});
+
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+  
+  try {
+    const userPath = path.join(__dirname, 'data', 'users', `${username}.yaml`);
+    const userData = await fs.readFile(userPath, 'utf8');
+    const user = yaml.load(userData);
+    
+    const match = await bcrypt.compare(password, user.password);
+    if (match) {
+      req.session.user = {
+        username: user.username,
+        isAdmin: user.isAdmin || false
+      };
+      res.redirect('/characters');
+    } else {
+      res.render('login', { 
+        title: 'Login', 
+        currentUser: null,
+        error: 'Invalid credentials'
+      });
+    }
+  } catch (err) {
+    res.render('login', { 
+      title: 'Login', 
+      currentUser: null,
+      error: 'Invalid credentials'
+    });
+  }
+});
+
+app.get('/logout', (req, res) => {
+  req.session.destroy();
+  res.redirect('/login');
+});
+
+// User management (admin only)
+app.get('/users', requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const usersDir = path.join(__dirname, 'data', 'users');
+    const files = await fs.readdir(usersDir);
+    
+    const users = await Promise.all(
+      files.map(async (file) => {
+        if (path.extname(file) === '.yaml') {
+          const userData = await fs.readFile(path.join(usersDir, file), 'utf8');
+          const user = yaml.load(userData);
+          return {
+            username: user.username,
+            isAdmin: user.isAdmin || false,
+            createdAt: user.createdAt
+          };
+        }
+        return null;
+      })
+    );
+    
+    res.render('users', { 
+      title: 'User Management',
+      users: users.filter(user => user !== null), 
+      currentUser: req.session.user
+    });
+  } catch (err) {
+    res.status(500).send('Error loading users');
+  }
+});
+
+app.get('/users/new', requireAuth, requireAdmin, (req, res) => {
+  res.render('user_form', { 
+    title: 'Create New User',
+    user: null, 
+    currentUser: req.session.user, 
+    error: null
