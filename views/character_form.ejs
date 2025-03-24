@@ -242,7 +242,7 @@
         </div>
 
         <div class="hit-points">
-          <h4 id="hpManaHeader">Hit Points<span id="manaHeaderText" style="<%= character.useManaAbility ? '' : 'display: none;' %>"> and Mana</span></h4>            <div class="hp-container">
+          <h4 id="hpManaHeader">Hit Points<span id="manaHeaderText" style="<%= character.useManaAbility ? '' : 'display: none;' %>">&nbsp;and Mana</span></h4>            <div class="hp-container">
             <div class="form-group">
               <label for="maxHitPoints">Maximum HP</label>
               <input 
@@ -918,6 +918,7 @@
     // Focus on amount input
     const amountInput = document.getElementById('hpChangeAmount');
     amountInput.focus();
+    amountInput.select();
     
     // Add event listeners
     document.getElementById('damageBtn').addEventListener('click', applyDamage);
@@ -951,8 +952,16 @@
       saveField('hitPoints.current', currentHP);
     }
     
-    closePopup();
-  }
+    // Close popup when clicking outside
+    document.addEventListener('click', handleOutsideClick);
+    
+    // Allow pressing Enter to apply damage (default action)
+    amountInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        applyDamage();
+      }
+    });
+    }
   
   // Apply healing (add HP)
   function applyHealing() {
