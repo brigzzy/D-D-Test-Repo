@@ -2,6 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="icon" href="data:,">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= typeof title !== 'undefined' ? title + ' - ' : '' %>D&D Character Sheet App</title>
@@ -39,5 +40,33 @@
   <% if (typeof script !== 'undefined') { %>
     <%- script %>
   <% } %>
+
+  <script>
+    // Fix for DataCloneError related to HTMLInputElement cloning
+    document.addEventListener('DOMContentLoaded', function() {
+      // Override element cloning to handle input elements safely
+      if (window.Element && Element.prototype) {
+        const originalCloneNode = Element.prototype.cloneNode;
+        Element.prototype.cloneNode = function(deep) {
+          if (this instanceof HTMLInputElement) {
+            // Create a safe clone for input elements
+            const clone = document.createElement('input');
+            // Copy attributes
+            for (let i = 0; i < this.attributes.length; i++) {
+              const attr = this.attributes[i];
+              clone.setAttribute(attr.name, attr.value);
+            }
+            // Copy properties safely
+            if (this.value) clone.value = this.value;
+            if (this.checked) clone.checked = this.checked;
+            return clone;
+          }
+          // Use original method for other elements
+          return originalCloneNode.call(this, deep);
+        };
+      }
+    });
+  </script>
+
 </body>
 </html>
