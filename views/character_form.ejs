@@ -105,9 +105,6 @@
 
 
 
-
-        
-
 <!-- Abilities with icons inline with text -->
 <h3 class="abilities-title">Abilities</h3>
 <div class="abilities-grid">
@@ -124,18 +121,12 @@
     <div class="ability-card <%= character.useManaAbility === ability.key ? 'ability-card-active' : '' %>">
       <div class="ability-name-container">
         <div class="ability-name"><%= ability.name %></div>
-        <% if (ability.icon === 'circle') { %>
+        <% if (ability.icon) { %>
           <span 
             class="mana-toggle-icon" 
             data-ability="<%= ability.key %>" 
             data-active="<%= character.useManaAbility === ability.key %>"
-          >○</span>
-        <% } else if (ability.icon === 'star') { %>
-          <span 
-            class="mana-toggle-icon" 
-            data-ability="<%= ability.key %>" 
-            data-active="<%= character.useManaAbility === ability.key %>"
-          >★</span>
+          ><%= ability.icon === 'circle' ? '○' : '★' %></span>
         <% } %>
       </div>
       
@@ -159,7 +150,9 @@
     </div>
   <% }); %>
 </div>
-        
+
+
+
         <h3>Skills</h3>
         <div class="skills-list" id="skillsContainer">
           <% character.skills.forEach((skill, index) => { %>
