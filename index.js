@@ -285,48 +285,43 @@ app.post('/characters', requireAuth, async (req, res) => {
   try {
     const characterData = req.body;
     
-    // Process the form data to create the character object
-// Add 'initiative' to the character object in your index.js file
-// Find the app.post('/characters') and app.put('/characters/:id') routes
 
-// In the POST route for creating a character, add an initiative field:
-// Find the POST route for creating a character in index.js
-// and update the character object structure to include mana:
+    const character = {
+      name: characterData.name,
+      race: characterData.race,
+      class: characterData.class,
+      level: parseInt(characterData.level),
+      owner: req.session.user.username,
+      createdAt: new Date().toISOString(),
+      abilities: {
+        strength: parseInt(characterData.strength),
+        dexterity: parseInt(characterData.dexterity),
+        constitution: parseInt(characterData.constitution),
+        intelligence: parseInt(characterData.intelligence),
+        wisdom: parseInt(characterData.wisdom),
+        charisma: parseInt(characterData.charisma)
+      },
+      skills: JSON.parse(characterData.skills),
+      customSkills: JSON.parse(characterData.customSkills),
+      background: characterData.background,
+      alignment: characterData.alignment,
+      hitPoints: {
+        maximum: parseInt(characterData.maxHitPoints),
+        current: parseInt(characterData.currentHitPoints)
+      },
+      mana: {
+        maximum: parseInt(characterData.maxMana || 0),
+        current: parseInt(characterData.currentMana || 0)
+      },
+      initiative: parseInt(characterData.initiative || 0),
+      armorClass: parseInt(characterData.armorClass),
+      speed: parseInt(characterData.speed),
+      equipment: characterData.equipment,
+      features: characterData.features,
+      spells: characterData.spells
+    };
 
-const character = {
-  name: characterData.name,
-  race: characterData.race,
-  class: characterData.class,
-  level: parseInt(characterData.level),
-  owner: req.session.user.username,
-  createdAt: new Date().toISOString(),
-  abilities: {
-    strength: parseInt(characterData.strength),
-    dexterity: parseInt(characterData.dexterity),
-    constitution: parseInt(characterData.constitution),
-    intelligence: parseInt(characterData.intelligence),
-    wisdom: parseInt(characterData.wisdom),
-    charisma: parseInt(characterData.charisma)
-  },
-  skills: JSON.parse(characterData.skills),
-  customSkills: JSON.parse(characterData.customSkills),
-  background: characterData.background,
-  alignment: characterData.alignment,
-  hitPoints: {
-    maximum: parseInt(characterData.maxHitPoints),
-    current: parseInt(characterData.currentHitPoints)
-  },
-  mana: {
-    maximum: parseInt(characterData.maxMana || 0),
-    current: parseInt(characterData.currentMana || 0)
-  },
-  initiative: parseInt(characterData.initiative || 0),
-  armorClass: parseInt(characterData.armorClass),
-  speed: parseInt(characterData.speed),
-  equipment: characterData.equipment,
-  features: characterData.features,
-  spells: characterData.spells
-};
+
 
 // Also update the same structure in the PUT route for updating a character if needed
 

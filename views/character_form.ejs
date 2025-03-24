@@ -197,7 +197,6 @@
         </div>
 
         
-
 <!-- Update this section in character_form.ejs -->
 <div class="hit-points">
   <h4>Hit Points and Mana</h4>
@@ -257,7 +256,6 @@
     </div>
   </div>
 </div>
-
 
         
         <div class="equipment-section">
@@ -1071,20 +1069,6 @@ currentHPInput.readOnly = true;
 currentHPInput.style.cursor = 'pointer';
 currentHPInput.title = 'Click to adjust HP';
 
-// Add a small visual indicator next to the HP field
-const hpContainer = currentHPInput.closest('.form-group');
-const hpLabel = hpContainer.querySelector('label');
-hpLabel.innerHTML += ' <i class="fas fa-heartbeat" style="color: #f44336; font-size: 0.8rem; vertical-align: middle;"></i>';
-
-
-
-
-
-
-
-// Add this code to the end of your existing JavaScript in character_form.ejs
-// After the HP popup code
-
 // Mana Popup functionality
 const currentManaInput = document.getElementById('currentMana');
 const maxManaInput = document.getElementById('maxMana');
@@ -1225,8 +1209,4 @@ if (currentManaInput && maxManaInput) {
   currentManaInput.style.cursor = 'pointer';
   currentManaInput.title = 'Click to adjust Mana';
 }
-
-
-
-
 </script>

@@ -955,3 +955,87 @@ input[type=number] {
 
 
 
+/* Style for the current HP input to make it look clickable */
+#currentHitPoints {
+  cursor: pointer;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+#currentHitPoints:hover {
+  border-color: var(--secondary-color);
+  background-color: #f0f0f0;
+}
+
+/* HP Popup styles */
+.hp-popup {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.hp-popup button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.hp-popup button:active {
+  transform: translateY(0);
+}
+
+#damageBtn:hover {
+  background-color: #d32f2f;
+}
+
+#healBtn:hover {
+  background-color: #388e3c;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mana container styling */
+.mana-container {
+  margin-top: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  background-color: white;
+}
+
+/* Style for the mana inputs, similar to HP */
+#currentMana {
+  cursor: pointer;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+#currentMana:hover {
+  border-color: var(--secondary-color);
+  background-color: #f0f0f0;
+}
+
+/* Mana popup styles (similar to HP popup) */
+.mana-popup {
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Custom button colors for mana */
+#spendBtn {
+  background-color: #3f51b5;
+}
+
+#restoreBtn {
+  background-color: #2196f3;
+}
+
+#spendBtn:hover {
+  background-color: #303f9f;
+}
+
+#restoreBtn:hover {
+  background-color: #1976d2;
+}
