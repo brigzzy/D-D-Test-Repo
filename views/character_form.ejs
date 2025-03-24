@@ -68,7 +68,7 @@
 
 
 
-<!-- Abilities with icons inline with text -->
+<!-- This replaces the current abilities section in character_form.ejs -->
 <h3 class="abilities-title">Abilities</h3>
 <div class="abilities-grid">
   <% const abilities = [
@@ -84,13 +84,14 @@
     <div class="ability-card <%= character.useManaAbility === ability.key ? 'ability-card-active' : '' %>">
       <div class="ability-name-container">
         <div class="ability-name"><%= ability.name %></div>
-        <% if (ability.icon) { %>
-          <span 
-            class="mana-toggle-icon" 
-            data-ability="<%= ability.key %>" 
-            data-active="<%= character.useManaAbility === ability.key %>"
-          ><%= ability.icon === 'circle' ? '○' : '★' %></span>
-        <% } %>
+<!-- Update the icon part in your abilities loop -->
+<% if (ability.key === 'intelligence' || ability.key === 'wisdom' || ability.key === 'charisma') { %>
+  <span 
+    class="mana-toggle-icon" 
+    data-ability="<%= ability.key %>" 
+    data-active="<%= character.useManaAbility === ability.key %>"
+  >○</span>
+<% } %>
       </div>
       
       <div class="ability-value">
@@ -113,7 +114,6 @@
     </div>
   <% }); %>
 </div>
-
 
 
         <h3>Skills</h3>
@@ -320,16 +320,16 @@
 
 
 
-
 <script>
+document.addEventListener('DOMContentLoaded', function() {
   // Auto-save functionality
   let saveTimeout;
   const saveStatus = document.getElementById('saveStatus');
   const editableFields = document.querySelectorAll('.editable-field');
   
-  // Make fields editable on double-click
+  // Make fields editable on click
   editableFields.forEach(field => {
-    field.addEventListener('dblclick', function() {
+    field.addEventListener('click', function() {
       this.readOnly = false;
       this.focus();
     });
@@ -349,6 +349,26 @@
     });
   });
   
+  // Special handling for select elements
+  document.querySelectorAll('select.editable-field').forEach(select => {
+    select.addEventListener('click', function() {
+      this.removeAttribute('readonly');
+    });
+    
+    select.addEventListener('change', function() {
+      if (this.classList.contains('autosave')) {
+        saveField(this.dataset.field, this.value);
+      }
+      setTimeout(() => {
+        this.setAttribute('readonly', 'readonly');
+      }, 100);
+    });
+    
+    select.addEventListener('blur', function() {
+      this.setAttribute('readonly', 'readonly');
+    });
+  });
+  
   // Field save function
   function saveField(field, value) {
     if (!saveStatus) return;
@@ -358,7 +378,7 @@
     saveStatus.className = 'save-status saving';
     
     saveTimeout = setTimeout(() => {
-      const characterId = '<%= characterId %>';
+      const characterId = window.location.pathname.split('/').pop();
       
       fetch('/characters/' + characterId, {
         method: 'PUT',
@@ -436,7 +456,7 @@
       abilities[ability] = score;
       
       // Find and update the modifier display
-      const modifierDisplay = input.nextElementSibling;
+      const modifierDisplay = input.parentElement.nextElementSibling;
       if (modifierDisplay && modifierDisplay.classList.contains('ability-modifier')) {
         modifierDisplay.textContent = (modifier >= 0 ? '+' : '') + modifier;
       }
@@ -657,15 +677,7 @@
           saveField('customSkills', JSON.stringify(customSkills));
           
           // Update modifier for the changed ability
-          const abilityScore = abilities[abilityEdit.value] || 10;
-          const abilityMod = Math.floor((abilityScore - 10) / 2);
-          const profBonus = parseInt(document.getElementById('proficiencyBonus').textContent.replace('+', '')) || 2;
-          const totalBonus = abilityMod + (customSkills[index].proficient ? profBonus : 0);
-          
-          const modifierDisplay = skillElement.querySelector('.skill-modifier');
-          if (modifierDisplay) {
-            modifierDisplay.textContent = (totalBonus >= 0 ? '+' : '') + totalBonus;
-          }
+          updateModifiers();
         };
         
         // Exit edit mode on blur
@@ -737,109 +749,70 @@
   // Initialize by sorting and rendering all skills
   sortAndRenderSkills();
   
-  // Ability-based Mana Star Toggle functionality
-  (function() {
-    const manaContainer = document.querySelector('.mana-container');
-    const manaStarToggles = document.querySelectorAll('.mana-toggle-star');
-    const abilityBlocks = document.querySelectorAll('.ability-block');
-    const manaHeaderText = document.getElementById('manaHeaderText');
-    
-    // Initialize the container visibility based on active state
-    updateManaVisibility();
-    
-    // Add click listeners to all mana star toggles
-    manaStarToggles.forEach(toggle => {
-      toggle.addEventListener('click', function(e) {
-        const ability = e.target.dataset.ability;
-        const isCurrentlyActive = e.target.dataset.active === 'true';
-        
-        // Reset all toggles first
-        manaStarToggles.forEach(otherToggle => {
-          otherToggle.textContent = '○';
-          otherToggle.dataset.active = 'false';
-        });
-        
-        // Remove highlight from all ability blocks
-        abilityBlocks.forEach(block => {
-          block.classList.remove('mana-active-ability');
-        });
-        
-        let newValue = null;
-        
-        // If the clicked toggle wasn't active, activate it
-        if (!isCurrentlyActive) {
-          e.target.textContent = '★';
-          e.target.dataset.active = 'true';
-          newValue = ability;
-          
-          // Add highlight to the clicked ability block
-          e.target.closest('.ability-block').classList.add('mana-active-ability');
-        }
-        
-        // Update header
-        if (manaHeaderText) {
-          manaHeaderText.style.display = newValue ? '' : 'none';
-        }
-        
-        // Update visibility
-        updateManaVisibility();
-        
-        // Save the toggle state
-        if (typeof saveField === 'function') {
-          // Use immediate save function to ensure data is persisted
-          saveField('useManaAbility', newValue);
-        } else {
-          // If saveField function doesn't exist, use direct fetch API
-          const saveStatus = document.getElementById('saveStatus');
-          if (saveStatus) {
-            saveStatus.textContent = 'Saving...';
-            saveStatus.classList.add('saving');
-            
-            // Get character ID from URL or data attribute
-            const characterId = '<%= characterId %>';
-            
-            fetch('/characters/' + characterId, {
-              method: 'PUT',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ field: 'useManaAbility', value: newValue })
-            })
-            .then(response => response.json())
-            .then(result => {
-              saveStatus.textContent = 'All changes saved';
-              saveStatus.classList.remove('saving');
-              saveStatus.classList.add('saved');
-              
-              setTimeout(() => {
-                saveStatus.classList.remove('saved');
-              }, 2000);
-            })
-            .catch(error => {
-              console.error("Error saving:", error);
-              saveStatus.textContent = 'Error saving changes';
-              saveStatus.classList.remove('saving');
-              saveStatus.classList.add('error');
-              
-              setTimeout(() => {
-                saveStatus.classList.remove('error');
-              }, 3000);
-            });
-          }
-        }
-      });
-    });
-    
-    function updateManaVisibility() {
-      // Any toggle active?
-      const anyToggleActive = Array.from(manaStarToggles).some(toggle => toggle.dataset.active === 'true');
+  // Ability-based Mana Toggle functionality
+  const manaContainer = document.querySelector('.mana-container');
+  const manaToggleIcons = document.querySelectorAll('.mana-toggle-icon');
+  const abilityCards = document.querySelectorAll('.ability-card');
+  const manaHeaderText = document.getElementById('manaHeaderText');
+  
+  // Initialize the container visibility based on active state
+  updateManaVisibility();
+  
+  // Add click listeners to all mana toggle icons
+  manaToggleIcons.forEach(toggle => {
+    toggle.addEventListener('click', function() {
+      const ability = this.dataset.ability;
+      const isCurrentlyActive = this.dataset.active === 'true';
       
-      // Show/hide mana container
-      if (manaContainer) {
-        manaContainer.style.display = anyToggleActive ? 'grid' : 'none';
+      // Reset all toggles first
+      manaToggleIcons.forEach(otherToggle => {
+        otherToggle.textContent = otherToggle.dataset.ability === 'charisma' ? '★' : '○';
+        otherToggle.dataset.active = 'false';
+      });
+      
+      // Remove highlight from all ability cards
+      abilityCards.forEach(card => {
+        card.classList.remove('ability-card-active');
+      });
+      
+      let newValue = null;
+      
+      // If the clicked toggle wasn't active, activate it
+      if (!isCurrentlyActive) {
+        if (ability === 'intelligence' || ability === 'wisdom') {
+          this.textContent = '●';
+        } else if (ability === 'charisma') {
+          this.textContent = '★';
+        }
+        this.dataset.active = 'true';
+        newValue = ability;
+        
+        // Add highlight to the clicked ability card
+        this.closest('.ability-card').classList.add('ability-card-active');
       }
+      
+      // Update header
+      if (manaHeaderText) {
+        manaHeaderText.style.display = newValue ? '' : 'none';
+      }
+      
+      // Update visibility
+      updateManaVisibility();
+      
+      // Save the toggle state
+      saveField('useManaAbility', newValue);
+    });
+  });
+  
+  function updateManaVisibility() {
+    // Any toggle active?
+    const anyToggleActive = Array.from(manaToggleIcons).some(toggle => toggle.dataset.active === 'true');
+    
+    // Show/hide mana container
+    if (manaContainer) {
+      manaContainer.style.display = anyToggleActive ? 'grid' : 'none';
     }
-  })();
+  }
   
   // HP Popup functionality
   const currentHPInput = document.getElementById('currentHitPoints');
@@ -922,20 +895,10 @@
     currentHPInput.value = currentHP;
     
     // Save the change if auto-save is enabled
-    if (typeof saveField === 'function') {
-      saveField('hitPoints.current', currentHP);
-    }
+    saveField('hitPoints.current', currentHP);
     
-    // Close popup when clicking outside
-    document.addEventListener('click', handleOutsideClick);
-    
-    // Allow pressing Enter to apply damage (default action)
-    amountInput.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        applyDamage();
-      }
-    });
-    }
+    closePopup();
+  }
   
   // Apply healing (add HP)
   function applyHealing() {
@@ -948,10 +911,8 @@
     
     currentHPInput.value = currentHP;
     
-    // Save the change if auto-save is enabled
-    if (typeof saveField === 'function') {
-      saveField('hitPoints.current', currentHP);
-    }
+    // Save the change
+    saveField('hitPoints.current', currentHP);
     
     closePopup();
   }
@@ -974,241 +935,117 @@
   }
   
   // Modify the click handler for current HP
-  currentHPInput.addEventListener('click', function(e) {
-    e.stopPropagation(); // Prevent triggering document click
-    if (!isPopupOpen) {
-      createHPPopup();
-    }
-  });
-  
-  // Ensure current HP remains read-only
-  currentHPInput.readOnly = true;
-  
-  // Add a small indicator to show it's clickable
-  currentHPInput.style.cursor = 'pointer';
-  currentHPInput.title = 'Click to adjust HP';
-  
-  // Mana Popup functionality
-  const currentManaInput = document.getElementById('currentMana');
-  const maxManaInput = document.getElementById('maxMana');
-  let manaPopup = null;
-  let isManaPopupOpen = false;
-  
-  // Create the Mana popup
-  function createManaPopup() {
-    // Check if popup already exists
-    if (manaPopup) {
-      manaPopup.remove();
-    }
-  
-    // Create popup container
-    manaPopup = document.createElement('div');
-    manaPopup.className = 'hp-popup mana-popup';
-    
-    // Get the position of the current Mana input
-    const inputRect = currentManaInput.getBoundingClientRect();
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-    
-    // Position the popup below the input
-    manaPopup.style.position = 'absolute';
-    manaPopup.style.top = (inputRect.bottom + scrollTop) + 'px';
-    manaPopup.style.left = (inputRect.left + scrollLeft) + 'px';
-    manaPopup.style.zIndex = '1000';
-    manaPopup.style.backgroundColor = 'white';
-    manaPopup.style.padding = '10px';
-    manaPopup.style.borderRadius = '8px';
-    manaPopup.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
-    manaPopup.style.width = '220px';
-    
-    // Create popup content
-    manaPopup.innerHTML = `
-      <div style="margin-bottom: 10px;">
-        <label style="display:block; margin-bottom: 5px;">Amount:</label>
-        <input type="number" id="manaChangeAmount" min="1" value="1" style="width: 100%; padding: 5px;">
-      </div>
-      <div style="display: flex; gap: 10px; justify-content: space-between;">
-        <button id="spendBtn" style="flex: 1; padding: 8px; background-color: #3f51b5; color: white; border: none; border-radius: 4px; cursor: pointer;">Spend</button>
-        <button id="restoreBtn" style="flex: 1; padding: 8px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer;">Restore</button>
-      </div>
-    `;
-    
-    // Add to document
-    document.body.appendChild(manaPopup);
-    
-    // Focus on amount input
-    const amountInput = document.getElementById('manaChangeAmount');
-    amountInput.focus();
-    
-    // Add event listeners
-    document.getElementById('spendBtn').addEventListener('click', spendMana);
-    document.getElementById('restoreBtn').addEventListener('click', restoreMana);
-    
-    // Close popup when clicking outside
-    document.addEventListener('click', handleManaOutsideClick);
-    
-    // Allow pressing Enter to spend mana (default action)
-    amountInput.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        spendMana();
+  if (currentHPInput) {
+    currentHPInput.addEventListener('click', function(e) {
+      e.stopPropagation(); // Prevent triggering document click
+      if (!isPopupOpen) {
+        createHPPopup();
       }
     });
-    
-    isManaPopupOpen = true;
+  
+    // Ensure current HP remains read-only
+    currentHPInput.readOnly = true;
+  
+    // Add a small indicator to show it's clickable
+    currentHPInput.style.cursor = 'pointer';
+    currentHPInput.title = 'Click to adjust HP';
   }
   
-  // Spend mana (subtract mana)
-  function spendMana() {
-    const amount = parseInt(document.getElementById('manaChangeAmount').value) || 0;
-    if (amount <= 0) return;
-    
-    let currentMana = parseInt(currentManaInput.value) || 0;
-    currentMana = Math.max(0, currentMana - amount); // Don't go below 0
-    
-    currentManaInput.value = currentMana;
-    
-    // Save the change if auto-save is enabled
-    if (typeof saveField === 'function') {
-      saveField('mana.current', currentMana);
-    }
-    
-    closeManaPopup();
+  // Rest buttons functionality
+  const shortRestBtn = document.querySelector('.short-rest-button');
+  const longRestBtn = document.querySelector('.long-rest-button');
+  
+  if (shortRestBtn) {
+    shortRestBtn.addEventListener('click', function() {
+      showRestAnimation('Short Rest', '🌙', '#3f51b5');
+      
+      // Handle Mana recovery (custom rule - half mana)
+      const currentMana = document.getElementById('currentMana');
+      const maxMana = document.getElementById('maxMana');
+      
+      if (currentMana && maxMana) {
+        const currentManaValue = parseInt(currentMana.value) || 0;
+        const maxManaValue = parseInt(maxMana.value) || 0;
+        const recoveredMana = Math.floor(maxManaValue / 2);
+        const newManaValue = Math.min(maxManaValue, currentManaValue + recoveredMana);
+        
+        currentMana.value = newManaValue;
+        saveField('mana.current', newManaValue);
+      }
+    });
   }
   
-  // Restore mana (add mana)
-  function restoreMana() {
-    const amount = parseInt(document.getElementById('manaChangeAmount').value) || 0;
-    if (amount <= 0) return;
+  if (longRestBtn) {
+    longRestBtn.addEventListener('click', function() {
+      showRestAnimation('Long Rest', '☀️', '#7b2cbf');
+      
+      // Handle HP recovery (full HP)
+      const currentHP = document.getElementById('currentHitPoints');
+      const maxHP = document.getElementById('maxHitPoints');
+      
+      if (currentHP && maxHP) {
+        const maxHPValue = parseInt(maxHP.value) || 0;
+        currentHP.value = maxHPValue;
+        saveField('hitPoints.current', maxHPValue);
+      }
+      
+      // Handle mana recovery (full mana)
+      const currentMana = document.getElementById('currentMana');
+      const maxMana = document.getElementById('maxMana');
+      
+      if (currentMana && maxMana) {
+        const maxManaValue = parseInt(maxMana.value) || 0;
+        currentMana.value = maxManaValue;
+        saveField('mana.current', maxManaValue);
+      }
+    });
+  }
+  
+  // Show rest animation
+  function showRestAnimation(type, emoji, color) {
+    const restAnimContainer = document.getElementById('restAnimationContainer');
+    const restAnimBox = restAnimContainer.querySelector('.rest-animation-box');
+    const restAnimText = restAnimContainer.querySelector('.animation-text');
+    const restAnimEmoji = restAnimContainer.querySelector('.animation-emoji');
     
-    let currentMana = parseInt(currentManaInput.value) || 0;
-    const maxMana = parseInt(maxManaInput.value) || 0;
-    currentMana = Math.min(maxMana, currentMana + amount); // Don't exceed max mana
+    restAnimText.textContent = type;
+    restAnimText.style.color = color;
+    restAnimEmoji.textContent = emoji;
+    restAnimBox.style.border = `2px solid ${color}`;
     
-    currentManaInput.value = currentMana;
+    restAnimContainer.style.visibility = 'visible';
+    restAnimContainer.style.opacity = '1';
     
-// Save the change if auto-save is enabled
-if (typeof saveField === 'function') {
-   saveField('mana.current', currentMana);
- }
- 
- closeManaPopup();
-}
-
-// Close the mana popup
-function closeManaPopup() {
- if (manaPopup) {
-   manaPopup.remove();
-   manaPopup = null;
-   document.removeEventListener('click', handleManaOutsideClick);
-   isManaPopupOpen = false;
- }
-}
-
-// Handle clicks outside the mana popup to close it
-function handleManaOutsideClick(e) {
- if (isManaPopupOpen && manaPopup && !manaPopup.contains(e.target) && e.target !== currentManaInput) {
-   closeManaPopup();
- }
-}
-
-// Set up the mana fields if they exist
-if (currentManaInput && maxManaInput) {
- // Modify the click handler for current mana
- currentManaInput.addEventListener('click', function(e) {
-   e.stopPropagation(); // Prevent triggering document click
-   if (!isManaPopupOpen) {
-     createManaPopup();
-   }
- });
-
- // Ensure current mana remains read-only
- currentManaInput.readOnly = true;
-
- // Add a small indicator to show it's clickable
- currentManaInput.style.cursor = 'pointer';
- currentManaInput.title = 'Click to adjust Mana';
-}
-
-// Create the animation container once at page load
-const restAnimContainer = document.createElement('div');
-restAnimContainer.id = 'restAnimationContainer';
-restAnimContainer.style.position = 'fixed';
-restAnimContainer.style.top = '0';
-restAnimContainer.style.left = '0';
-restAnimContainer.style.right = '0';
-restAnimContainer.style.bottom = '0';
-restAnimContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
-restAnimContainer.style.display = 'flex';
-restAnimContainer.style.justifyContent = 'center';
-restAnimContainer.style.alignItems = 'center';
-restAnimContainer.style.zIndex = '9999';
-restAnimContainer.style.opacity = '0';
-restAnimContainer.style.visibility = 'hidden';
-restAnimContainer.style.transition = 'opacity 0.3s, visibility 0.3s';
-
-const restAnimBox = document.createElement('div');
-restAnimBox.className = 'rest-animation-box';
-restAnimBox.style.backgroundColor = 'white';
-restAnimBox.style.padding = '20px';
-restAnimBox.style.borderRadius = '10px';
-restAnimBox.style.boxShadow = '0 0 30px rgba(0, 0, 0, 0.3)';
-restAnimBox.style.display = 'flex';
-restAnimBox.style.flexDirection = 'column';
-restAnimBox.style.alignItems = 'center';
-restAnimBox.style.justifyContent = 'center';
-restAnimBox.style.transform = 'scale(0.8)';
-restAnimBox.style.transition = 'transform 0.3s';
-
-const restAnimText = document.createElement('div');
-restAnimText.className = 'animation-text';
-restAnimText.style.fontSize = '1.5rem';
-restAnimText.style.fontWeight = 'bold';
-restAnimText.style.marginBottom = '10px';
-
-const restAnimEmoji = document.createElement('div');
-restAnimEmoji.className = 'animation-emoji';
-restAnimEmoji.style.fontSize = '3rem';
-restAnimEmoji.style.animation = 'pulse 1s ease-in-out';
-
-restAnimBox.appendChild(restAnimText);
-restAnimBox.appendChild(restAnimEmoji);
-restAnimContainer.appendChild(restAnimBox);
-document.body.appendChild(restAnimContainer);
-
-// Animation for rest buttons
-function showRestAnimation(type, emoji, color) {
- restAnimText.textContent = type;
- restAnimText.style.color = color;
- restAnimEmoji.textContent = emoji;
- restAnimBox.style.border = `2px solid ${color}`;
- 
- restAnimContainer.style.visibility = 'visible';
- restAnimContainer.style.opacity = '1';
- 
- setTimeout(() => {
-   restAnimBox.style.transform = 'scale(1)';
- }, 10);
- 
- setTimeout(() => {
-   restAnimBox.style.transform = 'scale(0.8)';
-   restAnimContainer.style.opacity = '0';
-   
-   setTimeout(() => {
-     restAnimContainer.style.visibility = 'hidden';
-   }, 300);
- }, 1500);
-}
+    setTimeout(() => {
+      restAnimBox.style.transform = 'scale(1)';
+    }, 10);
+    
+    setTimeout(() => {
+      restAnimBox.style.transform = 'scale(0.8)';
+      restAnimContainer.style.opacity = '0';
+      
+      setTimeout(() => {
+        restAnimContainer.style.visibility = 'hidden';
+      }, 300);
+    }, 1500);
+  }
+  
+  // Initialize the page
+  // Fix for input selects and editable fields
+  document.querySelectorAll('.editable-field').forEach(field => {
+    field.addEventListener('click', function() {
+      if (this.readOnly) {
+        this.readOnly = false;
+        this.focus();
+      }
+    });
+  });
+});
 
 
-// Ability-based Mana Star Toggle functionality
+// Update the toggle icon functionality
 document.addEventListener('DOMContentLoaded', function() {
-  const manaContainer = document.querySelector('.mana-container');
   const manaToggleIcons = document.querySelectorAll('.mana-toggle-icon');
-  const abilityCards = document.querySelectorAll('.ability-card');
-  const manaHeaderText = document.getElementById('manaHeaderText');
-  
-  // Initialize the container visibility based on active state
-  updateManaVisibility();
   
   // Add click listeners to all mana toggle icons
   manaToggleIcons.forEach(toggle => {
@@ -1218,12 +1055,13 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // Reset all toggles first
       manaToggleIcons.forEach(otherToggle => {
-        otherToggle.textContent = otherToggle.dataset.ability === 'charisma' ? '★' : '○';
         otherToggle.dataset.active = 'false';
+        otherToggle.textContent = '○'; // Empty circle when inactive
+        otherToggle.style.opacity = '0.5';
       });
       
       // Remove highlight from all ability cards
-      abilityCards.forEach(card => {
+      document.querySelectorAll('.ability-card').forEach(card => {
         card.classList.remove('ability-card-active');
       });
       
@@ -1231,82 +1069,46 @@ document.addEventListener('DOMContentLoaded', function() {
       
       // If the clicked toggle wasn't active, activate it
       if (!isCurrentlyActive) {
-        if (ability === 'intelligence' || ability === 'wisdom') {
-          this.textContent = '●';
-        } else if (ability === 'charisma') {
-          this.textContent = '★';
-        }
         this.dataset.active = 'true';
+        this.textContent = '●'; // Filled circle when active
+        this.style.opacity = '1';
+        this.style.color = '#3f51b5';
         newValue = ability;
         
         // Add highlight to the clicked ability card
         this.closest('.ability-card').classList.add('ability-card-active');
       }
       
-      // Update header
+      // Update visibility of mana container
+      const manaContainer = document.querySelector('.mana-container');
+      const manaHeaderText = document.getElementById('manaHeaderText');
+      
       if (manaHeaderText) {
         manaHeaderText.style.display = newValue ? '' : 'none';
       }
       
-      // Update visibility
-      updateManaVisibility();
+      if (manaContainer) {
+        manaContainer.style.display = newValue ? 'grid' : 'none';
+      }
       
       // Save the toggle state
       saveField('useManaAbility', newValue);
     });
   });
   
-  function updateManaVisibility() {
-    // Any toggle active?
-    const anyToggleActive = Array.from(manaToggleIcons).some(toggle => toggle.dataset.active === 'true');
+  // Initialize the toggles on page load
+  manaToggleIcons.forEach(toggle => {
+    const isActive = toggle.dataset.active === 'true';
     
-    // Show/hide mana container
-    if (manaContainer) {
-      manaContainer.style.display = anyToggleActive ? 'grid' : 'none';
+    if (isActive) {
+      toggle.textContent = '●'; // Filled circle
+      toggle.style.opacity = '1';
+      toggle.style.color = '#3f51b5';
+    } else {
+      toggle.textContent = '○'; // Empty circle
+      toggle.style.opacity = '0.5';
     }
-  }
-});
-
-// Fix for editable fields
-document.addEventListener('DOMContentLoaded', function() {
-  const editableFields = document.querySelectorAll('.editable-field');
-  
-  // Make fields editable on double-click
-  editableFields.forEach(field => {
-    field.addEventListener('dblclick', function() {
-      this.readOnly = false;
-      this.focus();
-    });
-    
-    field.addEventListener('blur', function() {
-      this.readOnly = true;
-      
-      if (this.classList.contains('autosave')) {
-        saveField(this.dataset.field, this.value);
-      }
-    });
-    
-    field.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' && this.tagName !== 'TEXTAREA') {
-        this.blur();
-      }
-    });
   });
 });
 
-
-
-// Define the pulse animation if not already in CSS
-if (!document.getElementById('restAnimationKeyframes')) {
- const style = document.createElement('style');
- style.id = 'restAnimationKeyframes';
- style.textContent = `
-   @keyframes pulse {
-     0% { transform: scale(0.8); opacity: 0.5; }
-     50% { transform: scale(1.2); opacity: 1; }
-     100% { transform: scale(1); opacity: 1; }
-   }
- `;
- document.head.appendChild(style);
-}
 </script>

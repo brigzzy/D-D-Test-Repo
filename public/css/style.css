@@ -1103,3 +1103,174 @@ h4#hpManaHeader {
 
 
 
+/* Fix for editable fields */
+input[readonly]:hover, 
+textarea[readonly]:hover, 
+select[readonly]:hover {
+  cursor: pointer;
+  border-color: var(--secondary-color);
+  background-color: #f0f0f0;
+}
+
+select[readonly] {
+  pointer-events: auto;
+  cursor: pointer;
+  background-image: none;
+}
+
+/* Make sure clickable fields look clickable */
+.editable-field {
+  transition: border-color 0.2s, background-color 0.2s;
+  cursor: pointer;
+}
+
+.editable-field:hover {
+  border-color: var(--secondary-color);
+  background-color: #f0f0f0;
+}
+
+
+
+/* Complete overhaul for ability cards layout */
+
+/* Adjust the abilities column width */
+.abilities-column {
+  width: 100%;
+}
+
+/* Make abilities grid more compact with tighter layout */
+.abilities-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Streamline the ability cards */
+.ability-card {
+  display: grid;
+  grid-template-rows: auto auto auto;
+  align-items: center;
+  justify-items: center;
+  padding: 0.5rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Ability name with icon */
+.ability-name-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 0.3rem;
+}
+
+.ability-name {
+  font-weight: bold;
+  color: var(--primary-color);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+/* Input styling */
+.ability-value {
+  margin: 0.2rem 0;
+}
+
+.ability-score {
+  width: 3rem;
+  height: 2rem;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: bold;
+  padding: 0.2rem;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+/* Modifier circle */
+.ability-modifier {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: bold;
+  font-size: 1rem;
+  margin-top: 0.2rem;
+}
+
+/* Toggle icon positioning */
+.mana-toggle-icon {
+  position: absolute;
+  right: 0;
+  top: 0;
+  font-size: 0.9rem;
+  width: 18px;
+  height: 18px;
+}
+
+/* Section heading styling */
+.abilities-title {
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+  font-size: 1.2rem;
+}
+
+/* Active ability card highlight */
+.ability-card-active {
+  border-color: #3f51b5;
+  box-shadow: 0 0 3px rgba(63, 81, 181, 0.5);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .abilities-grid {
+    gap: 0.5rem;
+  }
+  
+  .ability-card {
+    padding: 0.5rem;
+  }
+}
+
+
+
+/* Toggle icon styling fix */
+.mana-toggle-icon {
+  position: absolute;
+  right: 0;
+  top: 0;
+  font-size: 1rem;
+  cursor: pointer;
+  color: #3f51b5;
+  transition: transform 0.2s, color 0.2s;
+  user-select: none;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mana-toggle-icon:hover {
+  transform: scale(1.2);
+}
+
+/* Star and circle styles */
+.mana-toggle-icon[data-active="true"][data-icon-type="star"] {
+  color: gold;
+}
+
+.mana-toggle-icon[data-active="false"] {
+  opacity: 0.5;
+}
+
+
+
