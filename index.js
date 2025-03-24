@@ -290,6 +290,9 @@ app.post('/characters', requireAuth, async (req, res) => {
 // Find the app.post('/characters') and app.put('/characters/:id') routes
 
 // In the POST route for creating a character, add an initiative field:
+// Find the POST route for creating a character in index.js
+// and update the character object structure to include mana:
+
 const character = {
   name: characterData.name,
   race: characterData.race,
@@ -313,13 +316,19 @@ const character = {
     maximum: parseInt(characterData.maxHitPoints),
     current: parseInt(characterData.currentHitPoints)
   },
-  initiative: parseInt(characterData.initiative || 0), // Add this line
+  mana: {
+    maximum: parseInt(characterData.maxMana || 0),
+    current: parseInt(characterData.currentMana || 0)
+  },
+  initiative: parseInt(characterData.initiative || 0),
   armorClass: parseInt(characterData.armorClass),
   speed: parseInt(characterData.speed),
   equipment: characterData.equipment,
   features: characterData.features,
   spells: characterData.spells
 };
+
+// Also update the same structure in the PUT route for updating a character if needed
 
     const id = Date.now().toString();
     const charPath = path.join(__dirname, 'data', 'characters', `${id}.yaml`);

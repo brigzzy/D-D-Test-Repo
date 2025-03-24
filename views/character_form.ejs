@@ -197,36 +197,68 @@
         </div>
 
         
-        <div class="hit-points">
-          <h4>Hit Points</h4>
-          <div class="hp-container">
-            <div class="form-group">
-              <label for="maxHitPoints">Maximum</label>
-              <input 
-                type="number" 
-                id="maxHitPoints" 
-                name="maxHitPoints" 
-                value="<%= character.hitPoints ? character.hitPoints.maximum : '' %>" 
-                class="autosave editable-field" 
-                data-field="hitPoints.maximum"
-                readonly
-              >
-            </div>
-            
-            <div class="form-group">
-              <label for="currentHitPoints">Current</label>
-              <input 
-                type="number" 
-                id="currentHitPoints" 
-                name="currentHitPoints" 
-                value="<%= character.hitPoints ? character.hitPoints.current : '' %>" 
-                class="autosave editable-field" 
-                data-field="hitPoints.current"
-                readonly
-              >
-            </div>
-          </div>
-        </div>
+
+<!-- Update this section in character_form.ejs -->
+<div class="hit-points">
+  <h4>Hit Points and Mana</h4>
+  <div class="hp-container">
+    <div class="form-group">
+      <label for="maxHitPoints">Maximum HP</label>
+      <input 
+        type="number" 
+        id="maxHitPoints" 
+        name="maxHitPoints" 
+        value="<%= character.hitPoints ? character.hitPoints.maximum : '' %>" 
+        class="autosave editable-field" 
+        data-field="hitPoints.maximum"
+        readonly
+      >
+    </div>
+    
+    <div class="form-group">
+      <label for="currentHitPoints">Current HP <i class="fas fa-heartbeat" style="color: #f44336; font-size: 0.8rem; vertical-align: middle;"></i></label>
+      <input 
+        type="number" 
+        id="currentHitPoints" 
+        name="currentHitPoints" 
+        value="<%= character.hitPoints ? character.hitPoints.current : '' %>" 
+        class="autosave editable-field" 
+        data-field="hitPoints.current"
+        readonly
+      >
+    </div>
+  </div>
+  
+  <div class="hp-container mana-container">
+    <div class="form-group">
+      <label for="maxMana">Maximum Mana</label>
+      <input 
+        type="number" 
+        id="maxMana" 
+        name="maxMana" 
+        value="<%= character.mana ? character.mana.maximum : '' %>" 
+        class="autosave editable-field" 
+        data-field="mana.maximum"
+        readonly
+      >
+    </div>
+    
+    <div class="form-group">
+      <label for="currentMana">Current Mana <i class="fas fa-hat-wizard" style="color: #3f51b5; font-size: 0.8rem; vertical-align: middle;"></i></label>
+      <input 
+        type="number" 
+        id="currentMana" 
+        name="currentMana" 
+        value="<%= character.mana ? character.mana.current : '' %>" 
+        class="autosave editable-field" 
+        data-field="mana.current"
+        readonly
+      >
+    </div>
+  </div>
+</div>
+
+
         
         <div class="equipment-section">
           <h4>Equipment</h4>
@@ -899,4 +931,302 @@
     renderAllSkills();
     setupCustomSkillEditMode();
   });
+
+
+// HP Popup functionality
+const currentHPInput = document.getElementById('currentHitPoints');
+const maxHPInput = document.getElementById('maxHitPoints');
+let hpPopup = null;
+let isPopupOpen = false;
+
+// Create the HP popup
+function createHPPopup() {
+  // Check if popup already exists
+  if (hpPopup) {
+    hpPopup.remove();
+  }
+
+  // Create popup container
+  hpPopup = document.createElement('div');
+  hpPopup.className = 'hp-popup';
+  
+  // Get the position of the current HP input
+  const inputRect = currentHPInput.getBoundingClientRect();
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+  
+  // Position the popup below the input
+  hpPopup.style.position = 'absolute';
+  hpPopup.style.top = (inputRect.bottom + scrollTop) + 'px';
+  hpPopup.style.left = (inputRect.left + scrollLeft) + 'px';
+  hpPopup.style.zIndex = '1000';
+  hpPopup.style.backgroundColor = 'white';
+  hpPopup.style.padding = '10px';
+  hpPopup.style.borderRadius = '8px';
+  hpPopup.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+  hpPopup.style.width = '220px';
+  
+  // Create popup content
+  hpPopup.innerHTML = `
+    <div style="margin-bottom: 10px;">
+      <label style="display:block; margin-bottom: 5px;">Amount:</label>
+      <input type="number" id="hpChangeAmount" min="1" value="1" style="width: 100%; padding: 5px;">
+    </div>
+    <div style="display: flex; gap: 10px; justify-content: space-between;">
+      <button id="damageBtn" style="flex: 1; padding: 8px; background-color: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer;">Damage</button>
+      <button id="healBtn" style="flex: 1; padding: 8px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">Healing</button>
+    </div>
+  `;
+  
+  // Add to document
+  document.body.appendChild(hpPopup);
+  
+  // Focus on amount input
+  const amountInput = document.getElementById('hpChangeAmount');
+  amountInput.focus();
+  
+  // Add event listeners
+  document.getElementById('damageBtn').addEventListener('click', applyDamage);
+  document.getElementById('healBtn').addEventListener('click', applyHealing);
+  
+  // Close popup when clicking outside
+  document.addEventListener('click', handleOutsideClick);
+  
+  // Allow pressing Enter to apply damage (default action)
+  amountInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      applyDamage();
+    }
+  });
+  
+  isPopupOpen = true;
+}
+
+// Apply damage (subtract HP)
+function applyDamage() {
+  const amount = parseInt(document.getElementById('hpChangeAmount').value) || 0;
+  if (amount <= 0) return;
+  
+  let currentHP = parseInt(currentHPInput.value) || 0;
+  currentHP = Math.max(0, currentHP - amount); // Don't go below 0
+  
+  currentHPInput.value = currentHP;
+  
+  // Save the change if auto-save is enabled
+  if (typeof saveField === 'function') {
+    saveField('hitPoints.current', currentHP);
+  }
+  
+  closePopup();
+}
+
+// Apply healing (add HP)
+function applyHealing() {
+  const amount = parseInt(document.getElementById('hpChangeAmount').value) || 0;
+  if (amount <= 0) return;
+  
+  let currentHP = parseInt(currentHPInput.value) || 0;
+  const maxHP = parseInt(maxHPInput.value) || 0;
+  currentHP = Math.min(maxHP, currentHP + amount); // Don't exceed max HP
+  
+  currentHPInput.value = currentHP;
+  
+  // Save the change if auto-save is enabled
+  if (typeof saveField === 'function') {
+    saveField('hitPoints.current', currentHP);
+  }
+  
+  closePopup();
+}
+
+// Close the popup
+function closePopup() {
+  if (hpPopup) {
+    hpPopup.remove();
+    hpPopup = null;
+    document.removeEventListener('click', handleOutsideClick);
+    isPopupOpen = false;
+  }
+}
+
+// Handle clicks outside the popup to close it
+function handleOutsideClick(e) {
+  if (isPopupOpen && hpPopup && !hpPopup.contains(e.target) && e.target !== currentHPInput) {
+    closePopup();
+  }
+}
+
+// Modify the click handler for current HP
+currentHPInput.addEventListener('click', function(e) {
+  e.stopPropagation(); // Prevent triggering document click
+  if (!isPopupOpen) {
+    createHPPopup();
+  }
+});
+
+// Ensure current HP remains read-only
+currentHPInput.readOnly = true;
+
+// Add a small indicator to show it's clickable
+currentHPInput.style.cursor = 'pointer';
+currentHPInput.title = 'Click to adjust HP';
+
+// Add a small visual indicator next to the HP field
+const hpContainer = currentHPInput.closest('.form-group');
+const hpLabel = hpContainer.querySelector('label');
+hpLabel.innerHTML += ' <i class="fas fa-heartbeat" style="color: #f44336; font-size: 0.8rem; vertical-align: middle;"></i>';
+
+
+
+
+
+
+
+// Add this code to the end of your existing JavaScript in character_form.ejs
+// After the HP popup code
+
+// Mana Popup functionality
+const currentManaInput = document.getElementById('currentMana');
+const maxManaInput = document.getElementById('maxMana');
+let manaPopup = null;
+let isManaPopupOpen = false;
+
+// Create the Mana popup
+function createManaPopup() {
+  // Check if popup already exists
+  if (manaPopup) {
+    manaPopup.remove();
+  }
+
+  // Create popup container
+  manaPopup = document.createElement('div');
+  manaPopup.className = 'hp-popup mana-popup';
+  
+  // Get the position of the current Mana input
+  const inputRect = currentManaInput.getBoundingClientRect();
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+  
+  // Position the popup below the input
+  manaPopup.style.position = 'absolute';
+  manaPopup.style.top = (inputRect.bottom + scrollTop) + 'px';
+  manaPopup.style.left = (inputRect.left + scrollLeft) + 'px';
+  manaPopup.style.zIndex = '1000';
+  manaPopup.style.backgroundColor = 'white';
+  manaPopup.style.padding = '10px';
+  manaPopup.style.borderRadius = '8px';
+  manaPopup.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+  manaPopup.style.width = '220px';
+  
+  // Create popup content
+  manaPopup.innerHTML = `
+    <div style="margin-bottom: 10px;">
+      <label style="display:block; margin-bottom: 5px;">Amount:</label>
+      <input type="number" id="manaChangeAmount" min="1" value="1" style="width: 100%; padding: 5px;">
+    </div>
+    <div style="display: flex; gap: 10px; justify-content: space-between;">
+      <button id="spendBtn" style="flex: 1; padding: 8px; background-color: #3f51b5; color: white; border: none; border-radius: 4px; cursor: pointer;">Spend</button>
+      <button id="restoreBtn" style="flex: 1; padding: 8px; background-color: #2196f3; color: white; border: none; border-radius: 4px; cursor: pointer;">Restore</button>
+    </div>
+  `;
+  
+  // Add to document
+  document.body.appendChild(manaPopup);
+  
+  // Focus on amount input
+  const amountInput = document.getElementById('manaChangeAmount');
+  amountInput.focus();
+  
+  // Add event listeners
+  document.getElementById('spendBtn').addEventListener('click', spendMana);
+  document.getElementById('restoreBtn').addEventListener('click', restoreMana);
+  
+  // Close popup when clicking outside
+  document.addEventListener('click', handleManaOutsideClick);
+  
+  // Allow pressing Enter to spend mana (default action)
+  amountInput.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      spendMana();
+    }
+  });
+  
+  isManaPopupOpen = true;
+}
+
+// Spend mana (subtract mana)
+function spendMana() {
+  const amount = parseInt(document.getElementById('manaChangeAmount').value) || 0;
+  if (amount <= 0) return;
+  
+  let currentMana = parseInt(currentManaInput.value) || 0;
+  currentMana = Math.max(0, currentMana - amount); // Don't go below 0
+  
+  currentManaInput.value = currentMana;
+  
+  // Save the change if auto-save is enabled
+  if (typeof saveField === 'function') {
+    saveField('mana.current', currentMana);
+  }
+  
+  closeManaPopup();
+}
+
+// Restore mana (add mana)
+function restoreMana() {
+  const amount = parseInt(document.getElementById('manaChangeAmount').value) || 0;
+  if (amount <= 0) return;
+  
+  let currentMana = parseInt(currentManaInput.value) || 0;
+  const maxMana = parseInt(maxManaInput.value) || 0;
+  currentMana = Math.min(maxMana, currentMana + amount); // Don't exceed max mana
+  
+  currentManaInput.value = currentMana;
+  
+  // Save the change if auto-save is enabled
+  if (typeof saveField === 'function') {
+    saveField('mana.current', currentMana);
+  }
+  
+  closeManaPopup();
+}
+
+// Close the mana popup
+function closeManaPopup() {
+  if (manaPopup) {
+    manaPopup.remove();
+    manaPopup = null;
+    document.removeEventListener('click', handleManaOutsideClick);
+    isManaPopupOpen = false;
+  }
+}
+
+// Handle clicks outside the mana popup to close it
+function handleManaOutsideClick(e) {
+  if (isManaPopupOpen && manaPopup && !manaPopup.contains(e.target) && e.target !== currentManaInput) {
+    closeManaPopup();
+  }
+}
+
+// Set up the mana fields if they exist
+if (currentManaInput && maxManaInput) {
+  // Modify the click handler for current mana
+  currentManaInput.addEventListener('click', function(e) {
+    e.stopPropagation(); // Prevent triggering document click
+    if (!isManaPopupOpen) {
+      createManaPopup();
+    }
+  });
+
+  // Ensure current mana remains read-only
+  currentManaInput.readOnly = true;
+
+  // Add a small indicator to show it's clickable
+  currentManaInput.style.cursor = 'pointer';
+  currentManaInput.title = 'Click to adjust Mana';
+}
+
+
+
+
 </script>
