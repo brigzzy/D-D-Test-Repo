@@ -1062,3 +1062,44 @@ h4#hpManaHeader {
 
 
 
+/* Add this to your existing style section */
+.ability-name-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  height: 28px;
+}
+
+.ability-name {
+  position: relative;
+  font-weight: bold;
+  color: var(--primary-color);
+  font-size: 0.95rem;
+  padding: 0 30px; /* Add space for the icon */
+}
+
+.mana-toggle-icon {
+  position: absolute;
+  right: 5px;
+  top: 0;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #3f51b5;
+  transition: transform 0.2s, color 0.2s;
+  user-select: none;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mana-toggle-icon:hover {
+  transform: scale(1.2);
+}
+
+
+
+

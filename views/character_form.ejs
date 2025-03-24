@@ -1,40 +1,3 @@
-<!-- views/character_form.ejs -->
-<style>
-  /* Star Toggle Styles for Ability Mana */
-  .mana-toggle-star {
-    font-size: 1.2rem;
-    cursor: pointer;
-    color: #3f51b5;
-    transition: transform 0.2s, color 0.2s;
-    user-select: none;
-    width: 24px;
-    height: 24px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    vertical-align: middle;
-    line-height: 1;
-    padding-bottom: 2px; /* Fine-tune alignment */
-  }
-  
-  .mana-toggle-star:hover {
-    transform: scale(1.2);
-  }
-  
-  /* Style to indicate which ability is controlling mana */
-  .mana-active-ability {
-    border: 2px solid #3f51b5;
-    box-shadow: 0 0 5px rgba(63, 81, 181, 0.5);
-  }
-  
-  /* Remove default bottom margin from labels to improve alignment */
-  .ability-block label {
-    margin-bottom: 0;
-    line-height: 1.2;
-  }
-</style>
-
-
 <!-- Complete character-sheet-container div -->
 <div class="character-sheet-container">
   <div class="character-sheet-header">
@@ -1236,148 +1199,102 @@ function showRestAnimation(type, emoji, color) {
  }, 1500);
 }
 
-// Add Rest Buttons
+
+// Ability-based Mana Star Toggle functionality
 document.addEventListener('DOMContentLoaded', function() {
- if (document.querySelector('.rest-buttons-container')) {
-   return; // Don't add buttons if they already exist
- }
- 
- const hpManaHeader = document.getElementById('hpManaHeader');
- if (!hpManaHeader) return;
- 
- // Make header a flex container if it isn't already
- if (getComputedStyle(hpManaHeader).display !== 'flex') {
-   hpManaHeader.style.display = 'flex';
-   hpManaHeader.style.justifyContent = 'space-between';
-   hpManaHeader.style.alignItems = 'center';
-   hpManaHeader.style.width = '100%';
- }
- 
- // Create container for rest buttons
- const restButtonsContainer = document.createElement('div');
- restButtonsContainer.className = 'rest-buttons-container';
- restButtonsContainer.style.display = 'inline-flex';
- restButtonsContainer.style.alignItems = 'center';
- restButtonsContainer.style.marginLeft = 'auto';
- 
- // Short Rest Button
- const shortRestBtn = document.createElement('button');
- shortRestBtn.type = 'button';
- shortRestBtn.title = 'Short Rest';
- shortRestBtn.innerHTML = '🌓';
- shortRestBtn.style.background = 'rgba(63, 81, 181, 0.1)';
- shortRestBtn.style.border = 'none';
- shortRestBtn.style.fontSize = '1.2rem';
- shortRestBtn.style.cursor = 'pointer';
- shortRestBtn.style.marginLeft = '5px';
- shortRestBtn.style.padding = '0 5px';
- shortRestBtn.style.borderRadius = '5px';
- shortRestBtn.style.width = '28px';
- shortRestBtn.style.height = '28px';
- shortRestBtn.style.display = 'flex';
- shortRestBtn.style.alignItems = 'center';
- shortRestBtn.style.justifyContent = 'center';
- shortRestBtn.style.transition = 'all 0.2s ease';
- 
- // Long Rest Button
- const longRestBtn = document.createElement('button');
- longRestBtn.type = 'button';
- longRestBtn.title = 'Long Rest';
- longRestBtn.innerHTML = '🌙';
- longRestBtn.style.background = 'rgba(123, 44, 191, 0.1)';
- longRestBtn.style.border = 'none';
- longRestBtn.style.fontSize = '1.2rem';
- longRestBtn.style.cursor = 'pointer';
- longRestBtn.style.marginLeft = '5px';
- longRestBtn.style.padding = '0 5px';
- longRestBtn.style.borderRadius = '5px';
- longRestBtn.style.width = '28px';
- longRestBtn.style.height = '28px';
- longRestBtn.style.display = 'flex';
- longRestBtn.style.alignItems = 'center';
- longRestBtn.style.justifyContent = 'center';
- longRestBtn.style.transition = 'all 0.2s ease';
- 
- // Add hover effects
- shortRestBtn.addEventListener('mouseover', function() {
-   this.style.transform = 'scale(1.1)';
-   this.style.backgroundColor = 'rgba(63, 81, 181, 0.2)';
- });
- 
- shortRestBtn.addEventListener('mouseout', function() {
-   this.style.transform = 'scale(1)';
-   this.style.backgroundColor = 'rgba(63, 81, 181, 0.1)';
- });
- 
- longRestBtn.addEventListener('mouseover', function() {
-   this.style.transform = 'scale(1.1)';
-   this.style.backgroundColor = 'rgba(123, 44, 191, 0.2)';
- });
- 
- longRestBtn.addEventListener('mouseout', function() {
-   this.style.transform = 'scale(1)';
-   this.style.backgroundColor = 'rgba(123, 44, 191, 0.1)';
- });
- 
- // Add buttons to container
- restButtonsContainer.appendChild(shortRestBtn);
- restButtonsContainer.appendChild(longRestBtn);
- 
- // Add container to header
- hpManaHeader.appendChild(restButtonsContainer);
- 
- // Short Rest functionality
- shortRestBtn.addEventListener('click', function() {
-   const maxManaInput = document.getElementById('maxMana');
-   const currentManaInput = document.getElementById('currentMana');
-   
-   if (maxManaInput && currentManaInput) {
-     const maxMana = parseInt(maxManaInput.value) || 0;
-     const currentMana = parseInt(currentManaInput.value) || 0;
-     const manaRestoration = Math.ceil(maxMana / 2); // Half max mana, rounded up
-     const newMana = Math.min(maxMana, currentMana + manaRestoration); // Don't exceed max
-     
-     // Update mana and save
-     currentManaInput.value = newMana;
-     
-     if (typeof saveField === 'function') {
-       saveField('mana.current', newMana);
-     }
-   }
-   
-   // Show animation
-   showRestAnimation('Short Rest', '🌓', '#3f51b5');
- });
- 
- // Long Rest functionality
- longRestBtn.addEventListener('click', function() {
-   const maxHPInput = document.getElementById('maxHitPoints');
-   const currentHPInput = document.getElementById('currentHitPoints');
-   const maxManaInput = document.getElementById('maxMana');
-   const currentManaInput = document.getElementById('currentMana');
-   
-   if (maxHPInput && currentHPInput) {
-     const maxHP = parseInt(maxHPInput.value) || 0;
-     currentHPInput.value = maxHP;
-     
-     if (typeof saveField === 'function') {
-       saveField('hitPoints.current', maxHP);
-     }
-   }
-   
-   if (maxManaInput && currentManaInput) {
-     const maxMana = parseInt(maxManaInput.value) || 0;
-     currentManaInput.value = maxMana;
-     
-     if (typeof saveField === 'function') {
-       saveField('mana.current', maxMana);
-     }
-   }
-   
-   // Show animation
-   showRestAnimation('Long Rest', '🌙', '#7b2cbf');
- });
+  const manaContainer = document.querySelector('.mana-container');
+  const manaToggleIcons = document.querySelectorAll('.mana-toggle-icon');
+  const abilityCards = document.querySelectorAll('.ability-card');
+  const manaHeaderText = document.getElementById('manaHeaderText');
+  
+  // Initialize the container visibility based on active state
+  updateManaVisibility();
+  
+  // Add click listeners to all mana toggle icons
+  manaToggleIcons.forEach(toggle => {
+    toggle.addEventListener('click', function() {
+      const ability = this.dataset.ability;
+      const isCurrentlyActive = this.dataset.active === 'true';
+      
+      // Reset all toggles first
+      manaToggleIcons.forEach(otherToggle => {
+        otherToggle.textContent = otherToggle.dataset.ability === 'charisma' ? '★' : '○';
+        otherToggle.dataset.active = 'false';
+      });
+      
+      // Remove highlight from all ability cards
+      abilityCards.forEach(card => {
+        card.classList.remove('ability-card-active');
+      });
+      
+      let newValue = null;
+      
+      // If the clicked toggle wasn't active, activate it
+      if (!isCurrentlyActive) {
+        if (ability === 'intelligence' || ability === 'wisdom') {
+          this.textContent = '●';
+        } else if (ability === 'charisma') {
+          this.textContent = '★';
+        }
+        this.dataset.active = 'true';
+        newValue = ability;
+        
+        // Add highlight to the clicked ability card
+        this.closest('.ability-card').classList.add('ability-card-active');
+      }
+      
+      // Update header
+      if (manaHeaderText) {
+        manaHeaderText.style.display = newValue ? '' : 'none';
+      }
+      
+      // Update visibility
+      updateManaVisibility();
+      
+      // Save the toggle state
+      saveField('useManaAbility', newValue);
+    });
+  });
+  
+  function updateManaVisibility() {
+    // Any toggle active?
+    const anyToggleActive = Array.from(manaToggleIcons).some(toggle => toggle.dataset.active === 'true');
+    
+    // Show/hide mana container
+    if (manaContainer) {
+      manaContainer.style.display = anyToggleActive ? 'grid' : 'none';
+    }
+  }
 });
+
+// Fix for editable fields
+document.addEventListener('DOMContentLoaded', function() {
+  const editableFields = document.querySelectorAll('.editable-field');
+  
+  // Make fields editable on double-click
+  editableFields.forEach(field => {
+    field.addEventListener('dblclick', function() {
+      this.readOnly = false;
+      this.focus();
+    });
+    
+    field.addEventListener('blur', function() {
+      this.readOnly = true;
+      
+      if (this.classList.contains('autosave')) {
+        saveField(this.dataset.field, this.value);
+      }
+    });
+    
+    field.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && this.tagName !== 'TEXTAREA') {
+        this.blur();
+      }
+    });
+  });
+});
+
+
 
 // Define the pulse animation if not already in CSS
 if (!document.getElementById('restAnimationKeyframes')) {
