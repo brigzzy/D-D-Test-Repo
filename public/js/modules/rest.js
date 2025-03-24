@@ -1,4 +1,5 @@
 // public/js/modules/rest.js
+import { ManaManager } from './mana.js';  // Import the new mana module
 
 /**
  * Manages short and long rest mechanics
@@ -32,19 +33,24 @@ export class RestManager {
     static performShortRest(saveFieldCallback) {
       this.showRestAnimation('Short Rest', '🌙', '#3f51b5');
       
-      // Recover half mana
-      const currentMana = document.getElementById('currentMana');
-      const maxMana = document.getElementById('maxMana');
+      // Recover HP
+      const currentHP = document.getElementById('currentHitPoints');
+      const maxHP = document.getElementById('maxHitPoints');
       
-      if (currentMana && maxMana) {
-        const currentManaValue = parseInt(currentMana.value) || 0;
-        const maxManaValue = parseInt(maxMana.value) || 0;
-        const recoveredMana = Math.floor(maxManaValue / 2);
-        const newManaValue = Math.min(maxManaValue, currentManaValue + recoveredMana);
+      if (currentHP && maxHP) {
+        const maxHPValue = parseInt(maxHP.value) || 0;
+        const currentHPValue = parseInt(currentHP.value) || 0;
         
-        currentMana.value = newManaValue;
-        saveFieldCallback('mana.current', newManaValue);
+        // Optional: Add short rest HP recovery logic if needed
+        const recoveredHP = Math.floor(maxHPValue * 0.1); // Example: recover 10% HP
+        const newHPValue = Math.min(maxHPValue, currentHPValue + recoveredHP);
+        
+        currentHP.value = newHPValue;
+        saveFieldCallback('hitPoints.current', newHPValue);
       }
+      
+      // Delegate mana recovery to ManaManager
+      ManaManager.handleManaRecovery('short', saveFieldCallback);
     }
   
     /**
@@ -54,11 +60,9 @@ export class RestManager {
     static performLongRest(saveFieldCallback) {
       this.showRestAnimation('Long Rest', '☀️', '#7b2cbf');
       
-      // Fully recover HP and mana
+      // Fully recover HP
       const currentHP = document.getElementById('currentHitPoints');
       const maxHP = document.getElementById('maxHitPoints');
-      const currentMana = document.getElementById('currentMana');
-      const maxMana = document.getElementById('maxMana');
       
       if (currentHP && maxHP) {
         const maxHPValue = parseInt(maxHP.value) || 0;
@@ -66,11 +70,8 @@ export class RestManager {
         saveFieldCallback('hitPoints.current', maxHPValue);
       }
       
-      if (currentMana && maxMana) {
-        const maxManaValue = parseInt(maxMana.value) || 0;
-        currentMana.value = maxManaValue;
-        saveFieldCallback('mana.current', maxManaValue);
-      }
+      // Delegate mana recovery to ManaManager
+      ManaManager.handleManaRecovery('long', saveFieldCallback);
     }
   
     /**
@@ -106,4 +107,4 @@ export class RestManager {
         }, 300);
       }, 1500);
     }
-  }
+}

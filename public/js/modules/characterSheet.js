@@ -6,6 +6,9 @@ import { AbilityManager } from './abilities.js';
 import { SkillManager } from './skills.js';
 import { HitPointManager } from './hitPoints.js';
 import { RestManager } from './rest.js';
+import { Middleware } from './middleware.js';
+import { ManaManager } from './mana.js';  // Import the new mana module
+
 
 // Main initialization function that runs when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
@@ -31,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeEditableFields(saveCallback);
   AbilityManager.initializeAbilityCards(saveCallback);
   AbilityManager.initializeManaAbilityState();
+  ManaManager.initializeMana(saveCallback);  // Use the new mana initialization
   SkillManager.initializeSkills(saveCallback);
   HitPointManager.initializeHitPoints(saveCallback);
   RestManager.initializeRestButtons(saveCallback);
