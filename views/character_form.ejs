@@ -34,6 +34,8 @@
   }
 </style>
 
+
+<!-- Complete character-sheet-container div -->
 <div class="character-sheet-container">
   <div class="character-sheet-header">
     <h2><%= isNew ? 'Create New Character' : 'Edit Character' %></h2>
@@ -98,52 +100,68 @@
     <div class="character-main-section">
       <!-- Left Column: Abilities and Skills -->
       <div class="character-column abilities-column">
-        <h3>Abilities</h3>
-        <div class="abilities-container">
-          <% const abilities = [
-            { key: 'strength', name: 'Strength' },
-            { key: 'dexterity', name: 'Dexterity' },
-            { key: 'constitution', name: 'Constitution' },
-            { key: 'intelligence', name: 'Intelligence' },
-            { key: 'wisdom', name: 'Wisdom' },
-            { key: 'charisma', name: 'Charisma' }
-          ]; %>
-          
-          <% abilities.forEach(ability => { %>
-            <div class="ability-block <%= character.useManaAbility === ability.key ? 'mana-active-ability' : '' %>">
-              <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-bottom: 5px;">
-                <label for="<%= ability.key %>" style="margin-bottom: 0;"><%= ability.name %></label>
-                <% if (ability.key === 'intelligence' || ability.key === 'wisdom' || ability.key === 'charisma') { %>
-                  <span 
-                    class="mana-toggle-star" 
-                    data-ability="<%= ability.key %>" 
-                    data-active="<%= character.useManaAbility === ability.key %>"
-                    title="Toggle Mana Casting Ability"
-                  >
-                    <%= character.useManaAbility === ability.key ? '★' : '○' %>
-                  </span>
-                <% } %>
-              </div>
-              <input 
-                type="number" 
-                id="<%= ability.key %>" 
-                name="<%= ability.key %>" 
-                value="<%= character.abilities[ability.key] %>" 
-                min="1" 
-                max="30" 
-                class="ability-score autosave editable-field" 
-                data-field="abilities.<%= ability.key %>"
-                readonly
-              >
-              <div class="ability-modifier">
-                <%= Math.floor((character.abilities[ability.key] - 10) / 2) >= 0 ? '+' : '' %><%= Math.floor((character.abilities[ability.key] - 10) / 2) %>
-              </div>
-            </div>
-          <% }); %>
-        </div>
+
+        <!-- Abilities in a grid layout (2x3) -->
+
+
+
+
+        
+
+<!-- Abilities with icons inline with text -->
+<h3 class="abilities-title">Abilities</h3>
+<div class="abilities-grid">
+  <% const abilities = [
+    { key: 'strength', name: 'STRENGTH' },
+    { key: 'dexterity', name: 'DEXTERITY' },
+    { key: 'constitution', name: 'CONSTITUTION' },
+    { key: 'intelligence', name: 'INTELLIGENCE', icon: 'circle' },
+    { key: 'wisdom', name: 'WISDOM', icon: 'circle' },
+    { key: 'charisma', name: 'CHARISMA', icon: 'star' }
+  ]; %>
+  
+  <% abilities.forEach(ability => { %>
+    <div class="ability-card <%= character.useManaAbility === ability.key ? 'ability-card-active' : '' %>">
+      <div class="ability-name-container">
+        <div class="ability-name"><%= ability.name %></div>
+        <% if (ability.icon === 'circle') { %>
+          <span 
+            class="mana-toggle-icon" 
+            data-ability="<%= ability.key %>" 
+            data-active="<%= character.useManaAbility === ability.key %>"
+          >○</span>
+        <% } else if (ability.icon === 'star') { %>
+          <span 
+            class="mana-toggle-icon" 
+            data-ability="<%= ability.key %>" 
+            data-active="<%= character.useManaAbility === ability.key %>"
+          >★</span>
+        <% } %>
+      </div>
+      
+      <div class="ability-value">
+        <input 
+          type="number" 
+          id="<%= ability.key %>" 
+          name="<%= ability.key %>" 
+          value="<%= character.abilities[ability.key] %>" 
+          min="1" 
+          max="30" 
+          class="ability-score autosave editable-field" 
+          data-field="abilities.<%= ability.key %>"
+          readonly
+        >
+      </div>
+      
+      <div class="ability-modifier">
+        <%= Math.floor((character.abilities[ability.key] - 10) / 2) >= 0 ? '+' : '' %><%= Math.floor((character.abilities[ability.key] - 10) / 2) %>
+      </div>
+    </div>
+  <% }); %>
+</div>
         
         <h3>Skills</h3>
-        <div class="skills-container" id="skillsContainer">
+        <div class="skills-list" id="skillsContainer">
           <% character.skills.forEach((skill, index) => { %>
             <div class="skill-item">
               <input 
@@ -242,7 +260,8 @@
         </div>
 
         <div class="hit-points">
-          <h4 id="hpManaHeader">Hit Points<span id="manaHeaderText" style="<%= character.useManaAbility ? '' : 'display: none;' %>">&nbsp;and Mana</span></h4>            <div class="hp-container">
+          <h4 id="hpManaHeader">Hit Points<span id="manaHeaderText" style="<%= character.useManaAbility ? '' : 'display: none;' %>">&nbsp;and Mana</span></h4>
+          <div class="hp-container">
             <div class="form-group">
               <label for="maxHitPoints">Maximum HP</label>
               <input 
@@ -342,7 +361,6 @@
     <input type="hidden" id="customSkills" name="customSkills" value="<%= JSON.stringify(character.customSkills || []) %>">
   </form>
 </div>
-
 
 
 
