@@ -16,6 +16,15 @@ function initializeCharacterSheet() {
   
   // Initialize editable fields
   initializeEditableFields(characterId);
+  
+  // Add additional error handling
+  window.addEventListener('error', function(e) {
+    console.log('Caught global error:', e.message);
+    if (e.message.includes('DataCloneError') || e.message.includes('HTMLInputElement')) {
+      e.preventDefault();
+      console.warn('Prevented DataCloneError from propagating');
+    }
+  });
 }
 
 /**
@@ -34,16 +43,23 @@ function initializeEditableFields(characterId) {
       }
     });
     
-    // Save field on blur
+    // Save field on blur with direct value extraction
     field.addEventListener('blur', () => {
       if (field.classList.contains('autosave')) {
-        handleFieldSave(field, characterId);
+        const fieldName = field.dataset.field;
+        const fieldValue = field.value;
+        
+        if (fieldName) {
+          // Use direct values to avoid DOM cloning issues
+          handleFieldSave(fieldName, fieldValue, characterId);
+        }
       }
     });
     
     // Handle Enter key
     field.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && field.tagName !== 'TEXTAREA') {
+        e.preventDefault();
         field.blur();
       }
     });
@@ -52,21 +68,18 @@ function initializeEditableFields(characterId) {
 
 /**
  * Handle saving a field
- * @param {HTMLElement} field - Field element
+ * @param {string} fieldName - Field name
+ * @param {*} fieldValue - Field value
  * @param {string} characterId - Character ID
  */
-function handleFieldSave(field, characterId) {
+function handleFieldSave(fieldName, fieldValue, characterId) {
   try {
-    const fieldName = field.dataset.field;
-    const fieldValue = field.value;
-    
     // Update save status
     updateSaveStatus('saving');
     
-    // Notice we pass the primitive value, not the field itself
+    // Notice we pass primitive values, not DOM elements
     saveField(characterId, fieldName, fieldValue)
       .then(() => {
-        field.readOnly = true;
         updateSaveStatus('saved');
       })
       .catch(error => {

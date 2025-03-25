@@ -466,11 +466,6 @@ app.delete('/characters/:id', requireAuth, async (req, res) => {
   }
 });
 
-// Add this to block bootstrap-autofill-overlay.js
-app.get('*/bootstrap-autofill-overlay.js', (req, res) => {
-  res.status(404).end(); // Not found response
-});
-
 // Start the server
 async function startServer() {
   await initializeApp();
@@ -479,5 +474,17 @@ async function startServer() {
     console.log(`D&D Character Sheet App running on port ${PORT}`);
   });
 }
+
+// Add this to block bootstrap-autofill-overlay.js
+app.get('*/bootstrap-autofill-overlay.js', (req, res) => {
+  res.status(404).end(); // Not found response
+});
+
+app.use((req, res, next) => {
+  if (req.path.includes('bootstrap-autofill-overlay')) {
+    return res.status(404).end();
+  }
+  next();
+});
 
 startServer();

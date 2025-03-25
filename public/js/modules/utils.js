@@ -15,6 +15,20 @@ export function debounce(func, delay) {
 }
 
 /**
+ * Safe stringify function that handles DOM elements
+ * @param {any} value - Value to stringify
+ * @returns {string} JSON string
+ */
+function safeStringify(value) {
+  return JSON.stringify(value, (key, val) => {
+    if (val instanceof Element || val instanceof Node) {
+      return undefined; // Skip DOM elements
+    }
+    return val;
+  });
+}
+
+/**
  * Save a field value to the server
  * @param {string} characterId - ID of the character
  * @param {string} field - Field to update
@@ -23,19 +37,16 @@ export function debounce(func, delay) {
  */
 export async function saveField(characterId, field, value) {
   try {
-    // Ensure we're only sending a primitive value, not DOM elements
-    let primitiveValue;
+    // Extract primitive value if needed
+    let primitiveValue = value;
     
     // If it's an HTML element, extract its value
-    if (value instanceof HTMLElement) {
+    if (value instanceof Element) {
       if ('value' in value) {
         primitiveValue = value.value;
       } else {
         primitiveValue = value.textContent || '';
       }
-    } else {
-      // Otherwise, use the value as is
-      primitiveValue = value;
     }
     
     // Send request to server
@@ -44,7 +55,7 @@ export async function saveField(characterId, field, value) {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
+      body: safeStringify({
         field: field,
         value: primitiveValue
       })
@@ -90,4 +101,31 @@ export function makeFieldEditable(field) {
     field.readOnly = false;
     field.focus();
   }
+}
+
+/**
+ * Safely get form values
+ * @param {HTMLFormElement} form - Form element
+ * @returns {Object} Form values
+ */
+export function getFormValues(form) {
+  const values = {};
+  
+  Array.from(form.elements).forEach(element => {
+    // Skip buttons and non-input elements
+    if (!element.name || element.type === 'button' || element.type === 'submit') {
+      return;
+    }
+    
+    // Handle checkboxes
+    if (element.type === 'checkbox') {
+      values[element.name] = element.checked;
+    } 
+    // Handle text, number, and other inputs
+    else {
+      values[element.name] = element.value;
+    }
+  });
+  
+  return values;
 }

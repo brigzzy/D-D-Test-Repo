@@ -1,0 +1,112 @@
+/* Skills section styling */
+.skill-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.skill-item:nth-child(odd) {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.skill-item:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.skill-proficient {
+  margin-right: 0.5rem;
+  cursor: pointer;
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.skill-modifier {
+  display: inline-block;
+  width: 2rem;
+  text-align: center;
+  margin-right: 0.5rem;
+  font-weight: bold;
+  background-color: #7b2cbf;
+  color: white;
+  border-radius: 4px;
+  padding: 0.1rem 0.3rem;
+}
+
+.skill-name {
+  flex-grow: 1;
+}
+
+.skill-ability {
+  color: #6c757d;
+  font-size: 0.875rem;
+  margin-left: 0.25rem;
+  font-style: italic;
+}
+
+/* Custom skill styling */
+.custom-skill-name-display {
+  cursor: default;
+  color: inherit;
+  text-decoration: none;
+}
+
+.custom-skill-name-display:hover {
+  text-decoration: none;
+  color: inherit;
+}
+
+.skill-item.editing {
+  background-color: rgba(123, 44, 191, 0.05);
+  border: 1px dashed #7b2cbf;
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.edit-container {
+  display: flex;
+  flex-grow: 1;
+  align-items: center;
+}
+
+.custom-skill-name-edit {
+  flex-grow: 1;
+  width: 150px;
+  padding: 4px;
+  border: 1px solid #7b2cbf;
+  border-radius: 4px;
+  margin-right: 8px;
+}
+
+.custom-skill-ability-edit {
+  width: 60px;
+  padding: 4px;
+  border: 1px solid #7b2cbf;
+  border-radius: 4px;
+}
+
+/* Delete button styling */
+.remove-skill-btn {
+  display: none;
+  width: 24px;
+  height: 24px;
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 18px;
+  line-height: 1;
+  text-align: center;
+  margin-left: 5px;
+  cursor: pointer;
+  outline: none;
+}
+
+.skill-item.editing .remove-skill-btn {
+  display: block;
+}
+
+.remove-skill-btn:hover {
+  background-color: #d32f2f;
+}
