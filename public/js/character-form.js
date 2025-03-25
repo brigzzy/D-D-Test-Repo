@@ -787,3 +787,205 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
+// Add this to your character-form.js file
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize HP and Mana click functionality
+    initHPManaCLickHandlers();
+    
+    function initHPManaCLickHandlers() {
+        const currentHP = document.getElementById('currentHitPoints');
+        const currentMana = document.getElementById('currentMana');
+        
+        // Add click handlers
+        if (currentHP) {
+            currentHP.addEventListener('click', function() {
+                if (this.readOnly) {
+                    createAdjustmentPopup(this, 'HP');
+                }
+            });
+        }
+        
+        if (currentMana) {
+            currentMana.addEventListener('click', function() {
+                if (this.readOnly) {
+                    createAdjustmentPopup(this, 'Mana');
+                }
+            });
+        }
+    }
+    
+    function createAdjustmentPopup(inputElement, type) {
+        // Remove any existing popups
+        removeExistingPopups();
+        
+        // Create popup container
+        const popup = document.createElement('div');
+        popup.className = 'adjustment-popup hp-popup';
+        popup.style.position = 'absolute';
+        popup.style.zIndex = '100';
+        popup.style.background = 'white';
+        popup.style.border = '1px solid #ddd';
+        popup.style.borderRadius = '5px';
+        popup.style.padding = '10px';
+        popup.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+        popup.style.animation = 'fadeIn 0.2s ease-out';
+        
+        // Create popup content
+        popup.innerHTML = `
+            <div style="margin-bottom: 10px;">
+                <label>Amount:</label>
+                <input type="number" id="adjustmentAmount" min="1" value="1" style="width: 60px; margin-left: 5px;">
+            </div>
+            <div style="display: flex; justify-content: space-between; gap: 10px;">
+                <button id="damageBtn" style="background-color: #f44336; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
+                    ${type === 'HP' ? 'Damage' : 'Use'}
+                </button>
+                <button id="healBtn" style="background-color: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
+                    ${type === 'HP' ? 'Heal' : 'Recover'}
+                </button>
+            </div>
+        `;
+        
+        // Position popup near the input
+        const rect = inputElement.getBoundingClientRect();
+        popup.style.top = `${rect.bottom + window.scrollY + 5}px`;
+        popup.style.left = `${rect.left + window.scrollX}px`;
+        
+        // Add popup to document
+        document.body.appendChild(popup);
+        
+        // Focus amount input
+        const amountInput = popup.querySelector('#adjustmentAmount');
+        amountInput.focus();
+        amountInput.select();
+        
+        // Add event listeners to buttons
+        const damageBtn = popup.querySelector('#damageBtn');
+        const healBtn = popup.querySelector('#healBtn');
+        
+        damageBtn.addEventListener('click', function() {
+            adjustValue(inputElement, -1, type.toLowerCase());
+        });
+        
+        healBtn.addEventListener('click', function() {
+            adjustValue(inputElement, 1, type.toLowerCase());
+        });
+        
+        // Close popup when clicking outside
+        document.addEventListener('click', closePopupOnClickOutside);
+        
+        // Close popup when pressing Escape
+        document.addEventListener('keydown', function closeOnEscape(e) {
+            if (e.key === 'Escape') {
+                removeExistingPopups();
+                document.removeEventListener('keydown', closeOnEscape);
+            }
+        });
+        
+        // Prevent clicks inside popup from closing it
+        popup.addEventListener('click', function(e) {
+            e.stopPropagation();
+        });
+    }
+    
+    function adjustValue(inputElement, direction, type) {
+        const amountInput = document.getElementById('adjustmentAmount');
+        if (!amountInput) return;
+        
+        const amount = parseInt(amountInput.value) || 1;
+        const currentValue = parseInt(inputElement.value) || 0;
+        
+        // Get max value
+        let maxValue;
+        if (type === 'hp') {
+            const maxHP = document.getElementById('maxHitPoints');
+            maxValue = maxHP ? parseInt(maxHP.value) || 0 : 0;
+        } else if (type === 'mana') {
+            const maxMana = document.getElementById('maxMana');
+            maxValue = maxMana ? parseInt(maxMana.value) || 0 : 0;
+        }
+        
+        // Calculate new value
+        let newValue = currentValue + (amount * direction);
+        
+        // Enforce min/max limits
+        newValue = Math.max(0, newValue);
+        if (maxValue !== undefined) {
+            newValue = Math.min(newValue, maxValue);
+        }
+        
+        // Update input value
+        inputElement.value = newValue;
+        
+        // Save change to server
+        const fieldName = type === 'hp' ? 'hitPoints.current' : 'mana.current';
+        saveField(fieldName, newValue);
+        
+        // Remove popup
+        removeExistingPopups();
+    }
+    
+    function removeExistingPopups() {
+        const existingPopups = document.querySelectorAll('.adjustment-popup');
+        existingPopups.forEach(popup => {
+            popup.remove();
+        });
+        
+        // Remove global event listeners
+        document.removeEventListener('click', closePopupOnClickOutside);
+    }
+    
+    function closePopupOnClickOutside(e) {
+        const popup = document.querySelector('.adjustment-popup');
+        if (popup && !popup.contains(e.target)) {
+            removeExistingPopups();
+            document.removeEventListener('click', closePopupOnClickOutside);
+        }
+    }
+    
+    // If saveField isn't already defined in your code, uncomment this
+    /*
+    function saveField(fieldName, fieldValue) {
+        // Get character ID from URL
+        const characterId = window.location.pathname.split('/').pop();
+        
+        // Update save status if available
+        const saveStatus = document.getElementById('saveStatus');
+        if (saveStatus) {
+            saveStatus.textContent = 'Saving...';
+            saveStatus.className = 'save-status saving';
+        }
+        
+        fetch(`/characters/${characterId}?_method=PUT`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                field: fieldName,
+                value: fieldValue
+            })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (saveStatus) {
+                saveStatus.textContent = 'All changes saved';
+                saveStatus.className = 'save-status saved';
+            }
+        })
+        .catch(error => {
+            console.error('Error updating field:', error);
+            if (saveStatus) {
+                saveStatus.textContent = 'Error saving changes';
+                saveStatus.className = 'save-status error';
+            }
+        });
+    }
+    */
+});
