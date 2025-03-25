@@ -1,93 +1,155 @@
-// public/js/modules/characterSheet.js
+// public/js/character-sheet.js
+import { HitPointManager } from './modules/hitPoints.js';
+import { ManaManager } from './modules/mana.js';
+import { RestManager } from './modules/rest.js';
 
-import { debounce, saveField, makeFieldEditable, updateSaveStatus } from './utils.js';
-
-// Wait for DOM to be fully loaded
-document.addEventListener('DOMContentLoaded', () => {
+/**
+ * Main character sheet initialization
+ */
+document.addEventListener('DOMContentLoaded', function() {
   initializeCharacterSheet();
 });
 
 /**
- * Initialize the character sheet functionality
+ * Initialize all character sheet functionality
  */
 function initializeCharacterSheet() {
-  // Get character ID from URL
-  const characterId = window.location.pathname.split('/').pop();
+  const characterId = getCharacterId();
   
   // Initialize editable fields
-  initializeEditableFields(characterId);
+  initializeEditableFields();
   
-  // Add additional error handling
-  window.addEventListener('error', function(e) {
-    console.log('Caught global error:', e.message);
-    if (e.message.includes('DataCloneError') || e.message.includes('HTMLInputElement')) {
-      e.preventDefault();
-      console.warn('Prevented DataCloneError from propagating');
-    }
-  });
+  // Set up save field function
+  const saveFieldCallback = (fieldName, fieldValue) => saveField(characterId, fieldName, fieldValue);
+  
+  // Initialize HP, mana, and rest systems
+  HitPointManager.initializeHitPoints(saveFieldCallback);
+  ManaManager.initializeMana(saveFieldCallback);
+  RestManager.initializeRestButtons(saveFieldCallback);
+}
+
+/**
+ * Get character ID from URL
+ * @returns {string} Character ID
+ */
+function getCharacterId() {
+  return window.location.pathname.split('/').pop();
 }
 
 /**
  * Initialize all editable fields
- * @param {string} characterId - Character ID
  */
-function initializeEditableFields(characterId) {
+function initializeEditableFields() {
   const editableFields = document.querySelectorAll('.editable-field');
   
   editableFields.forEach(field => {
     // Make field editable on click
-    field.addEventListener('click', () => {
+    field.addEventListener('click', function() {
       if (field.readOnly) {
         field.readOnly = false;
         field.focus();
       }
     });
     
-    // Save field on blur with direct value extraction
-    field.addEventListener('blur', () => {
-      if (field.classList.contains('autosave')) {
+    // Save field on blur
+    field.addEventListener('blur', function() {
+      if (!field.readOnly) {
         const fieldName = field.dataset.field;
         const fieldValue = field.value;
         
         if (fieldName) {
-          // Use direct values to avoid DOM cloning issues
-          handleFieldSave(fieldName, fieldValue, characterId);
+          saveField(getCharacterId(), fieldName, fieldValue);
+        }
+        
+        field.readOnly = true;
+        
+        // Update ability modifiers if this is an ability score
+        if (field.classList.contains('ability-score')) {
+          updateAbilityModifier(field);
         }
       }
     });
     
-    // Handle Enter key
-    field.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && field.tagName !== 'TEXTAREA') {
-        e.preventDefault();
-        field.blur();
-      }
-    });
+    // Save on Enter key for text inputs (not for textareas)
+    if (field.tagName !== 'TEXTAREA') {
+      field.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault(); // Prevent form submission
+          field.blur();
+        }
+      });
+    }
   });
 }
 
 /**
- * Handle saving a field
+ * Save field to server
+ * @param {string} characterId - Character ID
  * @param {string} fieldName - Field name
  * @param {*} fieldValue - Field value
- * @param {string} characterId - Character ID
  */
-function handleFieldSave(fieldName, fieldValue, characterId) {
-  try {
-    // Update save status
-    updateSaveStatus('saving');
-    
-    // Notice we pass primitive values, not DOM elements
-    saveField(characterId, fieldName, fieldValue)
-      .then(() => {
-        updateSaveStatus('saved');
-      })
-      .catch(error => {
-        console.error('Error saving field:', error);
-        updateSaveStatus('error');
-      });
-  } catch (error) {
-    console.error('Error in handleFieldSave:', error);
+function saveField(characterId, fieldName, fieldValue) {
+  // Update save status
+  updateSaveStatus('saving');
+  
+  fetch(`/characters/${characterId}?_method=PUT`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      field: fieldName,
+      value: fieldValue
+    })
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.json();
+  })
+  .then(data => {
+    updateSaveStatus('saved');
+  })
+  .catch(error => {
+    console.error('Error updating field:', error);
     updateSaveStatus('error');
+  });
+}
+
+/**
+ * Update the ability modifier when ability score changes
+ * @param {HTMLElement} abilityInput - The ability input element
+ */
+function updateAbilityModifier(abilityInput) {
+  const abilityCard = abilityInput.closest('.ability-card');
+  if (!abilityCard) return;
+  
+  const abilityScore = parseInt(abilityInput.value) || 10;
+  const modifier = Math.floor((abilityScore - 10) / 2);
+  
+  const modifierEl = abilityCard.querySelector('.ability-modifier');
+  if (modifierEl) {
+    modifierEl.textContent = `${modifier >= 0 ? '+' : ''}${modifier}`;
+  }
+}
+
+/**
+ * Update save status
+ * @param {string} status - 'saving', 'saved', or 'error'
+ */
+function updateSaveStatus(status) {
+  const saveStatus = document.getElementById('saveStatus');
+  if (!saveStatus) return;
+  
+  if (status === 'saving') {
+    saveStatus.textContent = 'Saving...';
+    saveStatus.className = 'save-status saving';
+  } else if (status === 'saved') {
+    saveStatus.textContent = 'All changes saved';
+    saveStatus.className = 'save-status saved';
+  } else if (status === 'error') {
+    saveStatus.textContent = 'Error saving changes';
+    saveStatus.className = 'save-status error';
   }
 }
