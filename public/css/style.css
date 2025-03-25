@@ -1274,3 +1274,114 @@ select[readonly] {
 
 
 
+/* Add this to your style.css file */
+
+/* Rest Buttons Container */
+.rest-buttons-container {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+/* Make the header a flex container */
+h4#hpManaHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+/* Rest Button Styling */
+.rest-button {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  margin-left: 5px;
+  padding: 0 5px;
+  border-radius: 5px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+}
+
+.short-rest-button {
+  background-color: rgba(63, 81, 181, 0.1);
+}
+
+.long-rest-button {
+  background-color: rgba(123, 44, 191, 0.1);
+}
+
+.rest-button:hover {
+  transform: scale(1.1);
+}
+
+.short-rest-button:hover {
+  background-color: rgba(63, 81, 181, 0.2);
+}
+
+.long-rest-button:hover {
+  background-color: rgba(123, 44, 191, 0.2);
+}
+
+.rest-button:active {
+  transform: scale(0.95);
+}
+
+/* Rest Animation Styles */
+#restAnimationContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  background-color: rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+#restAnimationContainer.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.rest-animation-box {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transform: scale(0.8);
+  transition: transform 0.3s ease;
+}
+
+.animation-text {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.animation-emoji {
+  font-size: 3rem;
+  animation: pulse 1s ease-in-out;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.8); opacity: 0.5; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+

@@ -50,8 +50,8 @@ export async function saveField(characterId, field, value) {
     }
     
     // Send request to server
-    const response = await fetch(`/characters/${characterId}`, {
-      method: 'PUT',
+    const response = await fetch(`/characters/${characterId}?_method=PUT`, {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
