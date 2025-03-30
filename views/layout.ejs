@@ -1,72 +1,84 @@
-<!-- views/layout.ejs -->
+<!-- Simple layout.ejs for dark mode -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light" <% if (typeof currentUser !== 'undefined' && currentUser && currentUser.theme) { %>data-user-theme="<%= currentUser.theme %>"<% } %>>
 <head>
   <link rel="icon" href="data:,">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= typeof title !== 'undefined' ? title + ' - ' : '' %>D&D Character Sheet App</title>
-
+  
+  <!-- Immediate theme application -->
   <script>
-    // Error tracking
-    window.addEventListener('error', function(e) {
-      console.error('CAUGHT ERROR:', e.message, 'at', e.filename, 'line', e.lineno);
-      if (e.message.includes('DataCloneError') || 
-          e.message.includes('HTMLInputElement') || 
-          e.filename.includes('bootstrap-autofill')) {
-        e.preventDefault();
-        
-        // Alert so we can see exactly what's happening
-        console.warn('Prevented problematic error from propagating');
+    (function() {
+      // First try user preference from data attribute
+      let theme = document.documentElement.getAttribute('data-user-theme');
+      
+      // Then check localStorage 
+      if (!theme) {
+        theme = localStorage.getItem('theme');
       }
-    });
-    
-    // Watch all network requests
-    const originalFetch = window.fetch;
-    window.fetch = function() {
-      console.log('Fetch request:', arguments[0]);
-      return originalFetch.apply(this, arguments);
-    };
-    
-    // Track DOM insertions
-    const observer = new MutationObserver(function(mutations) {
-      mutations.forEach(function(mutation) {
-        if (mutation.addedNodes) {
-          mutation.addedNodes.forEach(function(node) {
-            if (node.tagName === 'SCRIPT') {
-              console.log('Script added:', node.src);
-            }
-          });
-        }
-      });
-    });
-    
-    observer.observe(document.documentElement, { 
-      childList: true, 
-      subtree: true 
-    });
+      
+      // Then check system preference
+      if (!theme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        theme = 'dark';
+      }
+      
+      // Default to light if nothing else
+      if (!theme) {
+        theme = 'light';
+      }
+      
+      // Apply theme
+      document.documentElement.setAttribute('data-theme', theme);
+    })();
   </script>
   
-  <!-- Add CSS after the blocking script -->
+  <!-- CSS files -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/skills.css">
   <link rel="stylesheet" href="/css/popups.css">
+  <link rel="stylesheet" href="/css/dark-mode.css">
+  
+  <!-- Theme toggle script -->
+  <script src="/js/themeToggle.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Set logged in state
+      <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+        markUserLoggedIn(true);
+      <% } else { %>
+        markUserLoggedIn(false);
+      <% } %>
+    });
+  </script>
 </head>
 <body>
   <header>
     <div class="container">
       <h1>D&D Character Sheet App</h1>
       <% if (typeof currentUser !== 'undefined' && currentUser) { %>
-        <nav>
-          <ul>
-            <li><a href="/characters">My Characters</a></li>
-            <% if (currentUser.isAdmin) { %>
-              <li><a href="/users">Manage Users</a></li>
-            <% } %>
-            <li><a href="/logout">Logout (<%= currentUser.username %>)</a></li>
-          </ul>
-        </nav>
+        <div class="nav-container">
+          <nav>
+            <ul>
+              <li><a href="/characters">My Characters</a></li>
+              <% if (currentUser.isAdmin) { %>
+                <li><a href="/users">Manage Users</a></li>
+              <% } %>
+              <li><a href="/logout">Logout (<%= currentUser.username %>)</a></li>
+            </ul>
+          </nav>
+          
+          <!-- Theme toggle switch -->
+          <div class="theme-switch-wrapper">
+            <span class="sun"><i class="fas fa-sun"></i></span>
+            <label class="theme-switch" for="theme-toggle">
+              <input type="checkbox" id="theme-toggle" />
+              <span class="slider"></span>
+            </label>
+            <span class="moon"><i class="fas fa-moon"></i></span>
+          </div>
+        </div>
       <% } %>
     </div>
   </header>
@@ -85,4 +97,21 @@
     <%- script %>
   <% } %>
 </body>
+
+<!-- Add this script right before the closing </body> tag in layout.ejs -->
+<script>
+  // Ensure toggle state matches theme state on page load
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+      const themeToggle = document.getElementById('theme-toggle');
+      if (themeToggle) {
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        themeToggle.checked = currentTheme === 'dark';
+        console.log('Fixed toggle state to match theme:', currentTheme);
+      }
+    }, 100); // Short delay to ensure other scripts have run
+  });
+</script>
+
+
 </html>

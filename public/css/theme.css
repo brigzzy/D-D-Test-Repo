@@ -1,0 +1,442 @@
+/* Improved Theme Variables and Styling */
+
+/* Base theme variables (light theme) */
+:root {
+    /* Colors */
+    --primary-color: #7b2cbf;
+    --primary-dark: #5a189a;
+    --secondary-color: #c77dff;
+    --accent-color: #e0aaff;
+    
+    /* Background colors */
+    --bg-color: #f5f5f5;
+    --content-bg-color: #ffffff;
+    --card-bg-color: #f9f9f9;
+    --header-bg-color: #7b2cbf; 
+    --footer-bg-color: #5a189a;
+    
+    /* Text colors */
+    --text-color: #333333;
+    --header-text-color: #ffffff;
+    --footer-text-color: #ffffff;
+    --muted-text-color: #6c757d;
+    
+    /* Form element colors */
+    --input-bg-color: #ffffff;
+    --input-text-color: #333333;
+    --input-border-color: #dddddd;
+    --input-disabled-bg: #f8f9fa;
+    --input-focus-border: #7b2cbf;
+    --input-focus-shadow: rgba(123, 44, 191, 0.25);
+    
+    /* Button colors */
+    --btn-primary-bg: #7b2cbf;
+    --btn-primary-text: #ffffff;
+    --btn-secondary-bg: #6c757d;
+    --btn-secondary-text: #ffffff;
+    --btn-danger-bg: #f44336;
+    --btn-danger-text: #ffffff;
+    
+    /* Component colors */
+    --border-color: #dddddd;
+    --shadow-color: rgba(0, 0, 0, 0.2);
+    --save-status-bg: rgba(0, 0, 0, 0.1);
+    --table-header-bg: #f8f9fa;
+    
+    /* Skill list colors */
+    --skill-odd-bg: rgba(0, 0, 0, 0.03);
+    --skill-hover-bg: rgba(0, 0, 0, 0.06);
+    
+    /* Toggle switch */
+    --toggle-bg: #dddddd;
+    --toggle-slider: #ffffff;
+    --toggle-active-bg: #7b2cbf;
+  }
+  
+  /* Dark Theme Variables */
+  [data-theme="dark"] {
+    /* Colors */
+    --primary-color: #9c27b0;
+    --primary-dark: #3d0d6e;
+    --secondary-color: #e0aaff;
+    --accent-color: #7b2cbf;
+    
+    /* Background colors */
+    --bg-color: #121212;
+    --content-bg-color: #2d2d2d;
+    --card-bg-color: #1e1e1e;
+    --header-bg-color: #5a189a; 
+    --footer-bg-color: #3d0d6e;
+    
+    /* Text colors */
+    --text-color: #e0e0e0;
+    --header-text-color: #ffffff;
+    --footer-text-color: #cccccc;
+    --muted-text-color: #9e9e9e;
+    
+    /* Form element colors */
+    --input-bg-color: #2d2d2d;
+    --input-text-color: #e0e0e0;
+    --input-border-color: #444444;
+    --input-disabled-bg: #1a1a1a;
+    --input-focus-border: #9c27b0;
+    --input-focus-shadow: rgba(156, 39, 176, 0.25);
+    
+    /* Button colors */
+    --btn-primary-bg: #9c27b0;
+    --btn-primary-text: #ffffff;
+    --btn-secondary-bg: #4a4a4a;
+    --btn-secondary-text: #e0e0e0;
+    --btn-danger-bg: #d32f2f;
+    --btn-danger-text: #ffffff;
+    
+    /* Component colors */
+    --border-color: #444444;
+    --shadow-color: rgba(0, 0, 0, 0.5);
+    --save-status-bg: rgba(255, 255, 255, 0.1);
+    --table-header-bg: #1e1e1e;
+    
+    /* Skill list colors */
+    --skill-odd-bg: rgba(255, 255, 255, 0.05);
+    --skill-hover-bg: rgba(255, 255, 255, 0.1);
+    
+    /* Toggle switch */
+    --toggle-bg: #444444;
+    --toggle-slider: #dddddd;
+    --toggle-active-bg: #9c27b0;
+  }
+  
+  /* ==================== Apply variables to all elements ==================== */
+  
+  /* Base elements */
+  body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  main.container {
+    background-color: var(--bg-color);
+  }
+  
+  /* Headers and text */
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--text-color);
+  }
+  
+  header {
+    background-color: var(--header-bg-color);
+    color: var(--header-text-color);
+  }
+  
+  footer {
+    background-color: var(--footer-bg-color);
+    color: var(--footer-text-color);
+  }
+  
+  /* Links */
+  a {
+    color: var(--primary-color);
+  }
+  
+  a:hover {
+    color: var(--primary-dark);
+  }
+  
+  header a, 
+  footer a {
+    color: var(--header-text-color);
+  }
+  
+  /* Container elements */
+  .character-sheet-container,
+  .characters-container,
+  .users-container,
+  .user-form-container,
+  .login-form {
+    background-color: var(--content-bg-color);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 10px var(--shadow-color);
+  }
+  
+  /* Cards and sections */
+  .character-card,
+  .character-header-section,
+  .character-column {
+    background-color: var(--card-bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+  }
+  
+  /* Form elements */
+  input[type="text"],
+  input[type="password"],
+  input[type="number"],
+  select,
+  textarea {
+    background-color: var(--input-bg-color);
+    color: var(--input-text-color);
+    border: 1px solid var(--input-border-color);
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }
+  
+  input[readonly], 
+  textarea[readonly], 
+  select[readonly] {
+    background-color: var(--input-disabled-bg);
+    color: var(--input-text-color);
+    border-color: var(--input-border-color);
+  }
+  
+  input:focus, 
+  textarea:focus, 
+  select:focus {
+    border-color: var(--input-focus-border);
+    box-shadow: 0 0 0 2px var(--input-focus-shadow);
+    background-color: var(--input-bg-color);
+  }
+  
+  input[readonly]:hover, 
+  textarea[readonly]:hover, 
+  select[readonly]:hover {
+    border-color: var(--secondary-color);
+    background-color: var(--input-disabled-bg);
+    cursor: pointer;
+  }
+  
+  /* Buttons */
+  .btn {
+    background-color: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
+    transition: filter 0.3s ease;
+  }
+  
+  .btn:hover {
+    background-color: var(--btn-primary-bg);
+    filter: brightness(0.9);
+  }
+  
+  .btn-secondary {
+    background-color: var(--btn-secondary-bg);
+    color: var(--btn-secondary-text);
+  }
+  
+  .btn-secondary:hover {
+    background-color: var(--btn-secondary-bg);
+    filter: brightness(0.9);
+  }
+  
+  .btn-delete, 
+  .btn-danger {
+    background-color: var(--btn-danger-bg);
+    color: var(--btn-danger-text);
+  }
+  
+  /* Status elements */
+  .save-status {
+    background-color: var(--save-status-bg);
+  }
+  
+  /* Ability and stats sections */
+  .ability-block,
+  .stat-block,
+  .skills-container,
+  .hp-container,
+  .mana-container {
+    background-color: var(--card-bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+  }
+  
+  /* Modifiers and special displays */
+  .ability-modifier,
+  .skill-modifier,
+  .proficiency-display {
+    background-color: var(--primary-color);
+    color: #ffffff;
+    box-shadow: 0 2px 4px var(--shadow-color);
+  }
+  
+  /* Tables */
+  .users-table th {
+    background-color: var(--table-header-bg);
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .users-table td {
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  /* Skill items */
+  .skill-item {
+    border-bottom: 1px solid var(--border-color);
+  }
+  
+  .skill-item:nth-child(odd) {
+    background-color: var(--skill-odd-bg);
+  }
+  
+  .skill-item:hover {
+    background-color: var(--skill-hover-bg);
+  }
+  
+  .skill-ability {
+    color: var(--muted-text-color);
+  }
+  
+  /* Custom skill editing */
+  .skill-item.editing {
+    background-color: rgba(123, 44, 191, 0.1);
+    border: 1px dashed var(--primary-color);
+  }
+  
+  .custom-skill-name-edit,
+  .custom-skill-ability-edit {
+    background-color: var(--input-bg-color);
+    color: var(--input-text-color);
+    border: 1px solid var(--primary-color);
+  }
+  
+  /* Popups */
+  .attribute-popup,
+  .hp-popup,
+  .mana-popup,
+  #hpPopup,
+  #manaPopup {
+    background-color: var(--content-bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 10px var(--shadow-color);
+  }
+  
+  #hpPopup input,
+  #manaPopup input {
+    background-color: var(--input-bg-color);
+    color: var(--input-text-color);
+    border: 1px solid var(--input-border-color);
+  }
+  
+  /* Theme Toggle Switch */
+  .theme-switch-wrapper {
+    display: flex;
+    align-items: center;
+    margin-left: 2rem;
+  }
+  
+  .theme-switch {
+    display: inline-block;
+    height: 24px;
+    position: relative;
+    width: 50px;
+  }
+  
+  .theme-switch input {
+    display: none;
+  }
+  
+  .slider {
+    background-color: var(--toggle-bg);
+    bottom: 0;
+    cursor: pointer;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transition: .4s;
+    border-radius: 34px;
+  }
+  
+  .slider:before {
+    background-color: var(--toggle-slider);
+    bottom: 4px;
+    content: "";
+    height: 16px;
+    left: 4px;
+    position: absolute;
+    transition: .4s;
+    width: 16px;
+    border-radius: 50%;
+  }
+  
+  input:checked + .slider {
+    background-color: var(--toggle-active-bg);
+  }
+  
+  input:checked + .slider:before {
+    transform: translateX(26px);
+  }
+  
+  .theme-switch-wrapper .moon {
+    color: var(--header-text-color);
+    font-size: 14px;
+    margin-left: 10px;
+  }
+  
+  .theme-switch-wrapper .sun {
+    color: var(--header-text-color);
+    font-size: 14px;
+    margin-right: 10px;
+  }
+  
+  /* Fix navigation container for theme toggle */
+  .nav-container {
+    display: flex;
+    align-items: center;
+  }
+  
+  /* Placeholder text color */
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--muted-text-color);
+    opacity: 0.7;
+  }
+  
+  /* Fix autofill background color */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px var(--input-bg-color) inset !important;
+    -webkit-text-fill-color: var(--input-text-color) !important;
+  }
+  
+  /* Fix dropdown menu styling */
+  select option {
+    background-color: var(--input-bg-color);
+    color: var(--input-text-color);
+  }
+  
+  /* Error message */
+  .error-message {
+    background-color: var(--btn-danger-bg);
+    color: white;
+  }
+  
+  /* Mobile-friendly adjustments for the theme toggle */
+  @media (max-width: 768px) {
+    .nav-container {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+    
+    .theme-switch-wrapper {
+      margin-top: 0.5rem;
+      margin-left: 0;
+    }
+    
+    header nav ul {
+      flex-direction: column;
+      align-items: flex-end;
+    }
+    
+    header nav li {
+      margin-left: 0;
+      margin-bottom: 0.5rem;
+    }
+  }
+  
+  /* Ensure transitions are smooth */
+  * {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  }

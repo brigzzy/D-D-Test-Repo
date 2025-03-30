@@ -56,6 +56,15 @@ async function saveUserData(username, userData) {
   }
 }
 
+app.use((req, res, next) => {
+  res.locals.currentUser = req.session.user || null;
+  // If user is logged in, attach theme preference
+  if (req.session.user && req.session.user.theme) {
+    res.locals.userTheme = req.session.user.theme;
+  }
+  next();
+});
+
 module.exports = {
   requireAuth,
   requireAdmin,
