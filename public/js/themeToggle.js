@@ -1,4 +1,4 @@
-// Improved theme toggle script
+// Fixed theme toggle script with correct URL path
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Theme toggle script loaded');
     
@@ -22,31 +22,38 @@ document.addEventListener('DOMContentLoaded', function() {
       // Update toggle state
       themeToggle.checked = themeName === 'dark';
       
-      // Debug the current state
-      console.log('Current data-theme attribute:', document.documentElement.getAttribute('data-theme'));
-      console.log('Toggle checked state:', themeToggle.checked);
-      
       // If logged in, save preference to server
       if (window.userLoggedIn) {
         saveThemePreference(themeName);
       }
     }
     
-    // Function to save theme to server
+    // Function to save theme to server - FIXED URL PATH
     function saveThemePreference(theme) {
-      fetch('/user/preferences', {
+      console.log('Attempting to save theme preference to server:', theme);
+      
+      // Send the request to save the preference
+      fetch('/characters/theme-preference', {  // CORRECTED URL PATH
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          preference: 'theme',
-          value: theme
+          theme: theme  // Simplified payload
         })
       })
-      .then(response => response.json())
-      .then(data => console.log('Theme saved to server', data))
-      .catch(err => console.error('Error saving theme', err));
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Server responded with status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Theme successfully saved to server:', data);
+      })
+      .catch(err => {
+        console.error('Error saving theme to server:', err);
+      });
     }
     
     // Load initial theme
@@ -85,24 +92,6 @@ document.addEventListener('DOMContentLoaded', function() {
       const newTheme = this.checked ? 'dark' : 'light';
       console.log('Toggle changed to:', newTheme);
       setTheme(newTheme);
-    });
-    
-    // Force light mode if toggle is not checked
-    document.addEventListener('click', function(e) {
-      if (e.target === themeToggle || e.target.closest('.theme-switch')) {
-        // Skip this check if we're clicking the toggle itself
-        return;
-      }
-      
-      // Make sure toggle and theme are in sync
-      const currentTheme = document.documentElement.getAttribute('data-theme');
-      if (currentTheme === 'dark' && !themeToggle.checked) {
-        console.log('Fixing inconsistency: theme is dark but toggle is off');
-        themeToggle.checked = true;
-      } else if (currentTheme === 'light' && themeToggle.checked) {
-        console.log('Fixing inconsistency: theme is light but toggle is on');
-        themeToggle.checked = false;
-      }
     });
     
     // Initialize

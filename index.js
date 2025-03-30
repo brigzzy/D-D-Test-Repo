@@ -114,75 +114,6 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// Add this route to index.js
-
-// User Preferences Route
-app.post('/user/preferences', requireAuth, async (req, res) => {
-  try {
-    const { preference, value } = req.body;
-    const username = req.session.user.username;
-    
-    // Only allow certain preferences to be saved
-    if (preference !== 'theme') {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid preference type' 
-      });
-    }
-    
-    // Only allow valid theme values
-    if (preference === 'theme' && !['light', 'dark'].includes(value)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid theme value' 
-      });
-    }
-    
-    // Load current user data
-    const userPath = path.join(__dirname, 'data', 'users', `${username}.yaml`);
-    let userData;
-    
-    try {
-      const fileContent = await fs.readFile(userPath, 'utf8');
-      userData = yaml.load(fileContent);
-    } catch (err) {
-      console.error(`Error loading user data for ${username}:`, err);
-      return res.status(404).json({ 
-        success: false, 
-        message: 'User not found' 
-      });
-    }
-    
-    // Update user data with new preference
-    userData[preference] = value;
-    
-    // Update session data as well
-    req.session.user[preference] = value;
-    
-    // Save updated user data
-    try {
-      await fs.writeFile(userPath, yaml.dump(userData));
-      
-      return res.json({ 
-        success: true, 
-        message: 'Preference saved successfully' 
-      });
-    } catch (err) {
-      console.error(`Error saving user data for ${username}:`, err);
-      return res.status(500).json({ 
-        success: false, 
-        message: 'Error saving user data' 
-      });
-    }
-  } catch (err) {
-    console.error('Error in user preferences route:', err);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Server error' 
-    });
-  }
-});
-
 app.get('/logout', (req, res) => {
   req.session.destroy();
   res.redirect('/login');
@@ -548,26 +479,53 @@ async function startServer() {
   });
 }
 
-// Add this route to index.js to handle user preferences
 
 // User Preferences Route
 app.post('/user/preferences', requireAuth, async (req, res) => {
+  console.log('User preferences route called:', req.body);
+  
   try {
     const { preference, value } = req.body;
     const username = req.session.user.username;
     
+    console.log(`Saving ${preference} preference for user ${username}: ${value}`);
+    
+    // Validate input
+    if (!preference || value === undefined) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Missing required fields' 
+      });
+    }
+    
     // Only allow certain preferences to be saved
-    const allowedPreferences = ['theme'];
-    if (!allowedPreferences.includes(preference)) {
+    if (preference !== 'theme') {
       return res.status(400).json({ 
         success: false, 
         message: 'Invalid preference type' 
       });
     }
     
+    // Only allow valid theme values
+    if (preference === 'theme' && !['light', 'dark'].includes(value)) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid theme value' 
+      });
+    }
+    
     // Load current user data
-    const userData = await loadUserData(username);
-    if (!userData) {
+    const userPath = path.join(__dirname, 'data', 'users', `${username}.yaml`);
+    
+    console.log('Loading user data from:', userPath);
+    
+    let userData;
+    try {
+      const fileContents = await fs.readFile(userPath, 'utf8');
+      userData = yaml.load(fileContents);
+      console.log('Current user data:', userData);
+    } catch (err) {
+      console.error(`Error loading user data for ${username}:`, err);
       return res.status(404).json({ 
         success: false, 
         message: 'User not found' 
@@ -577,21 +535,32 @@ app.post('/user/preferences', requireAuth, async (req, res) => {
     // Update user data with new preference
     userData[preference] = value;
     
-    // Update session data as well (so it's available in templates)
+    // Update session data as well
     req.session.user[preference] = value;
     
-    // Save updated user data
-    await saveUserData(username, userData);
+    console.log('Updated user data:', userData);
     
-    res.json({ 
-      success: true, 
-      message: 'Preference saved successfully' 
-    });
+    // Save updated user data
+    try {
+      await fs.writeFile(userPath, yaml.dump(userData));
+      console.log('User data saved successfully');
+      
+      return res.json({ 
+        success: true, 
+        message: 'Preference saved successfully' 
+      });
+    } catch (err) {
+      console.error(`Error saving user data for ${username}:`, err);
+      return res.status(500).json({ 
+        success: false, 
+        message: 'Error saving user data' 
+      });
+    }
   } catch (err) {
-    console.error('Error saving user preference:', err);
+    console.error('Unexpected error in user preferences route:', err);
     res.status(500).json({ 
       success: false, 
-      message: 'Error saving preference' 
+      message: 'Server error' 
     });
   }
 });
