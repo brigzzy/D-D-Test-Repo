@@ -790,4 +790,405 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
+// public/js/characterSheet.js
 
+document.addEventListener('DOMContentLoaded', function() {
+    // Import all necessary modules
+    Promise.all([
+      import('./modules/hitPoints.js'),
+      import('./modules/mana.js'),
+      import('./modules/skills.js'),
+      import('./modules/abilities.js'),
+      import('./modules/rest.js')
+    ]).then(([hitPointsModule, manaModule, skillsModule, abilitiesModule, restModule]) => {
+      // Extract classes from modules
+      const { HitPointManager } = hitPointsModule;
+      const { ManaManager } = manaModule;
+      const { SkillManager } = skillsModule;
+      const { AbilityManager } = abilitiesModule;
+      const { RestManager } = restModule;
+      
+      // Initialize character sheet with all modules
+      initializeCharacterSheet(HitPointManager, ManaManager, SkillManager, AbilityManager, RestManager);
+    }).catch(error => {
+      console.error('Error loading modules:', error);
+    });
+  });
+  
+  /**
+   * Initialize all character sheet functionality
+   * @param {Class} HitPointManager - Hit Points manager class
+   * @param {Class} ManaManager - Mana manager class
+   * @param {Class} SkillManager - Skills manager class
+   * @param {Class} AbilityManager - Abilities manager class
+   * @param {Class} RestManager - Rest manager class
+   */
+  
+  /**
+   * Initialize all editable fields
+   */
+  function initializeEditableFields() {
+    console.log('Initializing editable fields');
+    const editableFields = document.querySelectorAll('.editable-field');
+    console.log('Found editable fields:', editableFields.length);
+    
+    editableFields.forEach(field => {
+        // Skip HP/Mana fields as they use popups
+        if (field.id === 'currentHitPoints' || field.id === 'currentMana') {
+          return;
+        }
+      // Make field editable on click
+      field.addEventListener('click', function(e) {
+        // Don't make HP/Mana fields editable on click as they use popups
+        
+        if (field.readOnly) {
+          field.readOnly = false;
+          field.focus();
+        }
+      });
+      
+      // Save field on blur
+      field.addEventListener('blur', function() {
+        if (!field.readOnly) {
+          const fieldName = field.dataset.field;
+          const fieldValue = field.value;
+          
+          if (fieldName) {
+            saveField(getCharacterId(), fieldName, fieldValue);
+          }
+          
+          field.readOnly = true;
+          
+          // Update ability modifiers if this is an ability score
+          if (field.classList.contains('ability-score')) {
+            updateAbilityModifier(field);
+          }
+        }
+      });
+      
+      // Save on Enter key for text inputs (not for textareas)
+      if (field.tagName !== 'TEXTAREA') {
+        field.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault(); // Prevent form submission
+            field.blur();
+          }
+        });
+      }
+    });
+  }
+  
+  /**
+   * Save field to server
+   * @param {string} characterId - Character ID
+   * @param {string} fieldName - Field name
+   * @param {*} fieldValue - Field value
+   */
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Character sheet script loaded');
+    
+    // First check if our fields exist
+    const currentHPInput = document.getElementById('currentHitPoints');
+    const currentManaInput = document.getElementById('currentMana');
+    
+    console.log('Current HP field exists:', !!currentHPInput);
+    console.log('Current Mana field exists:', !!currentManaInput);
+    
+    // Add direct click handlers first as a fallback
+    if (currentHPInput) {
+      console.log('Adding direct click handler to HP field');
+      currentHPInput.addEventListener('click', function(e) {
+        console.log('HP field clicked directly!');
+        if (e.target.readOnly) {
+          showSimpleHPPopup(e.target);
+        }
+      });
+    }
+    
+    if (currentManaInput) {
+      console.log('Adding direct click handler to Mana field');
+      currentManaInput.addEventListener('click', function(e) {
+        console.log('Mana field clicked directly!');
+        if (e.target.readOnly) {
+          showSimpleManaPopup(e.target);
+        }
+      });
+    }
+  
+    // Try to import modules
+    console.log('Attempting to import modules...');
+    
+    Promise.all([
+      import('./modules/hitPoints.js').catch(err => {
+        console.error('Failed to import hitPoints.js:', err);
+        return { HitPointManager: null };
+      }),
+      import('./modules/mana.js').catch(err => {
+        console.error('Failed to import mana.js:', err);
+        return { ManaManager: null };
+      })
+    ]).then(([hitPointsModule, manaModule]) => {
+      console.log('Modules imported?', {
+        hitPointsModule: !!hitPointsModule,
+        hitPointManager: !!hitPointsModule.HitPointManager,
+        manaModule: !!manaModule,
+        manaManager: !!manaModule.ManaManager
+      });
+      
+      // Extract classes from modules
+      const HitPointManager = hitPointsModule.HitPointManager;
+      const ManaManager = manaModule.ManaManager;
+      
+      // Initialize character sheet with modules if available
+      if (HitPointManager && ManaManager) {
+        console.log('Initializing with module classes');
+        initializeCharacterSheet(HitPointManager, ManaManager);
+      } else {
+        console.log('Using simple initialization due to missing modules');
+        initializeEditableFields();
+      }
+    }).catch(error => {
+      console.error('Error in module loading process:', error);
+      console.log('Falling back to simple initialization');
+      initializeEditableFields();
+    });
+  });
+  
+  /**
+   * Simple HP popup for debugging
+   */
+  function showSimpleHPPopup(currentHPInput) {
+    console.log('Showing simple HP popup');
+    
+    // Create popup container
+    let popup = document.createElement('div');
+    popup.id = 'hpPopup';
+    popup.style = `
+      position: absolute;
+      z-index: 1000;
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      padding: 15px;
+      min-width: 250px;
+    `;
+    
+    // Position popup near the input
+    const rect = currentHPInput.getBoundingClientRect();
+    popup.style.top = (rect.bottom + window.scrollY + 5) + 'px';
+    popup.style.left = (rect.left + window.scrollX) + 'px';
+    
+    // Create popup content
+    popup.innerHTML = `
+      <h3 style="margin-top: 0; margin-bottom: 10px;">Debug HP Popup</h3>
+      <div style="margin-bottom: 15px;">
+        <p>Current value: ${currentHPInput.value}</p>
+      </div>
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; margin-bottom: 5px;">Amount:</label>
+        <input type="number" id="debugAmount" value="1" min="0" style="width: 100%; padding: 5px;">
+      </div>
+      <div style="display: flex; justify-content: space-between;">
+        <button id="debugDamageBtn" style="background-color: #f44336; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Damage</button>
+        <button id="debugHealBtn" style="background-color: #4caf50; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Heal</button>
+        <button id="debugCloseBtn" style="background-color: #ccc; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Close</button>
+      </div>
+    `;
+    
+    // Add popup to body
+    document.body.appendChild(popup);
+    
+    // Add simple button handlers
+    document.getElementById('debugDamageBtn').addEventListener('click', () => {
+      const amount = parseInt(document.getElementById('debugAmount').value) || 0;
+      const current = parseInt(currentHPInput.value) || 0;
+      currentHPInput.value = Math.max(0, current - amount);
+      popup.remove();
+      console.log('HP damaged, new value:', currentHPInput.value);
+    });
+    
+    document.getElementById('debugHealBtn').addEventListener('click', () => {
+      const amount = parseInt(document.getElementById('debugAmount').value) || 0;
+      const current = parseInt(currentHPInput.value) || 0;
+      currentHPInput.value = current + amount;
+      popup.remove();
+      console.log('HP healed, new value:', currentHPInput.value);
+    });
+    
+    document.getElementById('debugCloseBtn').addEventListener('click', () => {
+      popup.remove();
+    });
+  }
+  
+  /**
+   * Simple Mana popup for debugging
+   */
+  function showSimpleManaPopup(currentManaInput) {
+    console.log('Showing simple Mana popup');
+    
+    // Create popup container
+    let popup = document.createElement('div');
+    popup.id = 'manaPopup';
+    popup.style = `
+      position: absolute;
+      z-index: 1000;
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      padding: 15px;
+      min-width: 250px;
+    `;
+    
+    // Position popup near the input
+    const rect = currentManaInput.getBoundingClientRect();
+    popup.style.top = (rect.bottom + window.scrollY + 5) + 'px';
+    popup.style.left = (rect.left + window.scrollX) + 'px';
+    
+    // Create popup content
+    popup.innerHTML = `
+      <h3 style="margin-top: 0; margin-bottom: 10px;">Debug Mana Popup</h3>
+      <div style="margin-bottom: 15px;">
+        <p>Current value: ${currentManaInput.value}</p>
+      </div>
+      <div style="margin-bottom: 15px;">
+        <label style="display: block; margin-bottom: 5px;">Amount:</label>
+        <input type="number" id="debugManaAmount" value="1" min="0" style="width: 100%; padding: 5px;">
+      </div>
+      <div style="display: flex; justify-content: space-between;">
+        <button id="debugSpendBtn" style="background-color: #3f51b5; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Spend</button>
+        <button id="debugRestoreBtn" style="background-color: #9c27b0; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Restore</button>
+        <button id="debugManaCloseBtn" style="background-color: #ccc; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Close</button>
+      </div>
+    `;
+    
+    // Add popup to body
+    document.body.appendChild(popup);
+    
+    // Add simple button handlers
+    document.getElementById('debugSpendBtn').addEventListener('click', () => {
+      const amount = parseInt(document.getElementById('debugManaAmount').value) || 0;
+      const current = parseInt(currentManaInput.value) || 0;
+      currentManaInput.value = Math.max(0, current - amount);
+      popup.remove();
+      console.log('Mana spent, new value:', currentManaInput.value);
+    });
+    
+    document.getElementById('debugRestoreBtn').addEventListener('click', () => {
+      const amount = parseInt(document.getElementById('debugManaAmount').value) || 0;
+      const current = parseInt(currentManaInput.value) || 0;
+      currentManaInput.value = current + amount;
+      popup.remove();
+      console.log('Mana restored, new value:', currentManaInput.value);
+    });
+    
+    document.getElementById('debugManaCloseBtn').addEventListener('click', () => {
+      popup.remove();
+    });
+  }
+  
+  /**
+   * Initialize character sheet with modules
+   */
+  function initializeCharacterSheet(HitPointManager, ManaManager) {
+    console.log('Initializing character sheet with modules');
+    const characterId = getCharacterId();
+    
+    // Initialize editable fields
+    initializeEditableFields();
+    
+    // Set up save field function
+    const saveFieldCallback = (fieldName, fieldValue) => saveField(characterId, fieldName, fieldValue);
+    
+    // Initialize HP and Mana
+    try {
+      console.log('Initializing HP manager');
+      HitPointManager.initializeHitPoints(saveFieldCallback);
+      
+      console.log('Initializing Mana manager');
+      ManaManager.initializeMana(saveFieldCallback);
+    } catch (error) {
+      console.error('Error initializing HP/Mana:', error);
+    }
+  }
+  
+  /**
+   * Get character ID from URL
+   */
+  function getCharacterId() {
+    const id = window.location.pathname.split('/').pop();
+    console.log('Character ID:', id);
+    return id;
+  }
+  
+  /**
+   * Save field to server
+   */
+  function saveField(characterId, fieldName, fieldValue) {
+    console.log('Saving field:', fieldName, fieldValue);
+    
+    // Update save status
+    updateSaveStatus('saving');
+    
+    fetch(`/characters/${characterId}?_method=PUT`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        field: fieldName,
+        value: fieldValue
+      })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Field saved successfully');
+      updateSaveStatus('saved');
+    })
+    .catch(error => {
+      console.error('Error saving field:', error);
+      updateSaveStatus('error');
+    });
+  }
+  
+  /**
+   * Update the ability modifier when ability score changes
+   */
+  function updateAbilityModifier(abilityInput) {
+    const abilityCard = abilityInput.closest('.ability-card');
+    if (!abilityCard) return;
+    
+    const abilityScore = parseInt(abilityInput.value) || 10;
+    const modifier = Math.floor((abilityScore - 10) / 2);
+    
+    const modifierEl = abilityCard.querySelector('.ability-modifier');
+    if (modifierEl) {
+      modifierEl.textContent = `${modifier >= 0 ? '+' : ''}${modifier}`;
+    }
+  }
+  
+  /**
+   * Update save status
+   */
+  function updateSaveStatus(status) {
+    const saveStatus = document.getElementById('saveStatus');
+    if (!saveStatus) return;
+    
+    if (status === 'saving') {
+      saveStatus.textContent = 'Saving...';
+      saveStatus.className = 'save-status saving';
+    } else if (status === 'saved') {
+      saveStatus.textContent = 'All changes saved';
+      saveStatus.className = 'save-status saved';
+    } else if (status === 'error') {
+      saveStatus.textContent = 'Error saving changes';
+      saveStatus.className = 'save-status error';
+    }
+  }
