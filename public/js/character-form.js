@@ -782,3 +782,291 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, setting up HP/Mana clicks');
+    
+    const currentHP = document.getElementById('currentHitPoints');
+    const currentMana = document.getElementById('currentMana');
+    
+    if (currentHP) {
+      console.log('Found HP field, adding click handler');
+      currentHP.addEventListener('click', function(e) {
+        console.log('HP field clicked');
+        // Your popup code
+      });
+    } else {
+      console.log('Could not find HP field');
+    }
+    
+    if (currentMana) {
+      console.log('Found Mana field, adding click handler');
+      currentMana.addEventListener('click', function(e) {
+        console.log('Mana field clicked');
+        // Your popup code
+      });
+    } else {
+      console.log('Could not find Mana field');
+    }
+  });
+
+
+
+  function createSimplePopup(inputElement, type) {
+    // Remove any existing popups
+    const existingPopups = document.querySelectorAll('.adjustment-popup');
+    existingPopups.forEach(popup => popup.remove());
+    
+    // Create a simple popup
+    const popup = document.createElement('div');
+    popup.className = 'adjustment-popup';
+    popup.style.position = 'absolute';
+    popup.style.zIndex = '100';
+    popup.style.backgroundColor = 'white';
+    popup.style.border = '1px solid #ddd';
+    popup.style.borderRadius = '5px';
+    popup.style.padding = '10px';
+    popup.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+    
+    // Simple content
+    popup.innerHTML = `
+      <div>Adjust ${type} value:</div>
+      <div style="margin-top: 10px;">
+        <button id="decreaseBtn">Decrease</button>
+        <button id="increaseBtn">Increase</button>
+      </div>
+    `;
+    
+    // Position popup near the input
+    const rect = inputElement.getBoundingClientRect();
+    popup.style.top = `${rect.bottom + window.scrollY + 5}px`;
+    popup.style.left = `${rect.left + window.scrollX}px`;
+    
+    // Add popup to document
+    document.body.appendChild(popup);
+    
+    // Add button click handlers
+    const decreaseBtn = popup.querySelector('#decreaseBtn');
+    const increaseBtn = popup.querySelector('#increaseBtn');
+    
+    decreaseBtn.addEventListener('click', () => {
+      inputElement.value = Math.max(0, parseInt(inputElement.value) - 10);
+      popup.remove();
+    });
+    
+    increaseBtn.addEventListener('click', () => {
+      inputElement.value = parseInt(inputElement.value) + 10;
+      popup.remove();
+    });
+    
+    // Close popup when clicking outside
+    document.addEventListener('click', function closePopup(e) {
+      if (!popup.contains(e.target) && e.target !== inputElement) {
+        popup.remove();
+        document.removeEventListener('click', closePopup);
+      }
+    });
+  }
+  
+  // Add this to your click handlers
+  currentHP.addEventListener('click', function(e) {
+    console.log('HP field clicked');
+    if (this.readOnly) {
+      e.preventDefault();
+      e.stopPropagation();
+      createSimplePopup(this, 'HP');
+    }
+  });
+  
+  currentMana.addEventListener('click', function(e) {
+    console.log('Mana field clicked');
+    if (this.readOnly) {
+      e.preventDefault();
+      e.stopPropagation();
+      createSimplePopup(this, 'Mana');
+    }
+  });
+
+
+
+
+
+// Add this to your character-form.js file (replace the previous code)
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, setting up HP/Mana clicks');
+    
+    // Define these variables in the right scope
+    const currentHP = document.getElementById('currentHitPoints');
+    const currentMana = document.getElementById('currentMana');
+    
+    if (currentHP) {
+      console.log('Found HP field, adding click handler');
+      currentHP.addEventListener('click', function(e) {
+        console.log('HP field clicked');
+        if (this.readOnly) {
+          e.preventDefault();
+          e.stopPropagation();
+          showAdjustmentPopup(this, 'HP');
+        }
+      });
+    } else {
+      console.log('Could not find HP field');
+    }
+    
+    if (currentMana) {
+      console.log('Found Mana field, adding click handler');
+      currentMana.addEventListener('click', function(e) {
+        console.log('Mana field clicked');
+        if (this.readOnly) {
+          e.preventDefault();
+          e.stopPropagation();
+          showAdjustmentPopup(this, 'Mana');
+        }
+      });
+    } else {
+      console.log('Could not find Mana field');
+    }
+    
+    function showAdjustmentPopup(inputElement, type) {
+      // Remove any existing popups
+      removeExistingPopups();
+      
+      // Create popup
+      const popup = document.createElement('div');
+      popup.className = 'adjustment-popup';
+      popup.style.position = 'absolute';
+      popup.style.zIndex = '9999';
+      popup.style.backgroundColor = 'white';
+      popup.style.border = '1px solid #ddd';
+      popup.style.borderRadius = '5px';
+      popup.style.padding = '10px';
+      popup.style.boxShadow = '0 2px 10px rgba(0,0,0,0.2)';
+      
+      // Add content
+      popup.innerHTML = `
+        <div style="margin-bottom: 10px;">
+          <label>Amount: </label>
+          <input type="number" id="adjustmentAmount" min="1" value="5" style="width: 60px;">
+        </div>
+        <div style="display: flex; justify-content: space-between; gap: 10px;">
+          <button id="damageBtn" style="background-color: #f44336; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
+            ${type === 'HP' ? 'Damage' : 'Use'}
+          </button>
+          <button id="healBtn" style="background-color: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
+            ${type === 'HP' ? 'Heal' : 'Recover'}
+          </button>
+        </div>
+      `;
+      
+      // Position popup
+      const rect = inputElement.getBoundingClientRect();
+      popup.style.top = `${rect.bottom + window.scrollY + 5}px`;
+      popup.style.left = `${rect.left + window.scrollX}px`;
+      
+      // Add to document
+      document.body.appendChild(popup);
+      
+      // Set up button handlers
+      const damageBtn = popup.querySelector('#damageBtn');
+      const healBtn = popup.querySelector('#healBtn');
+      const amountInput = popup.querySelector('#adjustmentAmount');
+      
+      // Focus amount input
+      if (amountInput) {
+        setTimeout(() => {
+          amountInput.focus();
+          amountInput.select();
+        }, 10);
+      }
+      
+      if (damageBtn) {
+        damageBtn.addEventListener('click', () => {
+          adjustValue(inputElement, -1, type);
+        });
+      }
+      
+      if (healBtn) {
+        healBtn.addEventListener('click', () => {
+          adjustValue(inputElement, 1, type);
+        });
+      }
+      
+      // Close when clicking outside
+      document.addEventListener('click', function closePopup(e) {
+        if (!popup.contains(e.target) && e.target !== inputElement) {
+          removeExistingPopups();
+          document.removeEventListener('click', closePopup);
+        }
+      });
+      
+      // Close on Escape key
+      document.addEventListener('keydown', function handleEscape(e) {
+        if (e.key === 'Escape') {
+          removeExistingPopups();
+          document.removeEventListener('keydown', handleEscape);
+        }
+      });
+    }
+    
+    function adjustValue(inputElement, direction, type) {
+      const amountInput = document.getElementById('adjustmentAmount');
+      if (!amountInput) return;
+      
+      const amount = parseInt(amountInput.value) || 1;
+      const currentValue = parseInt(inputElement.value) || 0;
+      
+      // Get max value
+      let maxValue;
+      if (type === 'HP') {
+        const maxHP = document.getElementById('maxHitPoints');
+        maxValue = maxHP ? parseInt(maxHP.value) || 0 : 0;
+      } else if (type === 'Mana') {
+        const maxMana = document.getElementById('maxMana');
+        maxValue = maxMana ? parseInt(maxMana.value) || 0 : 0;
+      }
+      
+      // Calculate new value
+      let newValue = currentValue + (amount * direction);
+      
+      // Enforce min/max limits
+      newValue = Math.max(0, newValue);
+      if (maxValue !== undefined) {
+        newValue = Math.min(newValue, maxValue);
+      }
+      
+      // Update input value
+      inputElement.value = newValue;
+      
+      // Save change to server
+      const characterId = window.location.pathname.split('/').pop();
+      const fieldName = type === 'HP' ? 'hitPoints.current' : 'mana.current';
+      
+      fetch(`/characters/${characterId}?_method=PUT`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          field: fieldName,
+          value: newValue
+        })
+      })
+      .then(response => response.json())
+      .catch(error => {
+        console.error('Error saving:', error);
+      });
+      
+      // Remove popup
+      removeExistingPopups();
+    }
+    
+    function removeExistingPopups() {
+      const existingPopups = document.querySelectorAll('.adjustment-popup');
+      existingPopups.forEach(popup => popup.remove());
+    }
+  });
+
+
+
+
+  

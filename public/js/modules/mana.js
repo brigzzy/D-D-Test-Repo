@@ -1,5 +1,4 @@
 // public/js/modules/mana.js
-import { HitPointManager } from './hitPoints.js';
 
 /**
  * Manages mana-related functionality for character sheet
@@ -78,13 +77,31 @@ export class ManaManager {
     const currentMana = document.getElementById('currentMana');
     
     if (currentMana) {
-      currentMana.addEventListener('click', (e) => {
+      // Make sure the current Mana field appears clickable
+      currentMana.style.cursor = 'pointer';
+      
+      // Remove any existing click handlers to prevent duplicates
+      currentMana.removeEventListener('click', this._clickHandler);
+      
+      // Create a new click handler function bound to this instance
+      this._clickHandler = (e) => {
+        // Only show popup if the field is readonly (not already being edited)
         if (currentMana.readOnly) {
           e.preventDefault();
           e.stopPropagation();
-          HitPointManager.createAdjustmentPopup(currentMana, 'Mana', saveFieldCallback);
+          
+          // Import HitPointManager dynamically to avoid circular dependencies
+          import('./hitPoints.js').then(module => {
+            const HitPointManager = module.HitPointManager;
+            HitPointManager.createAdjustmentPopup(currentMana, 'Mana', saveFieldCallback);
+          }).catch(err => {
+            console.error('Error importing HitPointManager:', err);
+          });
         }
-      });
+      };
+      
+      // Add the click event listener
+      currentMana.addEventListener('click', this._clickHandler);
     }
   }
   

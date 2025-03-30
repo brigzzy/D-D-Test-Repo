@@ -132,6 +132,29 @@ To add new character attributes:
 3. Include any necessary calculations in the client-side JavaScript
 4. Add appropriate styling in style.css
 
+### Adding New Permanent Skills
+
+To add new permanent skills to the character sheet template:
+
+1. Locate the default character template in `index.js`, specifically in the `/characters/new` route handler
+2. Find the `skills` array in the character template (around line 245)
+3. Add your new skill to the array following this format:
+   ```javascript
+   { name: 'Your New Skill', ability: 'ability_name', proficient: false }
+   ```
+   where `ability_name` is one of: `strength`, `dexterity`, `constitution`, `intelligence`, `wisdom`, or `charisma`
+
+Example of adding a "Linguistics" skill:
+```javascript
+skills: [
+  { name: 'Acrobatics', ability: 'dexterity', proficient: false },
+  // ... existing skills ...
+  { name: 'Linguistics', ability: 'intelligence', proficient: false },
+  { name: 'Sleight of Hand', ability: 'dexterity', proficient: false },
+  // ... more existing skills ...
+]
+```
+
 ### Implementing New Features
 
 Common extension points:

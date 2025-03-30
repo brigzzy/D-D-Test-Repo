@@ -1,5 +1,4 @@
 // public/js/modules/rest.js
-import { ManaManager } from './mana.js';
 
 /**
  * Manages short and long rest mechanics
@@ -154,7 +153,13 @@ export class RestManager {
     }
     
     // Mana recovery (50% of max)
-    ManaManager.handleManaRecovery('short', saveFieldCallback);
+    // Use dynamic import to avoid circular dependencies
+    import('./mana.js').then(module => {
+      const ManaManager = module.ManaManager;
+      ManaManager.handleManaRecovery('short', saveFieldCallback);
+    }).catch(err => {
+      console.error('Error importing ManaManager:', err);
+    });
   }
   
   /**
@@ -176,7 +181,13 @@ export class RestManager {
     }
     
     // Full mana recovery
-    ManaManager.handleManaRecovery('long', saveFieldCallback);
+    // Use dynamic import to avoid circular dependencies
+    import('./mana.js').then(module => {
+      const ManaManager = module.ManaManager;
+      ManaManager.handleManaRecovery('long', saveFieldCallback);
+    }).catch(err => {
+      console.error('Error importing ManaManager:', err);
+    });
   }
   
   /**
@@ -217,4 +228,4 @@ export class RestManager {
       }, 300);
     }, 1500);
   }
-}
+} 

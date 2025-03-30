@@ -14,14 +14,24 @@ export class HitPointManager {
     
     if (!currentHP || !maxHP) return;
 
-    // Add click handler to current HP field
-    currentHP.addEventListener('click', (e) => {
+    // Make sure the current HP field appears clickable
+    currentHP.style.cursor = 'pointer';
+    
+    // Remove any existing click handlers to prevent duplicates
+    currentHP.removeEventListener('click', this._clickHandler);
+    
+    // Create a new click handler function bound to this class
+    this._clickHandler = (e) => {
+      // Only show popup if the field is readonly (not already being edited)
       if (currentHP.readOnly) {
         e.preventDefault();
         e.stopPropagation();
         this.createAdjustmentPopup(currentHP, 'HP', saveFieldCallback);
       }
-    });
+    };
+    
+    // Add the click event listener
+    currentHP.addEventListener('click', this._clickHandler);
   }
 
   /**
@@ -93,7 +103,7 @@ export class HitPointManager {
     }
     
     // Close popup when clicking outside
-    document.addEventListener('click', this.closePopupOnClickOutside.bind(this));
+    document.addEventListener('click', this.closePopupOnClickOutside);
     
     // Prevent clicks inside popup from closing it
     popup.addEventListener('click', (e) => {
@@ -156,6 +166,17 @@ export class HitPointManager {
   }
 
   /**
+   * Close popup when clicking outside
+   * @param {Event} e - Click event
+   */
+  static closePopupOnClickOutside(e) {
+    const popup = document.querySelector('.adjustment-popup');
+    if (popup && !popup.contains(e.target) && !e.target.matches('#currentHitPoints, #currentMana')) {
+      HitPointManager.removeExistingPopups();
+    }
+  }
+
+  /**
    * Remove any existing adjustment popups
    */
   static removeExistingPopups() {
@@ -166,16 +187,5 @@ export class HitPointManager {
     
     // Remove global event listeners
     document.removeEventListener('click', this.closePopupOnClickOutside);
-  }
-
-  /**
-   * Close popup when clicking outside
-   * @param {Event} e - Click event
-   */
-  static closePopupOnClickOutside(e) {
-    const popup = document.querySelector('.adjustment-popup');
-    if (popup && !popup.contains(e.target) && !e.target.matches('#currentHitPoints, #currentMana')) {
-      this.removeExistingPopups();
-    }
   }
 }

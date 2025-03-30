@@ -1,19 +1,33 @@
-// public/js/character-sheet.js
-import { HitPointManager } from './modules/hitPoints.js';
-import { ManaManager } from './modules/mana.js';
-import { RestManager } from './modules/rest.js';
-
 /**
  * Main character sheet initialization
+ * This file initializes all character sheet functionality
  */
 document.addEventListener('DOMContentLoaded', function() {
-  initializeCharacterSheet();
+  // Import all necessary modules
+  Promise.all([
+    import('./modules/hitPoints.js'),
+    import('./modules/mana.js'),
+    import('./modules/rest.js')
+  ]).then(([hitPointsModule, manaModule, restModule]) => {
+    // Extract classes from modules
+    const { HitPointManager } = hitPointsModule;
+    const { ManaManager } = manaModule;
+    const { RestManager } = restModule;
+    
+    // Initialize character sheet with all modules
+    initializeCharacterSheet(HitPointManager, ManaManager, RestManager);
+  }).catch(error => {
+    console.error('Error loading modules:', error);
+  });
 });
 
 /**
  * Initialize all character sheet functionality
+ * @param {Class} HitPointManager - Hit Points manager class
+ * @param {Class} ManaManager - Mana manager class
+ * @param {Class} RestManager - Rest manager class
  */
-function initializeCharacterSheet() {
+function initializeCharacterSheet(HitPointManager, ManaManager, RestManager) {
   const characterId = getCharacterId();
   
   // Initialize editable fields
@@ -44,7 +58,12 @@ function initializeEditableFields() {
   
   editableFields.forEach(field => {
     // Make field editable on click
-    field.addEventListener('click', function() {
+    field.addEventListener('click', function(e) {
+      // Don't make HP/Mana fields editable on click as they use popups
+      if ((field.id === 'currentHitPoints' || field.id === 'currentMana') && field.readOnly) {
+        return; // Let the popup handler handle this
+      }
+      
       if (field.readOnly) {
         field.readOnly = false;
         field.focus();

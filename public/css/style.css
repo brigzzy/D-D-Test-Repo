@@ -1445,3 +1445,61 @@ h4#hpManaHeader {
 }
 
 
+
+
+
+/* Add this to your style.css file */
+
+/* HP/Mana Popup styling */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.adjustment-popup {
+  position: absolute;
+  z-index: 100;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Make current HP and mana appear clickable */
+#currentHitPoints, #currentMana {
+  cursor: pointer !important;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+#currentHitPoints:hover, #currentMana:hover {
+  border-color: var(--secondary-color);
+  background-color: #f0f0f0;
+}
+
+/* Style adjustment buttons */
+.adjustment-popup button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.adjustment-popup button:hover {
+  opacity: 0.9;
+}
+
+#damageBtn {
+  background-color: #f44336;
+  color: white;
+}
+
+#healBtn {
+  background-color: #4CAF50;
+  color: white;
+}
+
