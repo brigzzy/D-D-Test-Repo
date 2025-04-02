@@ -1,48 +1,100 @@
 // character-form.js
+// Add this to the top of your existing DOMContentLoaded event listener in characterSheet.js
 document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('characterForm');
-    if (!form) return;
-    
-    const characterId = window.location.pathname.split('/').pop();
-    
-    // Initialize all fields
-    const editableFields = document.querySelectorAll('.editable-field');
-    
-    // Make fields editable on click
-    editableFields.forEach(field => {
-        field.addEventListener('click', function() {
-            if (field.readOnly) {
-                field.readOnly = false;
-                field.focus();
-            }
-        });
-        
-        field.addEventListener('blur', function() {
-            if (!field.readOnly) {
-                saveField(field.dataset.field, field.value);
-                field.readOnly = true;
-                
-                // Update ability modifiers if this is an ability score
-                if (field.classList.contains('ability-score')) {
-                    updateAbilityModifier(field);
-                    updateSkillModifiers(); // Update skills that depend on this ability
-                }
-            }
-        });
-        
-        // Save on Enter key for text inputs (not for textareas)
-        if (field.tagName !== 'TEXTAREA') {
-            field.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault(); // Prevent form submission
-                    field.blur();
-                }
-            });
-        }
-    });
-    
-    // Initialize skills
-    initializeSkills();
+  const form = document.getElementById('characterForm');
+  if (!form) return;
+  
+  const characterId = window.location.pathname.split('/').pop();
+  
+  // Initialize all fields
+  const editableFields = document.querySelectorAll('.editable-field');
+  
+  // Track original values to detect changes
+  const originalValues = new Map();
+  
+  // Make fields editable on click
+  editableFields.forEach(field => {
+      // Store original value for change detection
+      originalValues.set(field, field.value);
+      
+      field.addEventListener('click', function() {
+          if (field.readOnly) {
+              makeFieldEditable(field);
+          }
+      });
+      
+      field.addEventListener('blur', function() {
+          if (!field.readOnly) {
+              const hasChanged = field.value !== originalValues.get(field);
+              
+              // Only save if the value has changed
+              if (hasChanged) {
+                  saveField(field.dataset.field, field.value);
+                  // Update the original value after saving
+                  originalValues.set(field, field.value);
+              }
+              
+              field.readOnly = true;
+              
+              // Update ability modifiers if this is an ability score
+              if (field.classList.contains('ability-score') && hasChanged) {
+                  updateAbilityModifier(field);
+                  updateSkillModifiers(); // Update skills that depend on this ability
+              }
+          }
+      });
+      
+      // Save on Enter key for text inputs (not for textareas)
+      if (field.tagName !== 'TEXTAREA') {
+          field.addEventListener('keydown', function(e) {
+              if (e.key === 'Enter') {
+                  e.preventDefault(); // Prevent form submission
+                  field.blur();
+              }
+          });
+      }
+  
+  // Add tab navigation functionality
+  document.addEventListener('keydown', function(e) {
+      // Only handle tab key and only within the character form
+      if (e.key === 'Tab' && form.contains(e.target)) {
+          // Check if the current element is an editable field
+          if (e.target.classList.contains('editable-field')) {
+              // Let the normal tab behavior move focus, but capture the next element
+              setTimeout(() => {
+                  const nextField = document.activeElement;
+                  
+                  // If the next field is an editable field, make it editable
+                  if (nextField && nextField.classList.contains('editable-field') && 
+                      nextField !== e.target && nextField.readOnly) {
+                      makeFieldEditable(nextField);
+                  }
+              }, 0);
+          }
+      }
+  });
+  
+  // Function to make a field editable
+  function makeFieldEditable(field) {
+      // Skip HP/Mana fields as they use popups
+      if (field.id === 'currentHitPoints' || field.id === 'currentMana') {
+          return;
+      }
+      
+      field.readOnly = false;
+      field.focus();
+      
+      // For text inputs, select all text for easy replacement
+      if (field.type === 'text' || field.type === 'number') {
+          field.select();
+      }
+  }
+  
+  // Initialize skills
+  initializeSkills();
+  
+  // Rest of your existing code...
+});
     
     // Function to initialize skills
     function initializeSkills() {
