@@ -1388,3 +1388,64 @@ h4#hpManaHeader {
 
 
 
+
+
+
+
+
+/* Rest buttons styling */
+.rest-buttons-container {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+/* Currency Section Styling */
+.currency-section {
+  background-color: white;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.currency-section h4 {
+  margin-bottom: 1rem;
+  color: var(--primary-color);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+
+.currency-container {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+}
+
+.currency-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.currency-item label {
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+  color: var(--primary-dark);
+}
+
+.currency-item input {
+  width: 100%;
+  text-align: center;
+  padding: 0.5rem;
+  font-size: 1rem;
+  background-color: #f8f9fa;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.currency-item input:hover {
+  background-color: #f0f0f0;
+  cursor: pointer;
+}
+

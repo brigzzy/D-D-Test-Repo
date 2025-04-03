@@ -2,6 +2,11 @@
 
 
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('Currency Inputs:', document.querySelectorAll('.currency-input'));
+});
+
+
+document.addEventListener('DOMContentLoaded', function() {
   console.log('Initializing enhanced popups in characterSheet.js');
   
   // Set up enhanced HP/MP popup functionality
@@ -1199,28 +1204,46 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // public/js/characterSheet.js
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Import all necessary modules
-    Promise.all([
-      import('./modules/hitPoints.js'),
-      import('./modules/mana.js'),
-      import('./modules/skills.js'),
-      import('./modules/abilities.js'),
-      import('./modules/rest.js')
-    ]).then(([hitPointsModule, manaModule, skillsModule, abilitiesModule, restModule]) => {
-      // Extract classes from modules
-      const { HitPointManager } = hitPointsModule;
-      const { ManaManager } = manaModule;
-      const { SkillManager } = skillsModule;
-      const { AbilityManager } = abilitiesModule;
-      const { RestManager } = restModule;
-      
-      // Initialize character sheet with all modules
-      initializeCharacterSheet(HitPointManager, ManaManager, SkillManager, AbilityManager, RestManager);
-    }).catch(error => {
-      console.error('Error loading modules:', error);
-    });
-  });
+Promise.all([
+  import('./modules/hitPoints.js'),
+  import('./modules/mana.js'),
+  import('./modules/skills.js'),
+  import('./modules/abilities.js'),
+  import('./modules/rest.js'),
+  import('./modules/currencyManager.js')
+]).then(([hitPointsModule, manaModule, skillsModule, abilitiesModule, restModule, currencyModule]) => {
+  // Extract classes from modules
+  const { HitPointManager } = hitPointsModule;
+  const { ManaManager } = manaModule;
+  const { SkillManager } = skillsModule;
+  const { AbilityManager } = abilitiesModule;
+  const { RestManager } = restModule;
+  const { CurrencyManager } = currencyModule;
+  
+  // Initialize character sheet with all modules
+  // Log the imported modules for debugging
+console.log('Imported Modules:', {
+HitPointManager: !!HitPointManager,
+ManaManager: !!ManaManager,
+SkillManager: !!SkillManager,
+AbilityManager: !!AbilityManager,
+RestManager: !!RestManager,
+CurrencyManager: !!CurrencyManager
+});
+
+initializeCharacterSheet(
+HitPointManager, 
+ManaManager, 
+SkillManager, 
+AbilityManager, 
+RestManager,
+CurrencyManager
+);
+}).catch(error => {
+  console.error('Error loading modules:', error);
+});
+
+
   
   /**
    * Initialize all character sheet functionality
@@ -1292,42 +1315,11 @@ document.addEventListener('DOMContentLoaded', function() {
    * @param {*} fieldValue - Field value
    */
 
-document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('Character Sheet Script: DOMContentLoaded');
     window.enhancedPopupsInitialized = false;
     
-    console.log('Character sheet script loaded');
-    
-    // First check if our fields exist
-    const currentHPInput = document.getElementById('currentHitPoints');
-    const currentManaInput = document.getElementById('currentMana');
-    
-    console.log('Current HP field exists:', !!currentHPInput);
-    console.log('Current Mana field exists:', !!currentManaInput);
-    
-    // Add direct click handlers first as a fallback
-    if (currentHPInput) {
-      console.log('Adding direct click handler to HP field');
-      currentHPInput.addEventListener('click', function(e) {
-        console.log('HP field clicked directly!');
-        if (e.target.readOnly) {
-          showSimpleHPPopup(e.target);
-        }
-      });
-    }
-    
-    if (currentManaInput) {
-      console.log('Adding direct click handler to Mana field');
-      currentManaInput.addEventListener('click', function(e) {
-        console.log('Mana field clicked directly!');
-        if (e.target.readOnly) {
-          showSimpleManaPopup(e.target);
-        }
-      });
-    }
-  
-    // Try to import modules
-    console.log('Attempting to import modules...');
-    
+    // Dynamically import all modules
     Promise.all([
       import('./modules/hitPoints.js').catch(err => {
         console.error('Failed to import hitPoints.js:', err);
@@ -1336,33 +1328,120 @@ document.addEventListener('DOMContentLoaded', function() {
       import('./modules/mana.js').catch(err => {
         console.error('Failed to import mana.js:', err);
         return { ManaManager: null };
+      }),
+      import('./modules/skills.js').catch(err => {
+        console.error('Failed to import skills.js:', err);
+        return { SkillManager: null };
+      }),
+      import('./modules/abilities.js').catch(err => {
+        console.error('Failed to import abilities.js:', err);
+        return { AbilityManager: null };
+      }),
+      import('./modules/rest.js').catch(err => {
+        console.error('Failed to import rest.js:', err);
+        return { RestManager: null };
+      }),
+      import('./modules/currencyManager.js').catch(err => {
+        console.error('Failed to import currencyManager.js:', err);
+        return { CurrencyManager: null };
       })
-    ]).then(([hitPointsModule, manaModule]) => {
-      console.log('Modules imported?', {
-        hitPointsModule: !!hitPointsModule,
-        hitPointManager: !!hitPointsModule.HitPointManager,
-        manaModule: !!manaModule,
-        manaManager: !!manaModule.ManaManager
-      });
+    ]).then(([
+      hitPointsModule, 
+      manaModule, 
+      skillsModule, 
+      abilitiesModule, 
+      restModule,
+      currencyModule
+    ]) => {
+      console.log('Modules imported');
       
       // Extract classes from modules
-      const HitPointManager = hitPointsModule.HitPointManager;
-      const ManaManager = manaModule.ManaManager;
+      const { HitPointManager } = hitPointsModule;
+      const { ManaManager } = manaModule;
+      const { SkillManager } = skillsModule;
+      const { AbilityManager } = abilitiesModule;
+      const { RestManager } = restModule;
+      const { CurrencyManager } = currencyModule;
       
-      // Initialize character sheet with modules if available
-      if (HitPointManager && ManaManager) {
-        console.log('Initializing with module classes');
-        initializeCharacterSheet(HitPointManager, ManaManager);
-      } else {
-        console.log('Using simple initialization due to missing modules');
-        initializeEditableFields();
+      // Log imported modules
+      console.log('Imported Modules:', {
+        HitPointManager: !!HitPointManager,
+        ManaManager: !!ManaManager,
+        SkillManager: !!SkillManager,
+        AbilityManager: !!AbilityManager,
+        RestManager: !!RestManager,
+        CurrencyManager: !!CurrencyManager
+      });
+      
+      // Create save field callback
+      const characterId = getCharacterId();
+      const saveFieldCallback = (fieldName, fieldValue) => {
+        console.log(`Saving field: ${fieldName} = ${fieldValue}`);
+        saveField(characterId, fieldName, fieldValue);
+      };
+      
+      // Initialize modules
+      try {
+        if (HitPointManager) HitPointManager.initializeHitPoints(saveFieldCallback);
+        if (ManaManager) ManaManager.initializeMana(saveFieldCallback);
+        if (SkillManager) SkillManager.initializeSkills(saveFieldCallback);
+        if (AbilityManager) AbilityManager.initializeAbilityCards(saveFieldCallback);
+        if (RestManager) RestManager.initializeRestButtons(saveFieldCallback);
+        
+        // Ensure CurrencyManager is initialized
+        if (CurrencyManager) {
+          console.error('Initializing CurrencyManager');
+          CurrencyManager.initializeCurrency(saveFieldCallback);
+        } else {
+          console.error('CurrencyManager is not available');
+        }
+      } catch (error) {
+        console.error('Error initializing modules:', error);
       }
+      
+      // Debugging: Log currency inputs
+      console.error('Currency Inputs:', document.querySelectorAll('.currency-input'));
     }).catch(error => {
       console.error('Error in module loading process:', error);
-      console.log('Falling back to simple initialization');
-      initializeEditableFields();
     });
-  });
+  });Promise.all([
+        import('./modules/hitPoints.js'),
+        import('./modules/mana.js'),
+        import('./modules/skills.js'),
+        import('./modules/abilities.js'),
+        import('./modules/rest.js'),
+        import('./modules/currencyManager.js')
+      ]).then(([hitPointsModule, manaModule, skillsModule, abilitiesModule, restModule, currencyModule]) => {
+        // Extract classes from modules
+        const { HitPointManager } = hitPointsModule;
+        const { ManaManager } = manaModule;
+        const { SkillManager } = skillsModule;
+        const { AbilityManager } = abilitiesModule;
+        const { RestManager } = restModule;
+        const { CurrencyManager } = currencyModule;
+        
+        // Initialize character sheet with all modules
+        // Log the imported modules for debugging
+    console.log('Imported Modules:', {
+      HitPointManager: !!HitPointManager,
+      ManaManager: !!ManaManager,
+      SkillManager: !!SkillManager,
+      AbilityManager: !!AbilityManager,
+      RestManager: !!RestManager,
+      CurrencyManager: !!CurrencyManager
+    });
+  
+    initializeCharacterSheet(
+      HitPointManager, 
+      ManaManager, 
+      SkillManager, 
+      AbilityManager, 
+      RestManager,
+      CurrencyManager
+    );
+      }).catch(error => {
+        console.error('Error loading modules:', error);
+      });
   
   /**
    * Initialize character sheet with modules

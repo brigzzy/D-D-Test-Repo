@@ -287,6 +287,13 @@ app.get('/characters/new', requireAuth, (req, res) => {
     mana: {
       maximum: 0,
       current: 0
+    },
+    currency: {
+      platinum: 0,
+      gold: 0,
+      electrum: 0,
+      silver: 0,
+      copper: 0
     }
   };
   
