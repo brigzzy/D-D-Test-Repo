@@ -1,4 +1,360 @@
 // character-form.js
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('Initializing enhanced popups in characterSheet.js');
+  
+  // Set up enhanced HP/MP popup functionality
+  setupEnhancedPopups();
+  
+  function setupEnhancedPopups() {
+    const currentHPInput = document.getElementById('currentHitPoints');
+    const maxHPInput = document.getElementById('maxHitPoints');
+    const currentManaInput = document.getElementById('currentMana');
+    const maxManaInput = document.getElementById('maxMana');
+    
+    if (currentHPInput) {
+      // Add click handler for HP
+      currentHPInput.addEventListener('click', function(e) {
+        if (e.target.readOnly) {
+          console.log('Enhanced HP popup triggered');
+          showEnhancedHPPopup(e.target, maxHPInput);
+          e.stopPropagation(); // Prevent other handlers
+        }
+      });
+    }
+    
+    if (currentManaInput) {
+      // Add click handler for Mana
+      currentManaInput.addEventListener('click', function(e) {
+        if (e.target.readOnly) {
+          console.log('Enhanced Mana popup triggered');
+          showEnhancedManaPopup(e.target, maxManaInput);
+          e.stopPropagation(); // Prevent other handlers
+        }
+      });
+    }
+  }
+  
+  function showEnhancedHPPopup(currentHPInput, maxHPInput) {
+    // Remove any existing popups first
+    const existingOverlay = document.getElementById('hpPopupOverlay');
+    if (existingOverlay) existingOverlay.remove();
+    
+    const existingPopup = document.getElementById('hpPopup');
+    if (existingPopup) existingPopup.remove();
+    
+    // Create overlay container
+    const overlay = document.createElement('div');
+    overlay.id = 'hpPopupOverlay';
+    overlay.style = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    `;
+    
+    // Create popup
+    const popup = document.createElement('div');
+    popup.id = 'hpPopup';
+    popup.className = 'hp-popup';
+    popup.style = `
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      padding: 20px;
+      max-width: 350px;
+      width: 100%;
+      animation: popupFadeIn 0.3s ease;
+      border-left: 4px solid #f44336;
+    `;
+    
+    // Add animation
+    if (!document.getElementById('popupAnimationStyle')) {
+      const style = document.createElement('style');
+      style.id = 'popupAnimationStyle';
+      style.textContent = `
+        @keyframes popupFadeIn {
+          from { opacity: 0; transform: scale(0.8); }
+          to { opacity: 1; transform: scale(1); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    // Current values
+    const currentHP = parseInt(currentHPInput.value) || 0;
+    const maxHP = parseInt(maxHPInput.value) || 0;
+    
+    // Create popup content
+    popup.innerHTML = `
+      <h3 style="margin-top: 0; margin-bottom: 20px; font-size: 20px; color: #333; text-align: center;">Modify Hit Points</h3>
+      <div style="margin-bottom: 20px; text-align: center;">
+        <p style="margin: 5px 0; font-size: 24px; font-weight: bold;">
+          <span style="color: #f44336;">${currentHP}</span> / ${maxHP}
+        </p>
+      </div>
+      <div style="margin-bottom: 20px;">
+        <label for="hpChangeAmount" style="display: block; margin-bottom: 10px; font-weight: bold;">Amount:</label>
+        <input type="number" id="hpChangeAmount" value="0" min="0" style="width: 100%; padding: 10px; font-size: 16px; border: 1px solid #ddd; border-radius: 4px;">
+      </div>
+      <div style="display: flex; justify-content: space-between;">
+        <button id="hpDamageBtn" style="background-color: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; flex: 1; margin-right: 10px;">Damage</button>
+        <button id="hpHealBtn" style="background-color: #4caf50; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; flex: 1; margin-right: 10px;">Heal</button>
+        <button id="hpCloseBtn" style="background-color: #9e9e9e; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; flex: 0.8;">Close</button>
+      </div>
+    `;
+    
+    // Add popup to overlay
+    overlay.appendChild(popup);
+    
+    // Add overlay to body
+    document.body.appendChild(overlay);
+    document.body.style.overflow = 'hidden'; // Prevent scrolling
+    
+    // Focus amount input
+    const amountInput = document.getElementById('hpChangeAmount');
+    amountInput.focus();
+    amountInput.select();
+    
+    // Function to close overlay
+    function closeOverlay() {
+      document.body.style.overflow = ''; // Restore scrolling
+      overlay.remove();
+    }
+    
+    // Handle damage button click
+    document.getElementById('hpDamageBtn').addEventListener('click', function() {
+      const amount = parseInt(amountInput.value) || 0;
+      if (amount > 0) {
+        const newHP = Math.max(0, currentHP - amount);
+        currentHPInput.value = newHP;
+        saveField('hitPoints.current', newHP);
+        closeOverlay();
+      }
+    });
+    
+    // Handle heal button click
+    document.getElementById('hpHealBtn').addEventListener('click', function() {
+      const amount = parseInt(amountInput.value) || 0;
+      if (amount > 0) {
+        const newHP = Math.min(maxHP, currentHP + amount);
+        currentHPInput.value = newHP;
+        saveField('hitPoints.current', newHP);
+        closeOverlay();
+      }
+    });
+    
+    // Handle close button click
+    document.getElementById('hpCloseBtn').addEventListener('click', function() {
+      closeOverlay();
+    });
+    
+    // Close when clicking outside the popup
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) {
+        closeOverlay();
+      }
+    });
+    
+    // Handle Escape key
+    document.addEventListener('keydown', function escapeListener(e) {
+      if (e.key === 'Escape') {
+        closeOverlay();
+        document.removeEventListener('keydown', escapeListener);
+      }
+    });
+    
+    // Handle Enter key
+    amountInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        document.getElementById('hpHealBtn').click();
+      }
+    });
+  }
+  
+  function showEnhancedManaPopup(currentManaInput, maxManaInput) {
+    // Remove any existing popups first
+    const existingOverlay = document.getElementById('manaPopupOverlay');
+    if (existingOverlay) existingOverlay.remove();
+    
+    const existingPopup = document.getElementById('manaPopup');
+    if (existingPopup) existingPopup.remove();
+    
+    // Create overlay container
+    const overlay = document.createElement('div');
+    overlay.id = 'manaPopupOverlay';
+    overlay.style = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    `;
+    
+    // Create popup
+    const popup = document.createElement('div');
+    popup.id = 'manaPopup';
+    popup.className = 'mana-popup';
+    popup.style = `
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      padding: 20px;
+      max-width: 350px;
+      width: 100%;
+      animation: popupFadeIn 0.3s ease;
+      border-left: 4px solid #3f51b5;
+    `;
+    
+    // Current values
+    const currentMana = parseInt(currentManaInput.value) || 0;
+    const maxMana = parseInt(maxManaInput.value) || 0;
+    
+    // Create popup content
+    popup.innerHTML = `
+      <h3 style="margin-top: 0; margin-bottom: 20px; font-size: 20px; color: #333; text-align: center;">Modify Mana Points</h3>
+      <div style="margin-bottom: 20px; text-align: center;">
+        <p style="margin: 5px 0; font-size: 24px; font-weight: bold;">
+          <span style="color: #3f51b5;">${currentMana}</span> / ${maxMana}
+        </p>
+      </div>
+      <div style="margin-bottom: 20px;">
+        <label for="manaChangeAmount" style="display: block; margin-bottom: 10px; font-weight: bold;">Amount:</label>
+        <input type="number" id="manaChangeAmount" value="0" min="0" style="width: 100%; padding: 10px; font-size: 16px; border: 1px solid #ddd; border-radius: 4px;">
+      </div>
+      <div style="display: flex; justify-content: space-between;">
+        <button id="manaSpendBtn" style="background-color: #3f51b5; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; flex: 1; margin-right: 10px;">Spend</button>
+        <button id="manaRestoreBtn" style="background-color: #9c27b0; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; flex: 1; margin-right: 10px;">Restore</button>
+        <button id="manaCloseBtn" style="background-color: #9e9e9e; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; flex: 0.8;">Close</button>
+      </div>
+    `;
+    
+    // Add popup to overlay
+    overlay.appendChild(popup);
+    
+    // Add overlay to body
+    document.body.appendChild(overlay);
+    document.body.style.overflow = 'hidden'; // Prevent scrolling
+    
+    // Focus amount input
+    const amountInput = document.getElementById('manaChangeAmount');
+    amountInput.focus();
+    amountInput.select();
+    
+    // Function to close overlay
+    function closeOverlay() {
+      document.body.style.overflow = ''; // Restore scrolling
+      overlay.remove();
+    }
+    
+    // Handle spend button click
+    document.getElementById('manaSpendBtn').addEventListener('click', function() {
+      const amount = parseInt(amountInput.value) || 0;
+      if (amount > 0) {
+        const newMana = Math.max(0, currentMana - amount);
+        currentManaInput.value = newMana;
+        saveField('mana.current', newMana);
+        closeOverlay();
+      }
+    });
+    
+    // Handle restore button click
+    document.getElementById('manaRestoreBtn').addEventListener('click', function() {
+      const amount = parseInt(amountInput.value) || 0;
+      if (amount > 0) {
+        const newMana = Math.min(maxMana, currentMana + amount);
+        currentManaInput.value = newMana;
+        saveField('mana.current', newMana);
+        closeOverlay();
+      }
+    });
+    
+    // Handle close button click
+    document.getElementById('manaCloseBtn').addEventListener('click', function() {
+      closeOverlay();
+    });
+    
+    // Close when clicking outside the popup
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) {
+        closeOverlay();
+      }
+    });
+    
+    // Handle Escape key
+    document.addEventListener('keydown', function escapeListener(e) {
+      if (e.key === 'Escape') {
+        closeOverlay();
+        document.removeEventListener('keydown', escapeListener);
+      }
+    });
+    
+    // Handle Enter key
+    amountInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        document.getElementById('manaRestoreBtn').click();
+      }
+    });
+  }
+  
+  // Helper function to save field
+  function saveField(fieldName, fieldValue) {
+    // Get character ID
+    const characterId = window.location.pathname.split('/').pop();
+    
+    // Update save status if it exists
+    const saveStatus = document.getElementById('saveStatus');
+    if (saveStatus) {
+      saveStatus.textContent = 'Saving...';
+      saveStatus.className = 'save-status saving';
+    }
+    
+    // Send data to server
+    fetch(`/characters/${characterId}?_method=PUT`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        field: fieldName,
+        value: fieldValue
+      })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (saveStatus) {
+        saveStatus.textContent = 'All changes saved';
+        saveStatus.className = 'save-status saved';
+      }
+    })
+    .catch(error => {
+      console.error('Error saving field:', error);
+      if (saveStatus) {
+        saveStatus.textContent = 'Error saving changes';
+        saveStatus.className = 'save-status error';
+      }
+    });
+  }
+});
+
+
 // Add this to the top of your existing DOMContentLoaded event listener in characterSheet.js
 document.addEventListener('DOMContentLoaded', function() {
   const form = document.getElementById('characterForm');

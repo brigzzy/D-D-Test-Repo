@@ -1,10 +1,10 @@
-// public/js/hitPoints.js - Direct file (not in modules folder)
-
-// This is a simplified version placed in the root js folder in case there are path issues
-console.log('Simple hitPoints.js loaded');
-
+// public/js/modules/hitPoints.js - Modified version
 export class HitPointManager {
   static initializeHitPoints(saveFieldCallback) {
+    if (window.enhancedPopupsInitialized) {
+      console.log('Enhanced popups already initialized, skipping HP module initialization');
+      return;
+    }
     console.log('HitPointManager.initializeHitPoints called');
     const currentHPInput = document.getElementById('currentHitPoints');
     const maxHPInput = document.getElementById('maxHitPoints');
@@ -29,33 +29,54 @@ export class HitPointManager {
   static showHitPointPopup(currentHPInput, maxHPInput, saveFieldCallback) {
     console.log('HitPointManager.showHitPointPopup called');
     
-    // Create popup container or get existing
-    let popup = document.getElementById('hpPopup');
+    // Create overlay container or get existing
+    let overlay = document.getElementById('hpPopupOverlay');
     
-    // If popup already exists, remove it first
-    if (popup) {
-      popup.remove();
+    // If overlay already exists, remove it first
+    if (overlay) {
+      overlay.remove();
     }
     
-    // Create new popup
-    popup = document.createElement('div');
+    // Create new overlay
+    overlay = document.createElement('div');
+    overlay.id = 'hpPopupOverlay';
+    overlay.style = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    `;
+    
+    // Create popup
+    const popup = document.createElement('div');
     popup.id = 'hpPopup';
     popup.className = 'hp-popup';
     popup.style = `
-      position: absolute;
-      z-index: 1000;
       background-color: white;
-      border: 1px solid #ddd;
       border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-      padding: 15px;
-      min-width: 250px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      padding: 20px;
+      max-width: 350px;
+      width: 100%;
+      animation: popupFadeIn 0.3s ease;
+      border-left: 4px solid #f44336;
     `;
     
-    // Position popup near the input
-    const rect = currentHPInput.getBoundingClientRect();
-    popup.style.top = (rect.bottom + window.scrollY + 5) + 'px';
-    popup.style.left = (rect.left + window.scrollX) + 'px';
+    // Add animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes popupFadeIn {
+        from { opacity: 0; transform: scale(0.8); }
+        to { opacity: 1; transform: scale(1); }
+      }
+    `;
+    document.head.appendChild(style);
     
     // Current values
     const currentHP = parseInt(currentHPInput.value) || 0;
@@ -63,23 +84,30 @@ export class HitPointManager {
     
     // Create popup content
     popup.innerHTML = `
-      <h3 style="margin-top: 0; margin-bottom: 10px; font-size: 16px;">Modify Hit Points</h3>
-      <div style="margin-bottom: 15px;">
-        <p style="margin: 5px 0;">Current HP: ${currentHP} / ${maxHP}</p>
+      <h3 style="margin-top: 0; margin-bottom: 20px; font-size: 20px; color: #333; text-align: center;">Modify Hit Points</h3>
+      <div style="margin-bottom: 20px; text-align: center;">
+        <p style="margin: 5px 0; font-size: 24px; font-weight: bold;">
+          <span style="color: #f44336;">${currentHP}</span> / ${maxHP}
+        </p>
       </div>
-      <div style="margin-bottom: 15px;">
-        <label for="hpChangeAmount" style="display: block; margin-bottom: 5px;">Amount:</label>
-        <input type="number" id="hpChangeAmount" value="0" min="0" style="width: 100%; padding: 5px;">
+      <div style="margin-bottom: 20px;">
+        <label for="hpChangeAmount" style="display: block; margin-bottom: 10px; font-weight: bold;">Amount:</label>
+        <input type="number" id="hpChangeAmount" value="0" min="0" style="width: 100%; padding: 10px; font-size: 16px; border: 1px solid #ddd; border-radius: 4px;">
       </div>
       <div style="display: flex; justify-content: space-between;">
-        <button id="hpDamageBtn" style="background-color: #f44336; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Damage</button>
-        <button id="hpHealBtn" style="background-color: #4caf50; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Heal</button>
-        <button id="hpCloseBtn" style="background-color: #ccc; color: black; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Close</button>
+        <button id="hpDamageBtn" style="background-color: #f44336; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; flex: 1; margin-right: 10px;">Damage</button>
+        <button id="hpHealBtn" style="background-color: #4caf50; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; flex: 1; margin-right: 10px;">Heal</button>
+        <button id="hpCloseBtn" style="background-color: #9e9e9e; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; flex: 0.8;">Close</button>
       </div>
     `;
     
-    // Add popup to body
-    document.body.appendChild(popup);
+    // Add popup to overlay
+    overlay.appendChild(popup);
+    
+    // Add overlay to body
+    document.body.appendChild(overlay);
+    document.body.style.overflow = 'hidden'; // Prevent scrolling
+    
     console.log('HP popup added to DOM');
     
     // Focus amount input
@@ -97,7 +125,7 @@ export class HitPointManager {
         if (saveFieldCallback) {
           saveFieldCallback('hitPoints.current', newHP);
         }
-        popup.remove();
+        closeOverlay();
       }
     });
     
@@ -111,20 +139,27 @@ export class HitPointManager {
         if (saveFieldCallback) {
           saveFieldCallback('hitPoints.current', newHP);
         }
-        popup.remove();
+        closeOverlay();
       }
     });
     
     // Handle close button click
     document.getElementById('hpCloseBtn').addEventListener('click', () => {
-      popup.remove();
+      closeOverlay();
     });
     
-    // Close popup when clicking outside
-    document.addEventListener('click', function closePopup(e) {
-      if (!popup.contains(e.target) && e.target !== currentHPInput) {
-        popup.remove();
-        document.removeEventListener('click', closePopup);
+    // Close when clicking outside the popup
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        closeOverlay();
+      }
+    });
+    
+    // Handle Escape key to close popup
+    document.addEventListener('keydown', function escapeListener(e) {
+      if (e.key === 'Escape') {
+        closeOverlay();
+        document.removeEventListener('keydown', escapeListener);
       }
     });
     
@@ -133,9 +168,12 @@ export class HitPointManager {
       if (e.key === 'Enter') {
         // Default to healing if Enter is pressed
         document.getElementById('hpHealBtn').click();
-      } else if (e.key === 'Escape') {
-        popup.remove();
       }
     });
+    
+    function closeOverlay() {
+      document.body.style.overflow = ''; // Restore scrolling
+      overlay.remove();
+    }
   }
 }
