@@ -14,26 +14,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const maxManaInput = document.getElementById('maxMana');
     
     if (currentHPInput) {
-      // Add click handler for HP
+      console.log('Adding direct click handler to HP field');
       currentHPInput.addEventListener('click', function(e) {
+        console.log('HP field clicked directly!');
         if (e.target.readOnly) {
-          console.log('Enhanced HP popup triggered');
-          showEnhancedHPPopup(e.target, maxHPInput);
-          e.stopPropagation(); // Prevent other handlers
+          showSimpleHPPopup(e.target);
         }
       });
     }
     
     if (currentManaInput) {
-      // Add click handler for Mana
+      console.log('Adding direct click handler to Mana field');
       currentManaInput.addEventListener('click', function(e) {
+        console.log('Mana field clicked directly!');
         if (e.target.readOnly) {
-          console.log('Enhanced Mana popup triggered');
-          showEnhancedManaPopup(e.target, maxManaInput);
-          e.stopPropagation(); // Prevent other handlers
+          showSimpleManaPopup(e.target);
         }
       });
     }
+    window.enhancedPopupsInitialized = true;
   }
   
   function showEnhancedHPPopup(currentHPInput, maxHPInput) {
@@ -1294,6 +1293,8 @@ document.addEventListener('DOMContentLoaded', function() {
    */
 
 document.addEventListener('DOMContentLoaded', function() {
+    window.enhancedPopupsInitialized = false;
+    
     console.log('Character sheet script loaded');
     
     // First check if our fields exist
@@ -1362,140 +1363,6 @@ document.addEventListener('DOMContentLoaded', function() {
       initializeEditableFields();
     });
   });
-  
-  /**
-   * Simple HP popup for debugging
-   */
-  function showSimpleHPPopup(currentHPInput) {
-    console.log('Showing simple HP popup');
-    
-    // Create popup container
-    let popup = document.createElement('div');
-    popup.id = 'hpPopup';
-    popup.style = `
-      position: absolute;
-      z-index: 1000;
-      background-color: white;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-      padding: 15px;
-      min-width: 250px;
-    `;
-    
-    // Position popup near the input
-    const rect = currentHPInput.getBoundingClientRect();
-    popup.style.top = (rect.bottom + window.scrollY + 5) + 'px';
-    popup.style.left = (rect.left + window.scrollX) + 'px';
-    
-    // Create popup content
-    popup.innerHTML = `
-      <h3 style="margin-top: 0; margin-bottom: 10px;">Debug HP Popup</h3>
-      <div style="margin-bottom: 15px;">
-        <p>Current value: ${currentHPInput.value}</p>
-      </div>
-      <div style="margin-bottom: 15px;">
-        <label style="display: block; margin-bottom: 5px;">Amount:</label>
-        <input type="number" id="debugAmount" value="1" min="0" style="width: 100%; padding: 5px;">
-      </div>
-      <div style="display: flex; justify-content: space-between;">
-        <button id="debugDamageBtn" style="background-color: #f44336; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Damage</button>
-        <button id="debugHealBtn" style="background-color: #4caf50; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Heal</button>
-        <button id="debugCloseBtn" style="background-color: #ccc; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Close</button>
-      </div>
-    `;
-    
-    // Add popup to body
-    document.body.appendChild(popup);
-    
-    // Add simple button handlers
-    document.getElementById('debugDamageBtn').addEventListener('click', () => {
-      const amount = parseInt(document.getElementById('debugAmount').value) || 0;
-      const current = parseInt(currentHPInput.value) || 0;
-      currentHPInput.value = Math.max(0, current - amount);
-      popup.remove();
-      console.log('HP damaged, new value:', currentHPInput.value);
-    });
-    
-    document.getElementById('debugHealBtn').addEventListener('click', () => {
-      const amount = parseInt(document.getElementById('debugAmount').value) || 0;
-      const current = parseInt(currentHPInput.value) || 0;
-      currentHPInput.value = current + amount;
-      popup.remove();
-      console.log('HP healed, new value:', currentHPInput.value);
-    });
-    
-    document.getElementById('debugCloseBtn').addEventListener('click', () => {
-      popup.remove();
-    });
-  }
-  
-  /**
-   * Simple Mana popup for debugging
-   */
-  function showSimpleManaPopup(currentManaInput) {
-    console.log('Showing simple Mana popup');
-    
-    // Create popup container
-    let popup = document.createElement('div');
-    popup.id = 'manaPopup';
-    popup.style = `
-      position: absolute;
-      z-index: 1000;
-      background-color: white;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-      padding: 15px;
-      min-width: 250px;
-    `;
-    
-    // Position popup near the input
-    const rect = currentManaInput.getBoundingClientRect();
-    popup.style.top = (rect.bottom + window.scrollY + 5) + 'px';
-    popup.style.left = (rect.left + window.scrollX) + 'px';
-    
-    // Create popup content
-    popup.innerHTML = `
-      <h3 style="margin-top: 0; margin-bottom: 10px;">Debug Mana Popup</h3>
-      <div style="margin-bottom: 15px;">
-        <p>Current value: ${currentManaInput.value}</p>
-      </div>
-      <div style="margin-bottom: 15px;">
-        <label style="display: block; margin-bottom: 5px;">Amount:</label>
-        <input type="number" id="debugManaAmount" value="1" min="0" style="width: 100%; padding: 5px;">
-      </div>
-      <div style="display: flex; justify-content: space-between;">
-        <button id="debugSpendBtn" style="background-color: #3f51b5; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Spend</button>
-        <button id="debugRestoreBtn" style="background-color: #9c27b0; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Restore</button>
-        <button id="debugManaCloseBtn" style="background-color: #ccc; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Close</button>
-      </div>
-    `;
-    
-    // Add popup to body
-    document.body.appendChild(popup);
-    
-    // Add simple button handlers
-    document.getElementById('debugSpendBtn').addEventListener('click', () => {
-      const amount = parseInt(document.getElementById('debugManaAmount').value) || 0;
-      const current = parseInt(currentManaInput.value) || 0;
-      currentManaInput.value = Math.max(0, current - amount);
-      popup.remove();
-      console.log('Mana spent, new value:', currentManaInput.value);
-    });
-    
-    document.getElementById('debugRestoreBtn').addEventListener('click', () => {
-      const amount = parseInt(document.getElementById('debugManaAmount').value) || 0;
-      const current = parseInt(currentManaInput.value) || 0;
-      currentManaInput.value = current + amount;
-      popup.remove();
-      console.log('Mana restored, new value:', currentManaInput.value);
-    });
-    
-    document.getElementById('debugManaCloseBtn').addEventListener('click', () => {
-      popup.remove();
-    });
-  }
   
   /**
    * Initialize character sheet with modules
