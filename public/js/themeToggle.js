@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
       console.log('Attempting to save theme preference to server:', theme);
       
       // Send the request to save the preference
-      fetch('/characters/theme-preference', {  // CORRECTED URL PATH
+      fetch('/user/preferences', {  // CORRECTED URL PATH
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

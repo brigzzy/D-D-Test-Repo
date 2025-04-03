@@ -8,7 +8,7 @@ const expressLayouts = require('express-ejs-layouts');
 const fs = require('fs/promises');
 
 // Import custom modules
-const { requireAuth, requireAdmin, loadUserData, saveUserData } = require('./middleware');
+const { requireAuth, requireAdmin, loadUserData } = require('./middleware');
 const { 
   ensureDirectories, 
   readYamlFile, 
@@ -571,8 +571,5 @@ app.post('/user/preferences', requireAuth, async (req, res) => {
     });
   }
 });
-
-
-
 
 startServer();
