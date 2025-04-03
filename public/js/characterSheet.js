@@ -1315,133 +1315,207 @@ CurrencyManager
    * @param {*} fieldValue - Field value
    */
 
-  document.addEventListener('DOMContentLoaded', function() {
-    console.log('Character Sheet Script: DOMContentLoaded');
-    window.enhancedPopupsInitialized = false;
+// public/js/characterSheet.js
+
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('Character Sheet Script Loading');
+  
+  // Try to load all modules
+  Promise.all([
+    import('./modules/hitPoints.js'),
+    import('./modules/mana.js'),
+    import('./modules/skills.js'),
+    import('./modules/abilities.js'),
+    import('./modules/rest.js'),
+    import('./modules/currencyManager.js')
+  ]).then(([
+    hitPointsModule, 
+    manaModule, 
+    skillsModule, 
+    abilitiesModule, 
+    restModule,
+    currencyModule
+  ]) => {
+    console.log('All modules loaded successfully');
     
-    // Dynamically import all modules
-    Promise.all([
-      import('./modules/hitPoints.js').catch(err => {
-        console.error('Failed to import hitPoints.js:', err);
-        return { HitPointManager: null };
-      }),
-      import('./modules/mana.js').catch(err => {
-        console.error('Failed to import mana.js:', err);
-        return { ManaManager: null };
-      }),
-      import('./modules/skills.js').catch(err => {
-        console.error('Failed to import skills.js:', err);
-        return { SkillManager: null };
-      }),
-      import('./modules/abilities.js').catch(err => {
-        console.error('Failed to import abilities.js:', err);
-        return { AbilityManager: null };
-      }),
-      import('./modules/rest.js').catch(err => {
-        console.error('Failed to import rest.js:', err);
-        return { RestManager: null };
-      }),
-      import('./modules/currencyManager.js').catch(err => {
-        console.error('Failed to import currencyManager.js:', err);
-        return { CurrencyManager: null };
-      })
-    ]).then(([
-      hitPointsModule, 
-      manaModule, 
-      skillsModule, 
-      abilitiesModule, 
-      restModule,
-      currencyModule
-    ]) => {
-      console.log('Modules imported');
+    // Extract module classes
+    const { HitPointManager } = hitPointsModule;
+    const { ManaManager } = manaModule;
+    const { SkillManager } = skillsModule;
+    const { AbilityManager } = abilitiesModule;
+    const { RestManager } = restModule;
+    const { CurrencyManager } = currencyModule;
+    
+    // Get character ID for saving changes
+    const characterId = getCharacterId();
+    
+    // Create save field callback
+    const saveFieldCallback = (fieldName, fieldValue) => {
+      console.log(`Saving field: ${fieldName} = ${fieldValue}`);
+      saveField(characterId, fieldName, fieldValue);
+    };
+    
+    // Initialize all modules
+    console.log('Initializing modules');
+    
+    // First make sure we have editable fields working
+    initializeEditableFields();
+    
+    try {
+      if (HitPointManager) HitPointManager.initializeHitPoints(saveFieldCallback);
+      if (ManaManager) ManaManager.initializeMana(saveFieldCallback);
+      if (SkillManager) SkillManager.initializeSkills(saveFieldCallback);
+      if (AbilityManager) AbilityManager.initializeAbilityCards(saveFieldCallback);
+      if (RestManager) RestManager.initializeRestButtons(saveFieldCallback);
       
-      // Extract classes from modules
-      const { HitPointManager } = hitPointsModule;
-      const { ManaManager } = manaModule;
-      const { SkillManager } = skillsModule;
-      const { AbilityManager } = abilitiesModule;
-      const { RestManager } = restModule;
-      const { CurrencyManager } = currencyModule;
-      
-      // Log imported modules
-      console.log('Imported Modules:', {
-        HitPointManager: !!HitPointManager,
-        ManaManager: !!ManaManager,
-        SkillManager: !!SkillManager,
-        AbilityManager: !!AbilityManager,
-        RestManager: !!RestManager,
-        CurrencyManager: !!CurrencyManager
-      });
-      
-      // Create save field callback
-      const characterId = getCharacterId();
-      const saveFieldCallback = (fieldName, fieldValue) => {
-        console.log(`Saving field: ${fieldName} = ${fieldValue}`);
-        saveField(characterId, fieldName, fieldValue);
-      };
-      
-      // Initialize modules
-      try {
-        if (HitPointManager) HitPointManager.initializeHitPoints(saveFieldCallback);
-        if (ManaManager) ManaManager.initializeMana(saveFieldCallback);
-        if (SkillManager) SkillManager.initializeSkills(saveFieldCallback);
-        if (AbilityManager) AbilityManager.initializeAbilityCards(saveFieldCallback);
-        if (RestManager) RestManager.initializeRestButtons(saveFieldCallback);
-        
-        // Ensure CurrencyManager is initialized
-        if (CurrencyManager) {
-          console.error('Initializing CurrencyManager');
-          CurrencyManager.initializeCurrency(saveFieldCallback);
-        } else {
-          console.error('CurrencyManager is not available');
-        }
-      } catch (error) {
-        console.error('Error initializing modules:', error);
+      // Initialize currency manager - make sure this runs
+      if (CurrencyManager) {
+        console.log('Initializing CurrencyManager');
+        CurrencyManager.initializeCurrency(saveFieldCallback);
+      } else {
+        console.error('CurrencyManager module not loaded');
+      }
+    } catch (error) {
+      console.error('Error initializing modules:', error);
+    }
+  }).catch(error => {
+    console.error('Error loading modules:', error);
+  });
+  
+  /**
+   * Initialize all editable fields
+   */
+  function initializeEditableFields() {
+    console.log('Initializing editable fields');
+    const editableFields = document.querySelectorAll('.editable-field');
+    
+    editableFields.forEach(field => {
+      // Skip fields that use popups
+      if (field.classList.contains('currency-input') || 
+          field.id === 'currentHitPoints' || 
+          field.id === 'currentMana') {
+        return;
       }
       
-      // Debugging: Log currency inputs
-      console.error('Currency Inputs:', document.querySelectorAll('.currency-input'));
-    }).catch(error => {
-      console.error('Error in module loading process:', error);
-    });
-  });Promise.all([
-        import('./modules/hitPoints.js'),
-        import('./modules/mana.js'),
-        import('./modules/skills.js'),
-        import('./modules/abilities.js'),
-        import('./modules/rest.js'),
-        import('./modules/currencyManager.js')
-      ]).then(([hitPointsModule, manaModule, skillsModule, abilitiesModule, restModule, currencyModule]) => {
-        // Extract classes from modules
-        const { HitPointManager } = hitPointsModule;
-        const { ManaManager } = manaModule;
-        const { SkillManager } = skillsModule;
-        const { AbilityManager } = abilitiesModule;
-        const { RestManager } = restModule;
-        const { CurrencyManager } = currencyModule;
-        
-        // Initialize character sheet with all modules
-        // Log the imported modules for debugging
-    console.log('Imported Modules:', {
-      HitPointManager: !!HitPointManager,
-      ManaManager: !!ManaManager,
-      SkillManager: !!SkillManager,
-      AbilityManager: !!AbilityManager,
-      RestManager: !!RestManager,
-      CurrencyManager: !!CurrencyManager
-    });
-  
-    initializeCharacterSheet(
-      HitPointManager, 
-      ManaManager, 
-      SkillManager, 
-      AbilityManager, 
-      RestManager,
-      CurrencyManager
-    );
-      }).catch(error => {
-        console.error('Error loading modules:', error);
+      // Make field editable on click
+      field.addEventListener('click', function() {
+        if (field.readOnly) {
+          field.readOnly = false;
+          field.focus();
+        }
       });
+      
+      // Save field on blur
+      field.addEventListener('blur', function() {
+        if (!field.readOnly) {
+          const fieldName = field.dataset.field;
+          const fieldValue = field.value;
+          
+          if (fieldName) {
+            saveField(getCharacterId(), fieldName, fieldValue);
+          }
+          
+          field.readOnly = true;
+          
+          // Update ability modifiers if this is an ability score
+          if (field.classList.contains('ability-score')) {
+            updateAbilityModifier(field);
+          }
+        }
+      });
+      
+      // Save on Enter key for text inputs (not for textareas)
+      if (field.tagName !== 'TEXTAREA') {
+        field.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            e.preventDefault(); // Prevent form submission
+            field.blur();
+          }
+        });
+      }
+    });
+  }
+  
+  /**
+   * Get character ID from URL
+   * @returns {string} Character ID
+   */
+  function getCharacterId() {
+    return window.location.pathname.split('/').pop();
+  }
+  
+  /**
+   * Save field to server
+   * @param {string} characterId - Character ID
+   * @param {string} fieldName - Field name
+   * @param {*} fieldValue - Field value
+   */
+  function saveField(characterId, fieldName, fieldValue) {
+    // Update save status
+    updateSaveStatus('saving');
+    
+    fetch(`/characters/${characterId}?_method=PUT`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        field: fieldName,
+        value: fieldValue
+      })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      updateSaveStatus('saved');
+    })
+    .catch(error => {
+      console.error('Error saving field:', error);
+      updateSaveStatus('error');
+    });
+  }
+  
+  /**
+   * Update the ability modifier when ability score changes
+   * @param {HTMLElement} abilityInput - Ability input element
+   */
+  function updateAbilityModifier(abilityInput) {
+    const abilityCard = abilityInput.closest('.ability-card');
+    if (!abilityCard) return;
+    
+    const abilityScore = parseInt(abilityInput.value) || 10;
+    const modifier = Math.floor((abilityScore - 10) / 2);
+    
+    const modifierEl = abilityCard.querySelector('.ability-modifier');
+    if (modifierEl) {
+      modifierEl.textContent = `${modifier >= 0 ? '+' : ''}${modifier}`;
+    }
+  }
+  
+  /**
+   * Update save status display
+   * @param {string} status - Status (saving, saved, error)
+   */
+  function updateSaveStatus(status) {
+    const saveStatus = document.getElementById('saveStatus');
+    if (!saveStatus) return;
+    
+    if (status === 'saving') {
+      saveStatus.textContent = 'Saving...';
+      saveStatus.className = 'save-status saving';
+    } else if (status === 'saved') {
+      saveStatus.textContent = 'All changes saved';
+      saveStatus.className = 'save-status saved';
+    } else if (status === 'error') {
+      saveStatus.textContent = 'Error saving changes';
+      saveStatus.className = 'save-status error';
+    }
+  }
+});
   
   /**
    * Initialize character sheet with modules

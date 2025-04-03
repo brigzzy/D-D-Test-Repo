@@ -310,73 +310,72 @@
           ><%= character.spells || '' %></textarea>
         </div>
 
-        <!-- Currency Section -->
-        <div class="currency-section">
-          <h4>Currency</h4>
-          <div class="currency-container">
-            <div class="currency-item">
-              <label for="platinum">PP</label>
-              <input 
-                type="number" 
-                id="platinum" 
-                name="platinum" 
-                value="<%= character.currency ? character.currency.platinum || 0 : 0 %>" 
-                class="autosave editable-field currency-input" 
-                data-field="currency.platinum"
-                readonly
-              >
-            </div>
-            <div class="currency-item">
-              <label for="gold">GP</label>
-              <input 
-                type="number" 
-                id="gold" 
-                name="gold" 
-                value="<%= character.currency ? character.currency.gold || 0 : 0 %>" 
-                class="autosave editable-field currency-input" 
-                data-field="currency.gold"
-                readonly
-              >
-            </div>
-            <div class="currency-item">
-              <label for="electrum">EP</label>
-              <input 
-                type="number" 
-                id="electrum" 
-                name="electrum" 
-                value="<%= character.currency ? character.currency.electrum || 0 : 0 %>" 
-                class="autosave editable-field currency-input" 
-                data-field="currency.electrum"
-                readonly
-              >
-            </div>
-            <div class="currency-item">
-              <label for="silver">SP</label>
-              <input 
-                type="number" 
-                id="silver" 
-                name="silver" 
-                value="<%= character.currency ? character.currency.silver || 0 : 0 %>" 
-                class="autosave editable-field currency-input" 
-                data-field="currency.silver"
-                readonly
-              >
-            </div>
-            <div class="currency-item">
-              <label for="copper">CP</label>
-              <input 
-                type="number" 
-                id="copper" 
-                name="copper" 
-                value="<%= character.currency ? character.currency.copper || 0 : 0 %>" 
-                class="autosave editable-field currency-input" 
-                data-field="currency.copper"
-                readonly
-              >
-            </div>
-          </div>
-
-      </div>
+        <!-- Currency Section for character_form.ejs -->
+<div class="currency-section">
+  <h4>Currency</h4>
+  <div class="currency-container">
+    <div class="currency-item">
+      <label for="platinum">PP</label>
+      <input 
+        type="number" 
+        id="platinum" 
+        name="platinum" 
+        value="<%= character.currency ? character.currency.platinum || 0 : 0 %>" 
+        class="currency-input editable-field" 
+        data-field="currency.platinum"
+        readonly
+      >
+    </div>
+    <div class="currency-item">
+      <label for="gold">GP</label>
+      <input 
+        type="number" 
+        id="gold" 
+        name="gold" 
+        value="<%= character.currency ? character.currency.gold || 0 : 0 %>" 
+        class="currency-input editable-field" 
+        data-field="currency.gold"
+        readonly
+      >
+    </div>
+    <div class="currency-item">
+      <label for="electrum">EP</label>
+      <input 
+        type="number" 
+        id="electrum" 
+        name="electrum" 
+        value="<%= character.currency ? character.currency.electrum || 0 : 0 %>" 
+        class="currency-input editable-field" 
+        data-field="currency.electrum"
+        readonly
+      >
+    </div>
+    <div class="currency-item">
+      <label for="silver">SP</label>
+      <input 
+        type="number" 
+        id="silver" 
+        name="silver" 
+        value="<%= character.currency ? character.currency.silver || 0 : 0 %>" 
+        class="currency-input editable-field" 
+        data-field="currency.silver"
+        readonly
+      >
+    </div>
+    <div class="currency-item">
+      <label for="copper">CP</label>
+      <input 
+        type="number" 
+        id="copper" 
+        name="copper" 
+        value="<%= character.currency ? character.currency.copper || 0 : 0 %>" 
+        class="currency-input editable-field" 
+        data-field="currency.copper"
+        readonly
+      >
+    </div>
+  </div>
+</div>
     </div>
     
     <!-- Hidden fields for storing skills data -->
