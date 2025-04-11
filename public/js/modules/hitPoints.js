@@ -1,44 +1,60 @@
-// public/js/modules/hitPoints.js - Modified version
+// public/js/modules/hitPoints.js - Fixed version
+
+/**
+ * Manages character hit points, including the popup interface
+ */
 export class HitPointManager {
+  /**
+   * Initialize hit point functionality
+   * @param {function} saveFieldCallback - Function to save field changes
+   */
   static initializeHitPoints(saveFieldCallback) {
-    if (window.enhancedPopupsInitialized) {
-      console.log('Enhanced popups already initialized, skipping HP module initialization');
-      return;
-    }
-    console.log('HitPointManager.initializeHitPoints called');
+    console.log('Initializing hit points manager');
+    
     const currentHPInput = document.getElementById('currentHitPoints');
     const maxHPInput = document.getElementById('maxHitPoints');
     
     if (!currentHPInput || !maxHPInput) {
-      console.error('HP inputs not found');
+      console.warn('HP inputs not found in the DOM');
       return;
     }
     
-    console.log('Adding click event to current HP input');
+    // Force readonly to ensure click handler works
+    currentHPInput.readOnly = true;
     
-    // Add click event to current HP input
-    currentHPInput.addEventListener('click', (e) => {
-      console.log('HP input clicked through manager');
-      // Only show popup if field is readonly (not already being edited)
-      if (e.target.readOnly) {
-        this.showHitPointPopup(e.target, maxHPInput, saveFieldCallback);
-      }
-    });
+    // Remove any existing click listeners to prevent duplication
+    currentHPInput.removeEventListener('click', this._clickHandler);
+    
+    // Create a bound click handler that we can reference for removal if needed
+    this._clickHandler = (e) => {
+      console.log('HP field clicked!');
+      this.showHitPointPopup(currentHPInput, maxHPInput, saveFieldCallback);
+      e.stopPropagation(); // Prevent other click handlers
+    };
+    
+    // Add the click event listener
+    currentHPInput.addEventListener('click', this._clickHandler);
+    
+    console.log('Hit points manager initialized successfully');
   }
   
+  /**
+   * Show hit point modification popup
+   * @param {HTMLElement} currentHPInput - Current HP input element
+   * @param {HTMLElement} maxHPInput - Max HP input element
+   * @param {function} saveFieldCallback - Function to save field changes
+   */
   static showHitPointPopup(currentHPInput, maxHPInput, saveFieldCallback) {
-    console.log('HitPointManager.showHitPointPopup called');
+    console.log('Showing hit points popup');
     
-    // Create overlay container or get existing
-    let overlay = document.getElementById('hpPopupOverlay');
-    
-    // If overlay already exists, remove it first
-    if (overlay) {
-      overlay.remove();
+    // Remove any existing popups
+    const existingOverlay = document.getElementById('hpPopupOverlay');
+    if (existingOverlay) {
+      existingOverlay.remove();
     }
     
-    // Create new overlay
-    overlay = document.createElement('div');
+    // Create overlay container
+    const overlay = document.createElement('div');
     overlay.id = 'hpPopupOverlay';
     overlay.style = `
       position: fixed;
@@ -68,15 +84,18 @@ export class HitPointManager {
       border-left: 4px solid #f44336;
     `;
     
-    // Add animation
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes popupFadeIn {
-        from { opacity: 0; transform: scale(0.8); }
-        to { opacity: 1; transform: scale(1); }
-      }
-    `;
-    document.head.appendChild(style);
+    // Add animation if not already defined
+    if (!document.getElementById('popupAnimationStyle')) {
+      const style = document.createElement('style');
+      style.id = 'popupAnimationStyle';
+      style.textContent = `
+        @keyframes popupFadeIn {
+          from { opacity: 0; transform: scale(0.8); }
+          to { opacity: 1; transform: scale(1); }
+        }
+      `;
+      document.head.appendChild(style);
+    }
     
     // Current values
     const currentHP = parseInt(currentHPInput.value) || 0;
@@ -108,54 +127,52 @@ export class HitPointManager {
     document.body.appendChild(overlay);
     document.body.style.overflow = 'hidden'; // Prevent scrolling
     
-    console.log('HP popup added to DOM');
-    
     // Focus amount input
     const amountInput = document.getElementById('hpChangeAmount');
     amountInput.focus();
     amountInput.select();
     
+    // Function to close overlay
+    function closeOverlay() {
+      document.body.style.overflow = ''; // Restore scrolling
+      overlay.remove();
+    }
+    
     // Handle damage button click
-    document.getElementById('hpDamageBtn').addEventListener('click', () => {
-      console.log('Damage button clicked');
+    document.getElementById('hpDamageBtn').addEventListener('click', function() {
       const amount = parseInt(amountInput.value) || 0;
       if (amount > 0) {
         const newHP = Math.max(0, currentHP - amount);
         currentHPInput.value = newHP;
-        if (saveFieldCallback) {
-          saveFieldCallback('hitPoints.current', newHP);
-        }
+        saveFieldCallback('hitPoints.current', newHP);
         closeOverlay();
       }
     });
     
     // Handle heal button click
-    document.getElementById('hpHealBtn').addEventListener('click', () => {
-      console.log('Heal button clicked');
+    document.getElementById('hpHealBtn').addEventListener('click', function() {
       const amount = parseInt(amountInput.value) || 0;
       if (amount > 0) {
         const newHP = Math.min(maxHP, currentHP + amount);
         currentHPInput.value = newHP;
-        if (saveFieldCallback) {
-          saveFieldCallback('hitPoints.current', newHP);
-        }
+        saveFieldCallback('hitPoints.current', newHP);
         closeOverlay();
       }
     });
     
     // Handle close button click
-    document.getElementById('hpCloseBtn').addEventListener('click', () => {
+    document.getElementById('hpCloseBtn').addEventListener('click', function() {
       closeOverlay();
     });
     
     // Close when clicking outside the popup
-    overlay.addEventListener('click', (e) => {
+    overlay.addEventListener('click', function(e) {
       if (e.target === overlay) {
         closeOverlay();
       }
     });
     
-    // Handle Escape key to close popup
+    // Handle Escape key
     document.addEventListener('keydown', function escapeListener(e) {
       if (e.key === 'Escape') {
         closeOverlay();
@@ -163,17 +180,11 @@ export class HitPointManager {
       }
     });
     
-    // Handle Enter key in amount input
-    amountInput.addEventListener('keydown', (e) => {
+    // Handle Enter key
+    amountInput.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') {
-        // Default to healing if Enter is pressed
         document.getElementById('hpHealBtn').click();
       }
     });
-    
-    function closeOverlay() {
-      document.body.style.overflow = ''; // Restore scrolling
-      overlay.remove();
-    }
   }
 }
