@@ -1,0 +1,508 @@
+/* character-sheet.css - Character sheet specific styles */
+
+/* Character Sheet Container */
+.character-sheet-container {
+    background-color: var(--content-bg-color);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-lg);
+    box-shadow: 0 2px 10px var(--shadow-color);
+    margin-bottom: var(--spacing-xl);
+  }
+  
+  .character-sheet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+    flex-wrap: wrap;
+  }
+  
+  .character-sheet-header h2 {
+    margin-right: var(--spacing-md);
+    color: var(--primary-color);
+    margin-bottom: 0;
+  }
+  
+  .character-sheet {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
+  
+  /* Character Header Section */
+  .character-header-section {
+    padding: var(--spacing-lg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    background-color: var(--card-bg-color);
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  .character-name-group {
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .character-name-group label {
+    font-weight: 500;
+    margin-bottom: 0.2rem;
+  }
+  
+  /* Details rows */
+  .details-labels-row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: var(--spacing-md);
+    margin-bottom: 0.3rem;
+  }
+  
+  .details-labels-row label {
+    font-weight: 500;
+    margin-bottom: 0.2rem;
+  }
+  
+  .details-fields-row {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: var(--spacing-md);
+    align-items: center;
+  }
+  
+  .proficiency-label {
+    text-align: center;
+  }
+  
+  .proficiency-display {
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    font-size: 1.25rem;
+    font-weight: bold;
+    box-shadow: 0 2px 4px var(--shadow-color);
+  }
+  
+  /* Main Character Layout */
+  .character-main-section {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+  }
+  
+  @media (min-width: 768px) {
+    .character-main-section {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  
+  @media (min-width: 992px) {
+    .character-main-section {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+  }
+  
+  .character-column {
+    padding: var(--spacing-lg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    background-color: var(--card-bg-color);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .character-column h3,
+  .character-column h4 {
+    margin-bottom: var(--spacing-md);
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: var(--spacing-sm);
+    font-weight: 600;
+  }
+  
+  /* Abilities */
+  .abilities-title {
+    margin-bottom: var(--spacing-sm);
+    color: var(--primary-color);
+    font-size: 1.2rem;
+  }
+  
+  .abilities-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .ability-card {
+    display: grid;
+    grid-template-rows: auto auto auto;
+    align-items: center;
+    justify-items: center;
+    padding: var(--spacing-sm);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    background-color: var(--content-bg-color);
+    box-shadow: 0 1px 3px var(--shadow-color);
+  }
+  
+  .ability-card-active {
+    border-color: var(--mana-color);
+    box-shadow: 0 0 3px rgba(63, 81, 181, 0.5);
+  }
+  
+  .ability-name-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    position: relative;
+    margin-bottom: var(--spacing-xs);
+  }
+  
+  .ability-name {
+    font-weight: bold;
+    color: var(--primary-color);
+    font-size: 0.8rem;
+    text-align: center;
+  }
+  
+  .ability-value {
+    margin: 0.2rem 0;
+  }
+  
+  .ability-score {
+    width: 3rem;
+    height: 2rem;
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: bold;
+    padding: 0.2rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+  }
+  
+  .ability-modifier {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: bold;
+    font-size: 1rem;
+    margin-top: 0.2rem;
+    box-shadow: 0 2px 4px var(--shadow-color);
+  }
+  
+  .mana-toggle-icon {
+    position: absolute;
+    right: 0;
+    top: 0;
+    font-size: 1rem;
+    cursor: pointer;
+    color: var(--mana-color);
+    transition: transform 0.2s, color 0.2s;
+    user-select: none;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .mana-toggle-icon:hover {
+    transform: scale(1.2);
+  }
+  
+  .mana-toggle-icon[data-active="true"][data-icon-type="star"] {
+    color: gold;
+  }
+  
+  .mana-toggle-icon[data-active="false"] {
+    opacity: 0.5;
+  }
+  
+  /* Skills */
+  .skills-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: var(--spacing-sm);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    background-color: var(--content-bg-color);
+  }
+  
+  .skill-item {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-sm);
+    border-radius: var(--border-radius-sm);
+    transition: background-color var(--transition-fast);
+  }
+  
+  .skill-item:nth-child(odd) {
+    background-color: var(--skill-odd-bg);
+  }
+  
+  .skill-item:hover {
+    background-color: var(--skill-hover-bg);
+  }
+  
+  .skill-proficient {
+    margin-right: var(--spacing-sm);
+    cursor: pointer;
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+  
+  .skill-modifier {
+    display: inline-block;
+    width: 2rem;
+    text-align: center;
+    margin-right: var(--spacing-sm);
+    font-weight: bold;
+    background-color: var(--primary-color);
+    color: white;
+    border-radius: var(--border-radius-sm);
+    padding: 0.1rem 0.3rem;
+  }
+  
+  .skill-name {
+    flex-grow: 1;
+  }
+  
+  .skill-ability {
+    color: var(--muted-text-color);
+    font-size: 0.875rem;
+    margin-left: var(--spacing-xs);
+    font-style: italic;
+  }
+  
+  /* Custom skill styling */
+  .custom-skill-name-display {
+    cursor: pointer;
+  }
+  
+  .custom-skill-name-edit {
+    flex-grow: 1;
+    padding: var(--spacing-xs);
+    margin-right: var(--spacing-sm);
+    border: 1px solid var(--primary-color);
+    border-radius: var(--border-radius-sm);
+  }
+  
+  .custom-skill-ability-edit {
+    width: auto;
+    padding: var(--spacing-xs);
+    margin-right: var(--spacing-sm);
+    border: 1px solid var(--primary-color);
+    border-radius: var(--border-radius-sm);
+  }
+  
+  .skill-item.editing {
+    background-color: rgba(123, 44, 191, 0.05);
+    border: 1px dashed var(--primary-color);
+  }
+  
+  .edit-container {
+    display: flex;
+    flex-grow: 1;
+    align-items: center;
+  }
+  
+  .remove-skill-btn {
+    background-color: var(--error-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 18px;
+    line-height: 1;
+    text-align: center;
+    margin-left: var(--spacing-sm);
+    outline: none;
+    opacity: 0.8;
+  }
+  
+  .remove-skill-btn:hover {
+    background-color: var(--btn-danger-bg);
+    opacity: 1;
+  }
+  
+  .skill-item.editing .remove-skill-btn {
+    display: block;
+  }
+  
+  /* Combat stats */
+  .combat-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+  }
+  
+  .stat-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    background-color: var(--content-bg-color);
+    box-shadow: 0 1px 3px var(--shadow-color);
+  }
+  
+  .stat-block label {
+    font-weight: bold;
+    margin-bottom: var(--spacing-sm);
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    color: var(--primary-dark);
+  }
+  
+  /* HP and Mana */
+  #hpManaHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+  
+  .hp-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    background-color: var(--content-bg-color);
+  }
+  
+  .hp-container.mana-container {
+    margin-top: var(--spacing-md);
+  }
+  
+  /* Clickable HP and Mana fields */
+  #currentHitPoints, #currentMana {
+    cursor: pointer;
+    background-color: var(--input-disabled-bg);
+    border: 1px solid var(--border-color);
+    transition: border-color var(--transition-fast), background-color var(--transition-fast);
+  }
+  
+  #currentHitPoints:hover, #currentMana:hover {
+    border-color: var(--secondary-color);
+    background-color: var(--skill-hover-bg);
+  }
+  
+  /* Text areas */
+  .equipment-section,
+  .features-section,
+  .spells-section {
+    margin-bottom: var(--spacing-lg);
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+  }
+  
+  .equipment-section h4,
+  .features-section h4,
+  .spells-section h4 {
+    margin-bottom: var(--spacing-sm);
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: var(--spacing-sm);
+  }
+  
+  .equipment-section textarea,
+  .features-section textarea,
+  .spells-section textarea {
+    width: 100%;
+    min-height: 150px;
+    flex-grow: 1;
+    resize: vertical;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-sm);
+    background-color: var(--content-bg-color);
+  }
+  
+  /* Currency Section */
+  .currency-section {
+    background-color: var(--content-bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-md);
+  }
+  
+  .currency-section h4 {
+    margin-bottom: var(--spacing-md);
+    color: var(--primary-color);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: var(--spacing-sm);
+  }
+  
+  .currency-container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--spacing-md);
+  }
+  
+  .currency-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .currency-item label {
+    margin-bottom: var(--spacing-sm);
+    font-weight: bold;
+    color: var(--primary-dark);
+  }
+  
+  .currency-input {
+    width: 100%;
+    text-align: center;
+    padding: var(--spacing-sm);
+    font-size: 1rem;
+    background-color: var(--input-disabled-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: background-color var(--transition-fast), border-color var(--transition-fast);
+  }
+  
+  .currency-input:hover {
+    background-color: var(--skill-hover-bg);
+    border-color: var(--primary-color);
+  }
+  
+  /* Editable fields */
+  .editable-field {
+    transition: border-color var(--transition-fast), background-color var(--transition-fast);
+    cursor: pointer;
+  }
+  
+  .editable-field:hover {
+    border-color: var(--secondary-color);
+    background-color: var(--skill-hover-bg);
+  }
