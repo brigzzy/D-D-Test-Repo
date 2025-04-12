@@ -2,458 +2,15 @@
  * characterSheet.js - Main JavaScript file for handling character sheet interactions
  */
 
-
-
-// Add this at the top of your characterSheet.js file
 document.addEventListener('DOMContentLoaded', function() {
   // Get character ID from URL
   const characterId = window.location.pathname.split('/').pop();
   
-  // Initialize editable fields
-  initializeEditableFields(characterId);
-  
-  // Initialize other modules as needed (these are optional)
-  initializeHitPoints(characterId);
-  initializeMana(characterId);
-  initializeSkills(characterId);
-  initializeAbilities(characterId);
-  initializeRest(characterId);
-  initializeCurrency(characterId);
-});
-
-/**
- * Initialize all editable fields with direct save function
- * @param {string} characterId - Character ID for saving
- */
-function initializeEditableFields(characterId) {
-  const editableFields = document.querySelectorAll('.editable-field');
-  console.log(`Found ${editableFields.length} editable fields`);
-  
-  editableFields.forEach(function(field) {
-    // Skip fields that have special handlers
-    if (field.classList.contains('currency-input') || 
-        field.id === 'currentHitPoints' || 
-        field.id === 'currentMana') {
-      return;
-    }
-    
-    // Add click handler with proper 'this' binding
-    field.addEventListener('click', function() {
-      if (this.readOnly) {
-        this.readOnly = false;
-        this.focus();
-        
-        if (this.type === 'text' || this.type === 'number') {
-          this.select();
-        }
-      }
-    });
-    
-    // Add blur handler with direct save
-    field.addEventListener('blur', function() {
-      if (!this.readOnly) {
-        const fieldName = this.dataset.field;
-        const fieldValue = this.value;
-        
-        if (fieldName) {
-          // Direct save without callback
-          saveField(characterId, fieldName, fieldValue);
-        }
-        
-        this.readOnly = true;
-        
-        // Update ability modifiers if needed
-        if (this.classList.contains('ability-score')) {
-          const abilityCard = this.closest('.ability-card');
-          if (abilityCard) {
-            const abilityScore = parseInt(this.value) || 10;
-            const modifier = Math.floor((abilityScore - 10) / 2);
-            
-            const modifierEl = abilityCard.querySelector('.ability-modifier');
-            if (modifierEl) {
-              modifierEl.textContent = `${modifier >= 0 ? '+' : ''}${modifier}`;
-            }
-          }
-        }
-      }
-    });
-    
-    // Handle Enter key
-    if (field.tagName !== 'TEXTAREA') {
-      field.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          this.blur();
-        }
-      });
-    }
-  });
-}
-
-/**
- * Save field directly to server
- * @param {string} characterId - Character ID
- * @param {string} fieldName - Field name
- * @param {*} fieldValue - Field value
- */
-function saveField(characterId, fieldName, fieldValue) {
-  // Update save status if present
-  const saveStatus = document.getElementById('saveStatus');
-  if (saveStatus) {
-    saveStatus.textContent = 'Saving...';
-    saveStatus.className = 'save-status saving';
-  }
-  
-  // Send data to server
-  fetch(`/characters/${characterId}?_method=PUT`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      field: fieldName,
-      value: fieldValue
-    })
-  })
-  .then(function(response) {
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-    return response.json();
-  })
-  .then(function(data) {
-    if (saveStatus) {
-      saveStatus.textContent = 'All changes saved';
-      saveStatus.className = 'save-status saved';
-    }
-    console.log('Field saved successfully:', fieldName);
-  })
-  .catch(function(error) {
-    console.error('Error saving field:', error);
-    if (saveStatus) {
-      saveStatus.textContent = 'Error saving changes';
-      saveStatus.className = 'save-status error';
-    }
-  });
-}
-
-
-
-
-
-
-
-
-// Wait for DOM content to load
-document.addEventListener('DOMContentLoaded', initializeCharacterSheet);
-
-/**
- * Initialize character sheet - main entry point
- */
-function initializeCharacterSheet() {
-  console.log('Initializing character sheet...');
-  
-  // Get character ID from URL
-  const characterId = getCharacterId();
-  
   // Create modules config with callback
   const config = {
     saveCallback: (fieldName, fieldValue) => saveField(characterId, fieldName, fieldValue)
-  
+  };
 
-// Currency Module
-function initializeCurrency(config) {
-  console.log('Initializing currency module');
-  
-  const currencyInputs = document.querySelectorAll('.currency-input');
-  console.log(`Found ${currencyInputs.length} currency inputs`);
-  
-  currencyInputs.forEach(input => {
-    // Make sure input is readonly to trigger popup
-    input.readOnly = true;
-    
-    // Add click handler to show popup
-    input.addEventListener('click', () => {
-      showCurrencyPopup(input, config.saveCallback);
-    });
-  });
-}
-
-/**
- * Show currency modification popup
- * @param {HTMLElement} currencyInput - The currency input element
- * @param {Function} saveCallback - Callback for saving changes
- */
-function showCurrencyPopup(currencyInput, saveCallback) {
-  // Remove any existing popups
-  removeExistingPopups('currencyPopupOverlay');
-  
-  // Determine currency type and color
-  const currencyInfo = {
-    'platinum': { name: 'Platinum Pieces (PP)', color: 'var(--platinum-color)' },
-    'gold': { name: 'Gold Pieces (GP)', color: 'var(--gold-color)' },
-    'electrum': { name: 'Electrum Pieces (EP)', color: 'var(--electrum-color)' },
-    'silver': { name: 'Silver Pieces (SP)', color: 'var(--silver-color)' },
-    'copper': { name: 'Copper Pieces (CP)', color: 'var(--copper-color)' }
-  }[currencyInput.name] || { name: 'Currency', color: 'var(--primary-color)' };
-  
-  // Current value
-  const currentValue = parseInt(currencyInput.value) || 0;
-  
-  // Create and add popup
-  const popup = createPopup({
-    id: 'currencyPopup',
-    overlayId: 'currencyPopupOverlay',
-    title: `Modify ${currencyInfo.name}`,
-    currentValue: currentValue,
-    valueColor: currencyInfo.color,
-    borderColor: currencyInfo.color
-  });
-  
-  // Create buttons
-  const buttons = [
-    {
-      id: 'currencyAddBtn',
-      text: 'Add',
-      color: 'var(--success-color)',
-      action: (amount) => {
-        const newValue = currentValue + amount;
-        currencyInput.value = newValue;
-        saveCallback(`currency.${currencyInput.name}`, newValue);
-        removePopup(popup);
-      }
-    },
-    {
-      id: 'currencyRemoveBtn',
-      text: 'Remove',
-      color: 'var(--error-color)',
-      action: (amount) => {
-        const newValue = Math.max(0, currentValue - amount);
-        currencyInput.value = newValue;
-        saveCallback(`currency.${currencyInput.name}`, newValue);
-        removePopup(popup);
-      }
-    },
-    {
-      id: 'currencyCloseBtn',
-      text: 'Close',
-      color: '#9e9e9e',
-      action: () => removePopup(popup)
-    }
-  ];
-  
-  // Add buttons to popup
-  addPopupButtons(popup, buttons);
-  
-  // Focus amount input
-  const amountInput = popup.querySelector('#popupAmountInput');
-  if (amountInput) {
-    amountInput.focus();
-    amountInput.select();
-  }
-}
-
-/**
- * Helper function to create a popup
- * @param {Object} options - Popup options
- * @returns {HTMLElement} The created popup element
- */
-function createPopup(options) {
-  // Create overlay container
-  const overlay = document.createElement('div');
-  overlay.id = options.overlayId;
-  overlay.style.position = 'fixed';
-  overlay.style.top = '0';
-  overlay.style.left = '0';
-  overlay.style.right = '0';
-  overlay.style.bottom = '0';
-  overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
-  overlay.style.display = 'flex';
-  overlay.style.alignItems = 'center';
-  overlay.style.justifyContent = 'center';
-  overlay.style.zIndex = '9999';
-  
-  // Create popup
-  const popup = document.createElement('div');
-  popup.id = options.id;
-  popup.className = 'attribute-popup';
-  popup.style.backgroundColor = 'var(--content-bg-color)';
-  popup.style.borderRadius = 'var(--border-radius-md)';
-  popup.style.boxShadow = '0 4px 20px var(--shadow-color)';
-  popup.style.padding = '20px';
-  popup.style.maxWidth = '350px';
-  popup.style.width = '100%';
-  popup.style.animation = 'fadeIn 0.3s ease';
-  popup.style.borderLeft = `4px solid ${options.borderColor}`;
-  
-  // Create title
-  const title = document.createElement('h3');
-  title.style.marginTop = '0';
-  title.style.marginBottom = '20px';
-  title.style.fontSize = '20px';
-  title.style.color = 'var(--text-color)';
-  title.style.textAlign = 'center';
-  title.textContent = options.title;
-  
-  // Create value display
-  const valueDisplay = document.createElement('div');
-  valueDisplay.style.marginBottom = '20px';
-  valueDisplay.style.textAlign = 'center';
-  
-  const valueText = document.createElement('p');
-  valueText.style.margin = '5px 0';
-  valueText.style.fontSize = '24px';
-  valueText.style.fontWeight = 'bold';
-  
-  if (options.maxValue !== undefined) {
-    // For HP/Mana style with max value
-    const currentSpan = document.createElement('span');
-    currentSpan.style.color = options.valueColor;
-    currentSpan.textContent = options.currentValue;
-    
-    valueText.appendChild(currentSpan);
-    valueText.appendChild(document.createTextNode(` / ${options.maxValue}`));
-  } else {
-    // For currency style with only current value
-    valueText.style.color = options.valueColor;
-    valueText.textContent = options.currentValue;
-  }
-  
-  valueDisplay.appendChild(valueText);
-  
-  // Create amount input group
-  const inputGroup = document.createElement('div');
-  inputGroup.style.marginBottom = '20px';
-  
-  const inputLabel = document.createElement('label');
-  inputLabel.htmlFor = 'popupAmountInput';
-  inputLabel.style.display = 'block';
-  inputLabel.style.marginBottom = '10px';
-  inputLabel.style.fontWeight = 'bold';
-  inputLabel.textContent = 'Amount:';
-  
-  const amountInput = document.createElement('input');
-  amountInput.type = 'number';
-  amountInput.id = 'popupAmountInput';
-  amountInput.value = '0';
-  amountInput.min = '0';
-  amountInput.style.width = '100%';
-  amountInput.style.padding = '10px';
-  amountInput.style.fontSize = '16px';
-  amountInput.style.border = '1px solid var(--input-border-color)';
-  amountInput.style.borderRadius = 'var(--border-radius-sm)';
-  amountInput.style.backgroundColor = 'var(--input-bg-color)';
-  amountInput.style.color = 'var(--input-text-color)';
-  
-  inputGroup.appendChild(inputLabel);
-  inputGroup.appendChild(amountInput);
-  
-  // Create buttons container
-  const buttonsContainer = document.createElement('div');
-  buttonsContainer.style.display = 'flex';
-  buttonsContainer.style.justifyContent = 'space-between';
-  
-  // Add elements to popup
-  popup.appendChild(title);
-  popup.appendChild(valueDisplay);
-  popup.appendChild(inputGroup);
-  popup.appendChild(buttonsContainer);
-  
-  // Add popup to overlay
-  overlay.appendChild(popup);
-  
-  // Add overlay to body
-  document.body.appendChild(overlay);
-  
-  // Close when clicking outside the popup
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) {
-      removePopup(overlay);
-    }
-  });
-  
-  // Handle Escape key
-  document.addEventListener('keydown', function escapeListener(e) {
-    if (e.key === 'Escape') {
-      removePopup(overlay);
-      document.removeEventListener('keydown', escapeListener);
-    }
-  });
-  
-  return popup;
-}
-
-/**
- * Add buttons to a popup
- * @param {HTMLElement} popup - The popup element
- * @param {Array<Object>} buttons - Button configurations
- */
-function addPopupButtons(popup, buttons) {
-  const buttonsContainer = popup.querySelector('div:last-child');
-  if (!buttonsContainer) return;
-  
-  const amountInput = popup.querySelector('#popupAmountInput');
-  
-  buttons.forEach(buttonConfig => {
-    const button = document.createElement('button');
-    button.id = buttonConfig.id;
-    button.style.backgroundColor = buttonConfig.color;
-    button.style.color = 'white';
-    button.style.border = 'none';
-    button.style.padding = '10px 20px';
-    button.style.borderRadius = 'var(--border-radius-sm)';
-    button.style.cursor = 'pointer';
-    button.style.fontWeight = 'bold';
-    button.style.flex = buttonConfig.id.includes('Close') ? '0.8' : '1';
-    button.style.marginRight = buttonConfig.id.includes('Close') ? '0' : '10px';
-    button.textContent = buttonConfig.text;
-    
-    button.addEventListener('click', () => {
-      const amount = parseInt(amountInput?.value) || 0;
-      buttonConfig.action(amount);
-    });
-    
-    buttonsContainer.appendChild(button);
-  });
-  
-  // Handle Enter key on amount input
-  if (amountInput) {
-    amountInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        // Find the primary button (usually the middle one) and click it
-        const primaryButton = buttonsContainer.children[1] || buttonsContainer.children[0];
-        if (primaryButton) primaryButton.click();
-      }
-    });
-  }
-}
-
-/**
- * Remove an existing popup element
- * @param {HTMLElement} popup - The popup element or overlay
- */
-function removePopup(popup) {
-  // If given the popup directly, find its parent overlay
-  const overlay = popup.id.includes('Overlay') ? popup : popup.parentElement;
-  
-  if (overlay) {
-    document.body.style.overflow = ''; // Restore scrolling
-    overlay.remove();
-  }
-}
-
-/**
- * Remove any existing popups with the given overlay ID
- * @param {string} overlayId - ID of the overlay to remove
- */
-function removeExistingPopups(overlayId) {
-  const existingOverlay = document.getElementById(overlayId);
-  if (existingOverlay) {
-    existingOverlay.remove();
-  }
-}
-;
-  
   try {
     // Initialize form fields and events
     initializeEditableFields(config.saveCallback);
@@ -470,21 +27,11 @@ function removeExistingPopups(overlayId) {
   } catch (error) {
     console.error('Error initializing character sheet:', error);
   }
-}
+});
 
 /**
- * Get character ID from URL
- * @returns {string} Character ID
- */
-function getCharacterId() {
-  return window.location.pathname.split('/').pop();
-}
-
-
-
-/**
- * Initialize all editable fields - Fixed version
- * @param {Function} saveCallback - Callback to save changes
+ * Initialize all editable fields
+ * @param {function} saveCallback - Callback to save changes
  */
 function initializeEditableFields(saveCallback) {
   const editableFields = document.querySelectorAll('.editable-field');
@@ -538,40 +85,6 @@ function initializeEditableFields(saveCallback) {
       });
     }
   });
-  
-  // Enable tab navigation between fields
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Tab' && document.activeElement.classList.contains('editable-field')) {
-      // Let browser handle normal tab behavior, then check focused element
-      setTimeout(function() {
-        const nextField = document.activeElement;
-        if (nextField && nextField.classList.contains('editable-field') && nextField.readOnly) {
-          nextField.readOnly = false;
-          nextField.focus();
-          if (nextField.type === 'text' || nextField.type === 'number') {
-            nextField.select();
-          }
-        }
-      }, 0);
-    }
-  });
-}
-
-
-
-
-/**
- * Make a field editable
- * @param {HTMLElement} field - The field to make editable
- */
-function makeFieldEditable(field) {
-  field.readOnly = false;
-  field.focus();
-  
-  // For text/number inputs, select all text
-  if (field.type === 'text' || field.type === 'number') {
-    field.select();
-  }
 }
 
 /**
@@ -1075,7 +588,7 @@ function initializeSkills(config) {
       customSkills[index].name = nameInput.value;
       customSkills[index].ability = abilitySelect.value;
       customSkillsInput.value = JSON.stringify(customSkills);
-      config.saveCallback('customSkills', customSkillsInput.value);
+      config.saveCallback('customSkills', JSON.stringify(customSkills));
       
       // Re-render skills
       renderSkills();
@@ -1269,21 +782,6 @@ function initializeRest(config) {
   function performShortRest(saveCallback) {
     showRestAnimation('Short Rest', '🌙', 'var(--mana-color)');
     
-    // HP recovery (25% of max)
-    const currentHP = document.getElementById('currentHitPoints');
-    const maxHP = document.getElementById('maxHitPoints');
-    
-    if (currentHP && maxHP) {
-      const maxHPValue = parseInt(maxHP.value) || 0;
-      const currentHPValue = parseInt(currentHP.value) || 0;
-      
-      const recoveryAmount = Math.floor(maxHPValue * 0.25);
-      const newHP = Math.min(maxHPValue, currentHPValue + recoveryAmount);
-      
-      currentHP.value = newHP;
-      saveCallback('hitPoints.current', newHP);
-    }
-    
     // Mana recovery (50% of max)
     handleManaRecovery(0.5, saveCallback);
   }
@@ -1311,7 +809,7 @@ function initializeRest(config) {
   }
   
   /**
-   * Handle mana recovery based on recovery factor
+   * Handle mana recovery
    * @param {number} recoveryFactor - Factor for recovery (0.5 for short rest, 1.0 for long rest)
    * @param {Function} saveCallback - Callback for saving changes
    */
@@ -1375,5 +873,294 @@ function initializeRest(config) {
         restAnimContainer.style.visibility = 'hidden';
       }, 300);
     }, 1500);
+  }
+}
+
+// Currency Module
+function initializeCurrency(config) {
+  const currencyInputs = document.querySelectorAll('.currency-input');
+  
+  currencyInputs.forEach(input => {
+    // Make sure input is readonly to trigger popup
+    input.readOnly = true;
+    
+    // Add click handler to show popup
+    input.addEventListener('click', () => {
+      showCurrencyPopup(input, config.saveCallback);
+    });
+  });
+}
+
+/**
+ * Show currency modification popup
+ * @param {HTMLElement} currencyInput - The currency input element
+ * @param {Function} saveCallback - Callback for saving changes
+ */
+function showCurrencyPopup(currencyInput, saveCallback) {
+  // Remove any existing popups
+  removeExistingPopups('currencyPopupOverlay');
+  
+  // Determine currency type and color
+  const currencyInfo = {
+    'platinum': { name: 'Platinum Pieces (PP)', color: 'var(--platinum-color)' },
+    'gold': { name: 'Gold Pieces (GP)', color: 'var(--gold-color)' },
+    'electrum': { name: 'Electrum Pieces (EP)', color: 'var(--electrum-color)' },
+    'silver': { name: 'Silver Pieces (SP)', color: 'var(--silver-color)' },
+    'copper': { name: 'Copper Pieces (CP)', color: 'var(--copper-color)' }
+  }[currencyInput.name] || { name: 'Currency', color: 'var(--primary-color)' };
+  
+  // Current value
+  const currentValue = parseInt(currencyInput.value) || 0;
+  
+  // Create and add popup
+  const popup = createPopup({
+    id: 'currencyPopup',
+    overlayId: 'currencyPopupOverlay',
+    title: `Modify ${currencyInfo.name}`,
+    currentValue: currentValue,
+    valueColor: currencyInfo.color,
+    borderColor: currencyInfo.color
+  });
+  
+  // Create buttons
+  const buttons = [
+    {
+      id: 'currencyAddBtn',
+      text: 'Add',
+      color: 'var(--success-color)',
+      action: (amount) => {
+        const newValue = currentValue + amount;
+        currencyInput.value = newValue;
+        saveCallback(`currency.${currencyInput.name}`, newValue);
+        removePopup(popup);
+      }
+    },
+    {
+      id: 'currencyRemoveBtn',
+      text: 'Remove',
+      color: 'var(--error-color)',
+      action: (amount) => {
+        const newValue = Math.max(0, currentValue - amount);
+        currencyInput.value = newValue;
+        saveCallback(`currency.${currencyInput.name}`, newValue);
+        removePopup(popup);
+      }
+    },
+    {
+      id: 'currencyCloseBtn',
+      text: 'Close',
+      color: '#9e9e9e',
+      action: () => removePopup(popup)
+    }
+  ];
+  
+  // Add buttons to popup
+  addPopupButtons(popup, buttons);
+  
+  // Focus amount input
+  const amountInput = popup.querySelector('#popupAmountInput');
+  if (amountInput) {
+    amountInput.focus();
+    amountInput.select();
+  }
+}
+
+/**
+ * Create a popup element
+ * @param {Object} options - Popup configuration
+ * @returns {HTMLElement} Created popup element
+ */
+function createPopup(options) {
+  // Create overlay container
+  const overlay = document.createElement('div');
+  overlay.id = options.overlayId;
+  overlay.style.position = 'fixed';
+  overlay.style.top = '0';
+  overlay.style.left = '0';
+  overlay.style.right = '0';
+  overlay.style.bottom = '0';
+  overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+  overlay.style.display = 'flex';
+  overlay.style.alignItems = 'center';
+  overlay.style.justifyContent = 'center';
+  overlay.style.zIndex = '9999';
+  
+  // Create popup
+  const popup = document.createElement('div');
+  popup.id = options.id;
+  popup.className = 'attribute-popup';
+  popup.style.backgroundColor = 'var(--content-bg-color)';
+  popup.style.borderRadius = 'var(--border-radius-md)';
+  popup.style.boxShadow = '0 4px 20px var(--shadow-color)';
+  popup.style.padding = '20px';
+  popup.style.maxWidth = '350px';
+  popup.style.width = '100%';
+  popup.style.animation = 'fadeIn 0.3s ease';
+  popup.style.borderLeft = `4px solid ${options.borderColor}`;
+  
+  // Create title
+  const title = document.createElement('h3');
+  title.style.marginTop = '0';
+  title.style.marginBottom = '20px';
+  title.style.fontSize = '20px';
+  title.style.color = 'var(--text-color)';
+  title.style.textAlign = 'center';
+  title.textContent = options.title;
+  
+  // Create value display
+  const valueDisplay = document.createElement('div');
+  valueDisplay.style.marginBottom = '20px';
+  valueDisplay.style.textAlign = 'center';
+  
+  const valueText = document.createElement('p');
+  valueText.style.margin = '5px 0';
+  valueText.style.fontSize = '24px';
+  valueText.style.fontWeight = 'bold';
+  
+  if (options.maxValue !== undefined) {
+    // For HP/Mana style with max value
+    const currentSpan = document.createElement('span');
+    currentSpan.style.color = options.valueColor;
+    currentSpan.textContent = options.currentValue;
+    
+    valueText.appendChild(currentSpan);
+    valueText.appendChild(document.createTextNode(` / ${options.maxValue}`));
+  } else {
+    // For currency style with only current value
+    valueText.style.color = options.valueColor;
+    valueText.textContent = options.currentValue;
+  }
+  
+  valueDisplay.appendChild(valueText);
+  
+  // Create amount input group
+  const inputGroup = document.createElement('div');
+  inputGroup.style.marginBottom = '20px';
+  
+  const inputLabel = document.createElement('label');
+  inputLabel.htmlFor = 'popupAmountInput';
+  inputLabel.style.display = 'block';
+  inputLabel.style.marginBottom = '10px';
+  inputLabel.style.fontWeight = 'bold';
+  inputLabel.textContent = 'Amount:';
+  
+  const amountInput = document.createElement('input');
+  amountInput.type = 'number';
+  amountInput.id = 'popupAmountInput';
+  amountInput.value = '0';
+  amountInput.min = '0';
+  amountInput.style.width = '100%';
+  amountInput.style.padding = '10px';
+  amountInput.style.fontSize = '16px';
+  amountInput.style.border = '1px solid var(--input-border-color)';
+  amountInput.style.borderRadius = 'var(--border-radius-sm)';
+  amountInput.style.backgroundColor = 'var(--input-bg-color)';
+  amountInput.style.color = 'var(--input-text-color)';
+  
+  inputGroup.appendChild(inputLabel);
+  inputGroup.appendChild(amountInput);
+  
+  // Create buttons container
+  const buttonsContainer = document.createElement('div');
+  buttonsContainer.style.display = 'flex';
+  buttonsContainer.style.justifyContent = 'space-between';
+  
+  // Add elements to popup
+  popup.appendChild(title);
+  popup.appendChild(valueDisplay);
+  popup.appendChild(inputGroup);
+  popup.appendChild(buttonsContainer);
+  
+  // Add popup to overlay
+  overlay.appendChild(popup);
+  
+  // Add overlay to body
+  document.body.appendChild(overlay);
+  
+  // Close when clicking outside the popup
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      removePopup(overlay);
+    }
+  });
+  
+  // Handle Escape key
+  document.addEventListener('keydown', function escapeListener(e) {
+    if (e.key === 'Escape') {
+      removePopup(overlay);
+      document.removeEventListener('keydown', escapeListener);
+    }
+  });
+  
+  return popup;
+}
+
+/**
+ * Add buttons to a popup
+ * @param {HTMLElement} popup - The popup element
+ * @param {Array<Object>} buttons - Button configurations
+ */
+function addPopupButtons(popup, buttons) {
+  const buttonsContainer = popup.querySelector('div:last-child');
+  if (!buttonsContainer) return;
+  
+  const amountInput = popup.querySelector('#popupAmountInput');
+  
+  buttons.forEach(buttonConfig => {
+    const button = document.createElement('button');
+    button.id = buttonConfig.id;
+    button.style.backgroundColor = buttonConfig.color;
+    button.style.color = 'white';
+    button.style.border = 'none';
+    button.style.padding = '10px 20px';
+    button.style.borderRadius = 'var(--border-radius-sm)';
+    button.style.cursor = 'pointer';
+    button.style.fontWeight = 'bold';
+    button.style.flex = buttonConfig.id.includes('Close') ? '0.8' : '1';
+    button.style.marginRight = buttonConfig.id.includes('Close') ? '0' : '10px';
+    button.textContent = buttonConfig.text;
+    
+    button.addEventListener('click', () => {
+      const amount = parseInt(amountInput?.value) || 0;
+      buttonConfig.action(amount);
+    });
+    
+    buttonsContainer.appendChild(button);
+  });
+  
+  // Handle Enter key on amount input
+  if (amountInput) {
+    amountInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        // Find the primary button (usually the middle one) and click it
+        const primaryButton = buttonsContainer.children[1] || buttonsContainer.children[0];
+        if (primaryButton) primaryButton.click();
+      }
+    });
+  }
+}
+
+/**
+ * Remove an existing popup element
+ * @param {HTMLElement} popup - The popup element or overlay
+ */
+function removePopup(popup) {
+  // If given the popup directly, find its parent overlay
+  const overlay = popup.id.includes('Overlay') ? popup : popup.parentElement;
+  
+  if (overlay) {
+    document.body.style.overflow = ''; // Restore scrolling
+    overlay.remove();
+  }
+}
+
+/**
+ * Remove any existing popups with the given overlay ID
+ * @param {string} overlayId - ID of the overlay to remove
+ */
+function removeExistingPopups(overlayId) {
+  const existingOverlay = document.getElementById(overlayId);
+  if (existingOverlay) {
+    existingOverlay.remove();
   }
 }
