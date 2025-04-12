@@ -416,6 +416,8 @@
   /* Text areas */
   .equipment-section,
   .features-section,
+  .knownSpells-section,
+  .castSpells-section,
   .spells-section {
     margin-bottom: var(--spacing-lg);
     display: flex;
@@ -425,6 +427,8 @@
   
   .equipment-section h4,
   .features-section h4,
+  .knownSpells-section h4,
+  .castSpells-section h4,
   .spells-section h4 {
     margin-bottom: var(--spacing-sm);
     color: var(--primary-color);
@@ -434,9 +438,11 @@
   
   .equipment-section textarea,
   .features-section textarea,
+  .knownSpells-section textarea,
+  .castSpells-section textarea,
   .spells-section textarea {
     width: 100%;
-    min-height: 150px;
+    min-height: 300px;
     flex-grow: 1;
     resize: vertical;
     border: 1px solid var(--border-color);

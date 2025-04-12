@@ -299,16 +299,28 @@
           ><%= character.features || '' %></textarea>
         </div>
         
-        <div class="spells-section">
-          <h4>Spells</h4>
-          <textarea 
-            id="spells" 
-            name="spells" 
-            class="autosave editable-field" 
-            data-field="spells"
-            readonly
-          ><%= character.spells || '' %></textarea>
-        </div>
+        <% if (character.useManaAbility) { %>
+          <div class="knownSpells-section" style="display: block;">
+            <h4>Known Spells</h4>
+            <textarea 
+              id="knownSpells" 
+              name="knownSpells" 
+              class="autosave editable-field" 
+              data-field="knownSpells"
+              readonly
+            ><%= character.knownSpells || '' %></textarea>
+          </div>
+          <div class="castSpells-section" style="display: block;">
+            <h4>Cast Spells</h4>
+            <textarea 
+              id="castSpells" 
+              name="castSpells" 
+              class="autosave editable-field" 
+              data-field="castSpells"
+              readonly
+            ><%= character.castSpells || '' %></textarea>
+          </div>
+          <% } %>
 
         <!-- Currency Section for character_form.ejs -->
 <div class="currency-section">

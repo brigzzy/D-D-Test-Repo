@@ -495,19 +495,20 @@ function initializeSkills(config) {
       skillItem.appendChild(abilitySpan);
       
       // Add delete button for custom skills
-      if (skill.isCustom) {
-        const deleteButton = document.createElement('button');
-        deleteButton.type = 'button';
-        deleteButton.className = 'remove-skill-btn';
-        deleteButton.textContent = '×';
-        deleteButton.dataset.index = skill.index;
-        
-        deleteButton.addEventListener('click', () => {
-          removeCustomSkill(skill.index);
-        });
-        
-        skillItem.appendChild(deleteButton);
-      }
+    if (skill.isCustom) {
+  const deleteButton = document.createElement('button');
+  deleteButton.type = 'button';
+  deleteButton.className = 'remove-skill-btn';
+  deleteButton.textContent = '×';
+  deleteButton.dataset.index = skill.index;
+  deleteButton.style.display = 'none'; // This is the new line
+  
+  deleteButton.addEventListener('click', () => {
+    removeCustomSkill(skill.index);
+  });
+  
+  skillItem.appendChild(deleteButton);
+    }
       
       skillsContainer.appendChild(skillItem);
     });
@@ -633,6 +634,8 @@ function initializeSkills(config) {
   }
 }
 
+
+
 // Abilities Module
 function initializeAbilities(config) {
   const abilityCards = document.querySelectorAll('.ability-card');
@@ -659,29 +662,35 @@ function initializeAbilities(config) {
         icon.style.color = 'var(--mana-color)';
         icon.closest('.ability-card').classList.add('ability-card-active');
         
-        // Show mana container
+        // Show mana and spells containers
         const manaContainer = document.querySelector('.mana-container');
         const manaHeaderText = document.getElementById('manaHeaderText');
+        const spellsSection = document.querySelector('.spells-section');
         
         if (manaContainer) manaContainer.style.display = 'grid';
         if (manaHeaderText) manaHeaderText.style.display = '';
+        if (spellsSection) spellsSection.style.display = 'block';
         
         // Save the selected ability
         config.saveCallback('useManaAbility', ability);
       } else {
-        // Hide mana container if turning off
+        // Hide mana and spells containers if turning off
         const manaContainer = document.querySelector('.mana-container');
         const manaHeaderText = document.getElementById('manaHeaderText');
+        const spellsSection = document.querySelector('.spells-section');
         
         if (manaContainer) manaContainer.style.display = 'none';
         if (manaHeaderText) manaHeaderText.style.display = 'none';
+        if (spellsSection) spellsSection.style.display = 'none';
         
         // Clear the selected ability
-        config.saveCallback('useManaAbility', null);
+        config.saveCallback('useManaAbility', '');
       }
     });
   });
 }
+
+
 
 // Rest Module
 function initializeRest(config) {

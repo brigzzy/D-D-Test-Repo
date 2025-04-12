@@ -337,6 +337,8 @@ app.post('/characters', requireAuth, async (req, res) => {
       speed: parseInt(req.body.speed) || 30,
       skills: JSON.parse(req.body.skills || '[]'),
       customSkills: JSON.parse(req.body.customSkills || '[]'),
+      knownSpells: req.body.knownSpells || '',
+      castSpells: req.body.castSpells || '',
       equipment: req.body.equipment || '',
       features: req.body.features || '',
       spells: req.body.spells || '',
@@ -385,6 +387,11 @@ app.put('/characters/:id', requireAuth, async (req, res) => {
     if (character.owner !== req.session.user.username && !req.session.user.isAdmin) {
       return res.status(403).send('Forbidden: You do not have access to this character');
     }
+
+    // if (fieldName === 'useManaAbility') {
+    //   // Treat empty string the same as null
+    //   updatedCharacter.useManaAbility = fieldValue || null;
+    // }
     
     // Handle single field update via AJAX
     if (req.body.field && req.body.value !== undefined) {
@@ -442,6 +449,8 @@ app.put('/characters/:id', requireAuth, async (req, res) => {
       speed: parseInt(req.body.speed) || 30,
       skills: JSON.parse(req.body.skills || '[]'),
       customSkills: JSON.parse(req.body.customSkills || '[]'),
+      knownSpells: req.body.knownSpells || '',
+      castSpells: req.body.castSpells || '',
       equipment: req.body.equipment || '',
       features: req.body.features || '',
       spells: req.body.spells || '',
