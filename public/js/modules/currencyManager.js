@@ -1,5 +1,7 @@
 // public/js/modules/currencyManager.js
 
+import { updateSaveStatus } from './utils.js';
+
 /**
  * Currency management module for D&D character sheet
  * Handles currency field interactions and popups

@@ -190,6 +190,10 @@ app.post('/users', requireAuth, requireAdmin, async (req, res) => {
 
 // Character Routes
 app.get('/characters', requireAuth, async (req, res) => {
+
+  const character = await readYamlFile(characterPath);
+  console.log('Character theme from YAML:', character.theme);
+
   try {
     const charactersDir = path.join(__dirname, 'data', 'characters');
     
@@ -378,6 +382,9 @@ app.get('/characters/:id', requireAuth, async (req, res) => {
     if (character.owner !== req.session.user.username && !req.session.user.isAdmin) {
       return res.status(403).send('Forbidden: You do not have access to this character');
     }
+
+    // Pass character theme to the template
+    res.locals.characterTheme = character.theme;
     
     res.render('character_form', { 
       title: character.name,

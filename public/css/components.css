@@ -433,3 +433,29 @@
   .rest-button:active {
     transform: scale(0.95);
   }
+
+
+
+
+  /* Character theme picker inside header */
+.character-theme-picker {
+  margin-left: 15px;
+  display: flex;
+  align-items: center;
+}
+
+.character-theme-picker label {
+  margin-right: 5px;
+  font-size: 14px;
+  color: var(--header-text-color);
+  margin-bottom: 0;
+}
+
+.character-theme-picker select {
+  padding: 2px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+  background-color: var(--header-bg-color);
+  color: var(--header-text-color);
+  font-size: 14px;
+}

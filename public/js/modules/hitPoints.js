@@ -1,5 +1,7 @@
 // public/js/modules/hitPoints.js - Fixed version
 
+import { updateSaveStatus } from './utils.js';
+
 /**
  * Manages character hit points, including the popup interface
  */

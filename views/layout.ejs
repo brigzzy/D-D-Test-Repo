@@ -3,7 +3,11 @@
 <html 
   lang="en" 
   data-theme="<%= typeof currentUser !== 'undefined' && currentUser && currentUser.theme ? currentUser.theme : 'light' %>"
-  <%= typeof locals.characterTheme !== 'undefined' ? `data-character-theme="${locals.characterTheme}"` : '' %>
+  <% if (typeof locals !== 'undefined' && locals.characterTheme) { %>
+    data-character-theme="<%= locals.characterTheme %>"
+  <% } else if (typeof character !== 'undefined' && character.theme) { %>
+    data-character-theme="<%= character.theme %>"
+  <% } %>
 >
 <head>
   <link rel="icon" href="data:,">
@@ -42,17 +46,7 @@
   <link rel="stylesheet" href="/css/index.css">
   
   <!-- Theme toggle script -->
-  <script src="/js/themeToggle.js"></script>
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Set logged in state
-      <% if (typeof currentUser !== 'undefined' && currentUser) { %>
-        markUserLoggedIn(true);
-      <% } else { %>
-        markUserLoggedIn(false);
-      <% } %>
-    });
-  </script>
+  <script type="module" src="/js/modules/themeToggle.js"></script>
 </head>
 <body>
   <header>
@@ -78,6 +72,7 @@
               <span class="slider"></span>
             </label>
             <span class="moon"><i class="fas fa-moon"></i></span>
+            <!-- Character theme selector will be added here dynamically -->
           </div>
         </div>
       <% } %>
@@ -93,26 +88,45 @@
       <p>&copy; <%= new Date().getFullYear() %> D&D Character Sheet App</p>
     </div>
   </footer>
+
+
+
+  <script>
+    // Force correct character theme application
+    document.addEventListener('DOMContentLoaded', function() {
+      const characterTheme = document.documentElement.getAttribute('data-character-theme');
+      console.log('Layout detected character theme:', characterTheme);
+      
+      if (characterTheme) {
+        // Force a refresh of CSS variables by briefly removing and re-adding the attribute
+        document.documentElement.removeAttribute('data-character-theme');
+        
+        // Small delay to ensure processing
+        setTimeout(() => {
+          document.documentElement.setAttribute('data-character-theme', characterTheme);
+          console.log('Layout re-applied character theme:', characterTheme);
+          
+          // Also update the dropdown if it exists
+          const themeSelect = document.getElementById('character-theme-select');
+          if (themeSelect) {
+            themeSelect.value = characterTheme;
+            console.log('Layout updated theme select to:', characterTheme);
+          }
+        }, 10);
+      }
+    });
+  </script>
+
+
   
   <% if (typeof script !== 'undefined') { %>
     <%- script %>
   <% } %>
 </body>
 
-<!-- Add this script right before the closing </body> tag in layout.ejs -->
-<script>
-  // Ensure toggle state matches theme state on page load
-  document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(function() {
-      const themeToggle = document.getElementById('theme-toggle');
-      if (themeToggle) {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        themeToggle.checked = currentTheme === 'dark';
-        console.log('Fixed toggle state to match theme:', currentTheme);
-      }
-    }, 100); // Short delay to ensure other scripts have run
-  });
-</script>
+
+
+
 
 
 </html>

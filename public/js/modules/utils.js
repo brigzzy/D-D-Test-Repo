@@ -1,4 +1,4 @@
-// public/js/modules/utils.js
+// modules/utils.js
 
 /**
  * Debounce function to limit rapid function calls
@@ -15,11 +15,29 @@ export function debounce(func, delay) {
 }
 
 /**
+ * Format a modifier with plus/minus sign
+ * @param {number} modifier - The modifier value
+ * @returns {string} Formatted modifier
+ */
+export function formatModifier(modifier) {
+  return `${modifier >= 0 ? '+' : ''}${modifier}`;
+}
+
+/**
+ * Calculate ability modifier from score
+ * @param {number} score - Ability score
+ * @returns {number} Calculated modifier
+ */
+export function calculateModifier(score) {
+  return Math.floor((score - 10) / 2);
+}
+
+/**
  * Safe stringify function that handles DOM elements
  * @param {any} value - Value to stringify
  * @returns {string} JSON string
  */
-function safeStringify(value) {
+export function safeStringify(value) {
   return JSON.stringify(value, (key, val) => {
     if (val instanceof Element || val instanceof Node) {
       return undefined; // Skip DOM elements
@@ -49,6 +67,9 @@ export async function saveField(characterId, field, value) {
       }
     }
     
+    // Update save status to "saving"
+    updateSaveStatus('saving');
+    
     // Send request to server
     const response = await fetch(`/characters/${characterId}?_method=PUT`, {
       method: 'POST',
@@ -64,6 +85,9 @@ export async function saveField(characterId, field, value) {
     if (!response.ok) {
       throw new Error(`Server responded with ${response.status}`);
     }
+    
+    // Update save status to "saved"
+    updateSaveStatus('saved');
     
     return await response.json();
   } catch (error) {
@@ -100,32 +124,20 @@ export function makeFieldEditable(field) {
   if (field.readOnly) {
     field.readOnly = false;
     field.focus();
+    
+    // For text inputs, select all text for easy replacement
+    if (field.type === 'text' || field.type === 'number') {
+      field.select();
+    }
   }
 }
 
 /**
- * Safely get form values
- * @param {HTMLFormElement} form - Form element
- * @returns {Object} Form values
+ * Get character ID from URL
+ * @returns {string|null} Character ID or null
  */
-export function getFormValues(form) {
-  const values = {};
-  
-  Array.from(form.elements).forEach(element => {
-    // Skip buttons and non-input elements
-    if (!element.name || element.type === 'button' || element.type === 'submit') {
-      return;
-    }
-    
-    // Handle checkboxes
-    if (element.type === 'checkbox') {
-      values[element.name] = element.checked;
-    } 
-    // Handle text, number, and other inputs
-    else {
-      values[element.name] = element.value;
-    }
-  });
-  
-  return values;
+export function getCharacterIdFromUrl() {
+  const path = window.location.pathname;
+  const match = path.match(/\/characters\/([^\/]+)$/);
+  return match ? match[1] : null;
 }

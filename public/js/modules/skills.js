@@ -1,5 +1,9 @@
 // public/js/modules/skills.js
 
+
+import { AbilityManager } from './abilities.js';
+import { updateSaveStatus } from './utils.js';
+
 /**
  * Manages character skills, including standard and custom skills
  */
@@ -12,9 +16,9 @@ export class SkillManager {
    * @returns {number} Calculated skill modifier
    */
   static calculateSkillModifier(skill, abilities, proficiencyBonus) {
-    const abilityMod = Math.floor((abilities[skill.ability] - 10) / 2);
+    const abilityMod = AbilityManager.calculateModifier(abilities[skill.ability]);
     return abilityMod + (skill.proficient ? proficiencyBonus : 0);
-  }
+    }
 
   /**
    * Initialize skill interactions
