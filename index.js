@@ -6,6 +6,7 @@ const path = require('path');
 const methodOverride = require('method-override');
 const expressLayouts = require('express-ejs-layouts');
 const fs = require('fs/promises');
+const yaml = require('js-yaml');
 
 // Import custom modules
 const { requireAuth, requireAdmin, loadUserData } = require('./middleware');
@@ -400,11 +401,6 @@ app.put('/characters/:id', requireAuth, async (req, res) => {
       return res.status(403).send('Forbidden: You do not have access to this character');
     }
 
-    // if (fieldName === 'useManaAbility') {
-    //   // Treat empty string the same as null
-    //   updatedCharacter.useManaAbility = fieldValue || null;
-    // }
-    
     // Handle single field update via AJAX
     if (req.body.field && req.body.value !== undefined) {
       let value = req.body.value;
@@ -423,7 +419,21 @@ app.put('/characters/:id', requireAuth, async (req, res) => {
             return res.status(400).json({ error: 'Invalid JSON value' });
           }
         }
-        character[fieldParts[0]] = value;
+
+        // Handle theme field specially
+        if (req.body.field === 'theme') {
+          // Validate theme value
+          const validThemes = ['default', 'red', 'green', 'blue'];
+          if (!validThemes.includes(value)) {
+            return res.status(400).json({ error: 'Invalid theme value' });
+          }
+          
+          // Set theme to null if it's default to save space
+          character.theme = value === 'default' ? null : value;
+        } else {
+          // For other fields
+          character[fieldParts[0]] = value;
+        }
       } else if (fieldParts.length === 2) {
         if (!character[fieldParts[0]]) {
           character[fieldParts[0]] = {};
@@ -508,7 +518,8 @@ async function startServer() {
 }
 
 
-// User Preferences Route
+
+
 app.post('/user/preferences', requireAuth, async (req, res) => {
   console.log('User preferences route called:', req.body);
   
@@ -592,5 +603,13 @@ app.post('/user/preferences', requireAuth, async (req, res) => {
     });
   }
 });
+
+
+
+
+
+
+
+
 
 startServer();

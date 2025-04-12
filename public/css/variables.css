@@ -1,136 +1,234 @@
 /* variables.css - Unified CSS Variables */
 
 :root {
-    /* Color Scheme - Light Theme (Default) */
-    --primary-color: #7b2cbf;
-    --primary-dark: #5a189a;
-    --secondary-color: #c77dff;
-    --accent-color: #e0aaff;
-    
-    /* Background colors */
-    --bg-color: #f5f5f5;
-    --content-bg-color: #ffffff;
-    --card-bg-color: #f9f9f9;
-    --header-bg-color: #7b2cbf; 
-    --footer-bg-color: #5a189a;
-    
-    /* Text colors */
-    --text-color: #333333;
-    --header-text-color: #ffffff;
-    --footer-text-color: #ffffff;
-    --muted-text-color: #6c757d;
-    
-    /* Form element colors */
-    --input-bg-color: #ffffff;
-    --input-text-color: #333333;
-    --input-border-color: #dddddd;
-    --input-disabled-bg: #f8f9fa;
-    --input-focus-border: #7b2cbf;
-    --input-focus-shadow: rgba(123, 44, 191, 0.25);
-    
-    /* Button colors */
-    --btn-primary-bg: #7b2cbf;
-    --btn-primary-text: #ffffff;
-    --btn-secondary-bg: #6c757d;
-    --btn-secondary-text: #ffffff;
-    --btn-danger-bg: #f44336;
-    --btn-danger-text: #ffffff;
-    
-    /* Component colors */
-    --border-color: #dddddd;
-    --shadow-color: rgba(0, 0, 0, 0.1);
-    --save-status-bg: rgba(0, 0, 0, 0.1);
-    --table-header-bg: #f8f9fa;
-    
-    /* Skill list colors */
-    --skill-odd-bg: rgba(0, 0, 0, 0.03);
-    --skill-hover-bg: rgba(0, 0, 0, 0.06);
-    
-    /* Toggle switch */
-    --toggle-bg: #dddddd;
-    --toggle-slider: #ffffff;
-    --toggle-active-bg: #7b2cbf;
-    
-    /* Special Colors */
-    --hp-color: #f44336;
-    --mana-color: #3f51b5;
-    --success-color: #4caf50;
-    --error-color: #f44336;
-    --warning-color: #ff9800;
-    
-    /* Currency Colors */
-    --platinum-color: #7b7b7b;
-    --gold-color: #d4af37;
-    --electrum-color: #50c878;
-    --silver-color: #c0c0c0;
-    --copper-color: #b87333;
-    
-    /* Spacing & Sizing */
-    --spacing-xs: 0.25rem;
-    --spacing-sm: 0.5rem;
-    --spacing-md: 1rem;
-    --spacing-lg: 1.5rem;
-    --spacing-xl: 2rem;
-    
-    --border-radius-sm: 4px;
-    --border-radius-md: 8px;
-    --border-radius-lg: 12px;
-    --border-radius-circle: 50%;
-    
-    /* Animations */
-    --transition-fast: 0.2s ease;
-    --transition-normal: 0.3s ease;
-  }
+  /* Color Scheme - Light Theme (Default) */
+  --primary-color: #7b2cbf;
+  --primary-dark: #5a189a;
+  --secondary-color: #c77dff;
+  --accent-color: #e0aaff;
   
-  /* Dark Theme Variables */
-  [data-theme="dark"] {
-    /* Colors */
-    --primary-color: #9c27b0;
-    --primary-dark: #3d0d6e;
-    --secondary-color: #e0aaff;
-    --accent-color: #7b2cbf;
-    
-    /* Background colors */
-    --bg-color: #121212;
-    --content-bg-color: #2d2d2d;
-    --card-bg-color: #1e1e1e;
-    --header-bg-color: #5a189a; 
-    --footer-bg-color: #3d0d6e;
-    
-    /* Text colors */
-    --text-color: #e0e0e0;
-    --header-text-color: #ffffff;
-    --footer-text-color: #cccccc;
-    --muted-text-color: #9e9e9e;
-    
-    /* Form element colors */
-    --input-bg-color: #2d2d2d;
-    --input-text-color: #e0e0e0;
-    --input-border-color: #444444;
-    --input-disabled-bg: #1a1a1a;
-    --input-focus-border: #9c27b0;
-    --input-focus-shadow: rgba(156, 39, 176, 0.25);
-    
-    /* Button colors */
-    --btn-primary-bg: #9c27b0;
-    --btn-primary-text: #ffffff;
-    --btn-secondary-bg: #4a4a4a;
-    --btn-secondary-text: #e0e0e0;
-    --btn-danger-bg: #d32f2f;
-    --btn-danger-text: #ffffff;
-    
-    /* Component colors */
-    --border-color: #444444;
-    --shadow-color: rgba(0, 0, 0, 0.5);
-    --save-status-bg: rgba(255, 255, 255, 0.1);
-    --table-header-bg: #1e1e1e;
-    
-    /* Skill list colors */
-    --skill-odd-bg: rgba(255, 255, 255, 0.05);
-    --skill-hover-bg: rgba(255, 255, 255, 0.1);
-    
-    /* Toggle switch */
-    --toggle-bg: #444444;
-    --toggle-slider: #dddddd;
-    --toggle-active-bg: #9c27b0;
-  }
+  /* Background colors */
+  --bg-color: #f5f5f5;
+  --content-bg-color: #ffffff;
+  --card-bg-color: #f9f9f9;
+  --header-bg-color: #7b2cbf; 
+  --footer-bg-color: #5a189a;
+  
+  /* Text colors */
+  --text-color: #333333;
+  --header-text-color: #ffffff;
+  --footer-text-color: #ffffff;
+  --muted-text-color: #6c757d;
+  
+  /* Form element colors */
+  --input-bg-color: #ffffff;
+  --input-text-color: #333333;
+  --input-border-color: #dddddd;
+  --input-disabled-bg: #f8f9fa;
+  --input-focus-border: #7b2cbf;
+  --input-focus-shadow: rgba(123, 44, 191, 0.25);
+  
+  /* Button colors */
+  --btn-primary-bg: #7b2cbf;
+  --btn-primary-text: #ffffff;
+  --btn-secondary-bg: #6c757d;
+  --btn-secondary-text: #ffffff;
+  --btn-danger-bg: #f44336;
+  --btn-danger-text: #ffffff;
+  
+  /* Component colors */
+  --border-color: #dddddd;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --save-status-bg: rgba(0, 0, 0, 0.1);
+  --table-header-bg: #f8f9fa;
+  
+  /* Skill list colors */
+  --skill-odd-bg: rgba(0, 0, 0, 0.03);
+  --skill-hover-bg: rgba(0, 0, 0, 0.06);
+  
+  /* Toggle switch */
+  --toggle-bg: #dddddd;
+  --toggle-slider: #ffffff;
+  --toggle-active-bg: #7b2cbf;
+  
+  /* Special Colors */
+  --hp-color: #f44336;
+  --mana-color: #3f51b5;
+  --success-color: #4caf50;
+  --error-color: #f44336;
+  --warning-color: #ff9800;
+  
+  /* Currency Colors */
+  --platinum-color: #7b7b7b;
+  --gold-color: #d4af37;
+  --electrum-color: #50c878;
+  --silver-color: #c0c0c0;
+  --copper-color: #b87333;
+  
+  /* Spacing & Sizing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-circle: 50%;
+  
+  /* Animations */
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+}
+
+/* Dark Theme Variables */
+[data-theme="dark"] {
+  /* Colors */
+  --primary-color: #9c27b0;
+  --primary-dark: #3d0d6e;
+  --secondary-color: #e0aaff;
+  --accent-color: #7b2cbf;
+  
+  /* Background colors */
+  --bg-color: #121212;
+  --content-bg-color: #2d2d2d;
+  --card-bg-color: #1e1e1e;
+  --header-bg-color: #5a189a; 
+  --footer-bg-color: #3d0d6e;
+  
+  /* Text colors */
+  --text-color: #e0e0e0;
+  --header-text-color: #ffffff;
+  --footer-text-color: #cccccc;
+  --muted-text-color: #9e9e9e;
+  
+  /* Form element colors */
+  --input-bg-color: #2d2d2d;
+  --input-text-color: #e0e0e0;
+  --input-border-color: #444444;
+  --input-disabled-bg: #1a1a1a;
+  --input-focus-border: #9c27b0;
+  --input-focus-shadow: rgba(156, 39, 176, 0.25);
+  
+  /* Button colors */
+  --btn-primary-bg: #9c27b0;
+  --btn-primary-text: #ffffff;
+  --btn-secondary-bg: #4a4a4a;
+  --btn-secondary-text: #e0e0e0;
+  --btn-danger-bg: #d32f2f;
+  --btn-danger-text: #ffffff;
+  
+  /* Component colors */
+  --border-color: #444444;
+  --shadow-color: rgba(0, 0, 0, 0.5);
+  --save-status-bg: rgba(255, 255, 255, 0.1);
+  --table-header-bg: #1e1e1e;
+  
+  /* Skill list colors */
+  --skill-odd-bg: rgba(255, 255, 255, 0.05);
+  --skill-hover-bg: rgba(255, 255, 255, 0.1);
+  
+  /* Toggle switch */
+  --toggle-bg: #444444;
+  --toggle-slider: #dddddd;
+  --toggle-active-bg: #9c27b0;
+}
+
+/* Character Sheet Specific Themes */
+/* Red Theme */
+[data-character-theme="red"] {
+  /* Primary colors */
+  --primary-color: #e53935;
+  --primary-dark: #c62828;
+  --secondary-color: #ffcdd2;
+  --accent-color: #ff8a80;
+  
+  /* Background and UI colors */
+  --content-bg-color: #fff5f5;
+  --card-bg-color: #fff0f0;
+  --input-focus-border: #e53935;
+  --input-focus-shadow: rgba(229, 57, 53, 0.25);
+  
+  /* Button colors */
+  --btn-primary-bg: #e53935;
+  
+  /* Mana color */
+  --mana-color: #ef5350;
+}
+
+/* Green Theme */
+[data-character-theme="green"] {
+  /* Primary colors */
+  --primary-color: #43a047;
+  --primary-dark: #2e7d32;
+  --secondary-color: #c8e6c9;
+  --accent-color: #a5d6a7;
+  
+  /* Background and UI colors */
+  --content-bg-color: #f5fff5;
+  --card-bg-color: #f0fff0;
+  --input-focus-border: #43a047;
+  --input-focus-shadow: rgba(67, 160, 71, 0.25);
+  
+  /* Button colors */
+  --btn-primary-bg: #43a047;
+  
+  /* Mana color */
+  --mana-color: #66bb6a;
+}
+
+/* Blue Theme */
+[data-character-theme="blue"] {
+  /* Primary colors */
+  --primary-color: #1e88e5;
+  --primary-dark: #1565c0;
+  --secondary-color: #bbdefb;
+  --accent-color: #90caf9;
+  
+  /* Background and UI colors */
+  --content-bg-color: #f5f9ff;
+  --card-bg-color: #f0f8ff;
+  --input-focus-border: #1e88e5;
+  --input-focus-shadow: rgba(30, 136, 229, 0.25);
+  
+  /* Button colors */
+  --btn-primary-bg: #1e88e5;
+  
+  /* Mana color */
+  --mana-color: #42a5f5;
+}
+
+/* Apply character themes in dark mode */
+[data-theme="dark"][data-character-theme="red"] {
+  --primary-color: #f44336;
+  --primary-dark: #b71c1c;
+  --secondary-color: #ef9a9a;
+  --accent-color: #e57373;
+  --content-bg-color: #2d2222;
+  --card-bg-color: #1e1919;
+  --mana-color: #e57373;
+  --btn-primary-bg: #c62828;
+}
+
+[data-theme="dark"][data-character-theme="green"] {
+  --primary-color: #4caf50;
+  --primary-dark: #1b5e20;
+  --secondary-color: #a5d6a7;
+  --accent-color: #81c784;
+  --content-bg-color: #222d22;
+  --card-bg-color: #191e19;
+  --mana-color: #81c784;
+  --btn-primary-bg: #2e7d32;
+}
+
+[data-theme="dark"][data-character-theme="blue"] {
+  --primary-color: #2196f3;
+  --primary-dark: #0d47a1;
+  --secondary-color: #90caf9;
+  --accent-color: #64b5f6;
+  --content-bg-color: #222a2d;
+  --card-bg-color: #19191e;
+  --mana-color: #64b5f6;
+  --btn-primary-bg: #1565c0;
+}

@@ -1,4 +1,22 @@
+
+
+
+<!-- Add this directly in the character-sheet-header div in character_form.ejs -->
+<div class="theme-picker-container" style="display: flex; align-items: center; margin-right: 1rem;">
+  <label for="character-theme-select" style="margin-right: 0.5rem; font-size: 0.875rem; color: var(--muted-text-color);">Sheet Theme:</label>
+  <select id="character-theme-select" style="padding: 0.25rem; border-radius: 4px; border: 1px solid var(--border-color);">
+    <option value="default" <%= !character.theme ? 'selected' : '' %>>Default</option>
+    <option value="red" <%= character.theme === 'red' ? 'selected' : '' %>>Red</option>
+    <option value="green" <%= character.theme === 'green' ? 'selected' : '' %>>Green</option>
+    <option value="blue" <%= character.theme === 'blue' ? 'selected' : '' %>>Blue</option>
+  </select>
+</div>
+
+
+
 <!-- Complete character-sheet-container div -->
+
+
 <div class="character-sheet-container">
   <div class="character-sheet-header">
     <h2><%= isNew ? 'Create New Character' : 'Edit Character' %></h2>
@@ -410,7 +428,69 @@
 
 
 
-
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const themeSelect = document.getElementById('character-theme-select');
+    const characterId = '<%= characterId %>';
+    
+    if (themeSelect && characterId) {
+      // Apply theme on page load
+      applyTheme(themeSelect.value);
+      
+      // Change theme on select change
+      themeSelect.addEventListener('change', function() {
+        const theme = this.value;
+        applyTheme(theme);
+        saveTheme(theme);
+      });
+    }
+    
+    function applyTheme(theme) {
+      // Remove existing theme
+      document.documentElement.removeAttribute('data-character-theme');
+      
+      // Apply new theme if not default
+      if (theme && theme !== 'default') {
+        document.documentElement.setAttribute('data-character-theme', theme);
+      }
+    }
+    
+    function saveTheme(theme) {
+      // Update save status
+      const saveStatus = document.getElementById('saveStatus');
+      if (saveStatus) {
+        saveStatus.textContent = 'Saving...';
+        saveStatus.className = 'save-status saving';
+      }
+      
+      // Save to server
+      fetch('/characters/' + characterId + '?_method=PUT', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          field: 'theme',
+          value: theme === 'default' ? null : theme
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (saveStatus) {
+          saveStatus.textContent = 'All changes saved';
+          saveStatus.className = 'save-status saved';
+        }
+      })
+      .catch(error => {
+        console.error('Error saving theme:', error);
+        if (saveStatus) {
+          saveStatus.textContent = 'Error saving changes';
+          saveStatus.className = 'save-status error';
+        }
+      });
+    }
+  });
+</script>
 
 
 

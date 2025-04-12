@@ -1,6 +1,10 @@
 <!-- Simple layout.ejs for dark mode -->
 <!DOCTYPE html>
-<html lang="en" data-theme="light" <% if (typeof currentUser !== 'undefined' && currentUser && currentUser.theme) { %>data-user-theme="<%= currentUser.theme %>"<% } %>>
+<html 
+  lang="en" 
+  data-theme="<%= typeof currentUser !== 'undefined' && currentUser && currentUser.theme ? currentUser.theme : 'light' %>"
+  <%= typeof locals.characterTheme !== 'undefined' ? `data-character-theme="${locals.characterTheme}"` : '' %>
+>
 <head>
   <link rel="icon" href="data:,">
   <meta charset="UTF-8">
